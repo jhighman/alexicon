@@ -13,8 +13,10 @@ class LlmResolver
     def resolved? = model.present? && error.nil?
   end
 
-  NO_CERTIFIED_MODEL = "no certified model is available — a model must be certified " \
-                       "by a named person before it can be used".freeze
+  NO_CERTIFIED_MODEL = "no model is certified — a model must be certified by a named " \
+                       "person before it can be used".freeze
+
+  PROVIDERS_INACTIVE = "every certified model belongs to an inactive provider".freeze
 
   def self.resolve(agent:, action_type:) = new(agent: agent, action_type: action_type).resolve
 
@@ -25,7 +27,7 @@ class LlmResolver
 
   def resolve
     return failure("caller has no key to match an assignment against") if agent_key.blank?
-    return failure(NO_CERTIFIED_MODEL) if LlmModel.assignable.none?
+    return failure(nothing_assignable) if LlmModel.assignable.none?
 
     best = candidates.max_by { [ it.specificity, it.priority ] }
     return failure("no assignment matches #{agent_key.inspect} / #{action_type.inspect}") if best.nil?
@@ -42,6 +44,13 @@ class LlmResolver
   def candidates
     LlmAssignment.active.with_assignable_model.includes(llm_model: :llm_provider)
                  .select { it.matches?(agent_key: agent_key, action_type: action_type) }
+  end
+
+  # "Nothing is assignable" has two quite different causes, and telling them
+  # apart is the difference between "go certify something" and "you switched a
+  # provider off and forgot".
+  def nothing_assignable
+    LlmModel.certified.any? ? PROVIDERS_INACTIVE : NO_CERTIFIED_MODEL
   end
 
   def failure(message) = Result.new(model: nil, assignment: nil, error: message)

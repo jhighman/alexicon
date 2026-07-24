@@ -39,6 +39,32 @@ class ClaimClassifier
 
   def self.classify!(claim, asserter: nil, **) = new(claim, **).classify!(asserter: asserter)
 
+  Readiness = Data.define(:model, :problem) do
+    def ready? = problem.nil?
+  end
+
+  # Can a classification actually run right now, and if not, why?
+  #
+  # Asked before queueing work, so a reviewer is told what is missing instead of
+  # watching a job fail silently. It resolves the model rather than assuming
+  # one: which provider answers is a governed decision, so naming a vendor here
+  # would be this code overriding the registry.
+  def self.readiness
+    agent = Referent.find_by(key: "claim-classifier")
+    return Readiness.new(model: nil, problem: "the classifier referent is missing — reseed") if agent.nil?
+
+    resolution = LlmResolver.resolve(agent: agent, action_type: ACTION)
+    return Readiness.new(model: nil, problem: resolution.error) unless resolution.resolved?
+
+    provider = resolution.model.llm_provider
+    return Readiness.new(model: resolution.model, problem: nil) if provider.credentialed?
+
+    Readiness.new(model: resolution.model,
+                  problem: "#{resolution.model.display_name} would answer, but #{provider.name} " \
+                           "has no API key — set one on the Providers page, or export " \
+                           "#{provider.credential_env}")
+  end
+
   def initialize(claim, client: nil, framework: nil, confidence_floor: DEFAULT_CONFIDENCE_FLOOR)
     @claim = claim
     @client = client

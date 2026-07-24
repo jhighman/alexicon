@@ -11,6 +11,19 @@ RSpec.describe "running an analysis", type: :request do
     Document.order(:created_at).last
   end
 
+  # Certify the seeded Anthropic model and route the classifier to it, so the
+  # readiness check has a governed answer to find.
+  def arm_classifier(key: "sk-test")
+    provider = LlmProvider.find_by!(key: "anthropic")
+    provider.update!(status: "active")
+    provider.set_api_key!(key, by: Referent.where(primitive: "person").first)
+    model = LlmModel.find_by!(model_identifier: "claude-opus-5")
+    model.certify!(Referent.where(primitive: "person").first)
+    LlmAssignment.create!(llm_model: model, agent_pattern: "claim-classifier",
+                          action_type: "classify")
+    model
+  end
+
   def unlock(document)
     document.open_stops.each { patch flag_path(it), params: { disposition: "accepted" } }
     document.reload
@@ -33,22 +46,34 @@ RSpec.describe "running an analysis", type: :request do
       expect(ClassifyDocumentJob).to have_been_enqueued.exactly(0).times
     end
 
-    it "refuses without an API key rather than failing in the background" do
+    it "refuses when no model is certified, rather than failing in the background" do
       document = ingest("Pugsley left.")
       unlock(document)
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("ANTHROPIC_API_KEY").and_return(nil)
 
       post classify_document_path(document)
 
-      expect(flash[:alert]).to match(/ANTHROPIC_API_KEY/)
+      expect(flash[:alert]).to match(/no model is certified/)
+      expect(ClassifyDocumentJob).to have_been_enqueued.exactly(0).times
     end
 
-    it "enqueues the job once the document is executable" do
+    # The old guard checked ANTHROPIC_API_KEY directly, so it both missed a
+    # stored key and named the wrong vendor once routing could point elsewhere.
+    it "names the provider that would actually answer when its key is missing" do
+      arm_classifier
+      LlmProvider.find_by!(key: "anthropic").clear_api_key!
       document = ingest("Pugsley left.")
       unlock(document)
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("ANTHROPIC_API_KEY").and_return("sk-test")
+
+      with_env(ANTHROPIC_API_KEY: nil) { post classify_document_path(document) }
+
+      expect(flash[:alert]).to match(/Claude Opus 5 would answer, but Anthropic has no API key/)
+      expect(ClassifyDocumentJob).to have_been_enqueued.exactly(0).times
+    end
+
+    it "enqueues the job once a governed model is armed and the document is executable" do
+      arm_classifier
+      document = ingest("Pugsley left.")
+      unlock(document)
 
       expect { post classify_document_path(document) }
         .to have_enqueued_job(ClassifyDocumentJob).with(document)

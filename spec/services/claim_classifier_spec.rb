@@ -36,8 +36,6 @@ RSpec.describe ClaimClassifier do
     end
   end
 
-  # Minimal stand-in for the SDK response shape: content is a list of blocks,
-  # each with a type and text.
   # An adapter, not a vendor client: the classifier speaks only
   # LlmClients::Base#complete, so the stub is the same shape for every provider.
   def stub_client(payload)
@@ -148,11 +146,28 @@ RSpec.describe ClaimClassifier do
 
   describe "credentials" do
     it "raises a clear error when no API key is configured" do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("ANTHROPIC_API_KEY").and_return(nil)
+      with_env(ANTHROPIC_API_KEY: nil) do
+        expect { described_class.new(claim, framework: framework).call }
+          .to raise_error(described_class::MissingCredentials, /ANTHROPIC_API_KEY/)
+      end
+    end
 
-      expect { described_class.new(claim, framework: framework).call }
-        .to raise_error(described_class::MissingCredentials, /ANTHROPIC_API_KEY/)
+    it "reports readiness against the model that would actually answer" do
+      with_env(ANTHROPIC_API_KEY: nil) do
+        readiness = described_class.readiness
+
+        expect(readiness).not_to be_ready
+        expect(readiness.model).to eq model
+        expect(readiness.problem).to match(/Anthropic has no API key/)
+      end
+    end
+
+    it "is ready once that provider has a key, wherever it came from" do
+      model.llm_provider.set_api_key!("sk-stored", by: certifier)
+
+      with_env(ANTHROPIC_API_KEY: nil) do
+        expect(described_class.readiness).to be_ready
+      end
     end
   end
 end

@@ -44,7 +44,9 @@ class DocumentsController < ApplicationController
     authorize document, :classify?
 
     return redirect_back_to(document, alert: LOCKED) unless document.executable?
-    return redirect_back_to(document, alert: NO_KEY) if ENV["ANTHROPIC_API_KEY"].blank?
+
+    readiness = ClaimClassifier.readiness
+    return redirect_back_to(document, alert: "Cannot classify: #{readiness.problem}.") unless readiness.ready?
 
     ClassifyDocumentJob.perform_later(document)
     redirect_to document,
@@ -65,7 +67,6 @@ class DocumentsController < ApplicationController
   private
 
   LOCKED = "Identity has to be established first — answer the open STOPs.".freeze
-  NO_KEY = "Classification needs ANTHROPIC_API_KEY set on the server.".freeze
 
   def redirect_back_to(document, alert:)
     redirect_to document, alert: alert
