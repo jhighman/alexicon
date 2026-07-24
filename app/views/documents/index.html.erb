@@ -8,14 +8,18 @@
       each one is, and whether a step to the next kind has been earned.
     </p>
   </div>
-  <%= link_to "Review a text", new_document_path, class: "btn btn-primary flex-shrink-0" %>
+  <% if current_user.can_ingest? %>
+    <%= link_to "Review a text", new_document_path, class: "btn btn-primary flex-shrink-0" %>
+  <% end %>
 </div>
 
 <% if @documents.empty? %>
   <div class="card">
     <div class="card-body text-center py-5">
       <p class="text-body-secondary mb-3">Nothing has been reviewed yet.</p>
-      <%= link_to "Review your first text", new_document_path, class: "btn btn-outline-primary" %>
+      <% if current_user.can_ingest? %>
+        <%= link_to "Review your first text", new_document_path, class: "btn btn-outline-primary" %>
+      <% end %>
     </div>
   </div>
 <% else %>

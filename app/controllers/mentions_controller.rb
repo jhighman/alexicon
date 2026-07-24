@@ -9,10 +9,9 @@
 #
 # Either answer is recorded with its author, and neither is guessed.
 class MentionsController < ApplicationController
-  before_action :require_reviewer!
-
   def ground
     mention = Mention.find(params[:id])
+    authorize mention
     attrs = params.require(:referent).permit(:subject, :role)
 
     referent = Referent.create!(
@@ -34,6 +33,7 @@ class MentionsController < ApplicationController
 
   def ignore
     mention = Mention.find(params[:id])
+    authorize mention
 
     IgnoredForm.find_or_create_by!(form: mention.text) do |entry|
       entry.reason = "Judged not to be a subject during review."

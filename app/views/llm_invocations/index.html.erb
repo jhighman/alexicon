@@ -1,0 +1,49 @@
+<% content_for :title, "Invocations" %>
+<h1 class="h3">Invocations</h1>
+<p class="text-body-secondary">
+  One row per call. Immutable, and written in the same transaction as the
+  judgement it produced — a call with no record would be a judgement with no
+  account of where it came from.
+</p>
+
+<div class="row g-3 mb-3">
+  <% { "Calls" => @invocations.size,
+       "Success rate" => (LlmInvocation.success_rate ? "#{LlmInvocation.success_rate}%" : "—"),
+       "Total cost" => number_to_currency(LlmInvocation.total_cost, precision: 4),
+       "Avg latency" => (LlmInvocation.average_latency ? "#{LlmInvocation.average_latency} ms" : "—") }.each do |label, value| %>
+    <div class="col-6 col-lg-3">
+      <div class="card"><div class="card-body py-2">
+        <div class="small text-body-secondary"><%= label %></div>
+        <div class="fs-5"><%= value %></div>
+      </div></div>
+    </div>
+  <% end %>
+</div>
+
+<% if @invocations.empty? %>
+  <p class="text-body-secondary">Nothing has been asked of a model yet.</p>
+<% else %>
+  <table class="table table-sm align-middle bg-body shadow-sm">
+    <thead class="text-body-secondary">
+      <tr><th>When</th><th>Model</th><th>Asked by</th><th>Tokens</th><th>Cost</th><th>Latency</th><th>Outcome</th></tr>
+    </thead>
+    <tbody>
+      <% @invocations.each do |call| %>
+        <tr>
+          <td class="small text-body-secondary"><%= call.created_at.to_fs(:short) %></td>
+          <td class="small"><code><%= call.llm_model.model_identifier %></code></td>
+          <td class="small"><%= call.agent.name %></td>
+          <td class="small" style="font-variant-numeric: tabular-nums;">
+            <%= call.input_tokens %> / <%= call.output_tokens %>
+          </td>
+          <td class="small" style="font-variant-numeric: tabular-nums;"><%= number_to_currency(call.cost_usd, precision: 5) %></td>
+          <td class="small" style="font-variant-numeric: tabular-nums;"><%= call.latency_ms %> ms</td>
+          <td>
+            <span class="badge text-bg-<%= call.succeeded? ? "success" : "danger" %>"><%= call.status %></span>
+            <% if call.error_message %><div class="small text-danger"><%= call.error_message.truncate(60) %></div><% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

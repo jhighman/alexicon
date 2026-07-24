@@ -8,10 +8,18 @@ Rails.application.routes.draw do
     end
   end
 
-  # Disposing of a flag is an accountable act, so it needs a named reviewer.
-  # There is no authentication here -- this only establishes WHO is answering,
-  # which the architecture requires; it does not establish that they may.
-  resource :reviewer, only: %i[new create destroy]
+  # Sign-in. Authorisation lives in policies; the session establishes who is
+  # acting, and their Referent is what judgements attribute to.
+  resource :session, only: %i[new create destroy]
+
+  # The registry: what models exist, what they were asked, and who vouched.
+  resources :llm_models, only: %i[index] do
+    member do
+      post :certify
+      post :revoke
+    end
+  end
+  resources :llm_invocations, only: %i[index]
 
   resources :flags, only: %i[update]
 

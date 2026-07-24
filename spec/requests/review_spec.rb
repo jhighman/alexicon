@@ -2,23 +2,15 @@ require "rails_helper"
 
 RSpec.describe "the review surface", type: :request do
   before { seed_quietly }
+  before { sign_in }
 
-  # Seeds print a summary line; keep the spec output readable.
-  def seed_quietly
-    original, $stdout = $stdout, StringIO.new
-    Rails.application.load_seed
-  ensure
-    $stdout = original
-  end
+
 
   def ingest(body, title: nil)
     post documents_path, params: { document: { body: body, title: title } }
     Document.order(:created_at).last
   end
 
-  def identify(name)
-    post reviewer_path, params: { referent: { name: name } }
-  end
 
   describe "listing" do
     it "renders an empty state before anything is reviewed" do
@@ -87,21 +79,22 @@ RSpec.describe "the review surface", type: :request do
   end
 
   describe "answering a flag" do
-    # Every judgement needs an accountable author -- including this one.
-    it "will not accept a disposition from nobody" do
+    # Every judgement needs an accountable author, and now also an entitled one.
+    it "will not accept a disposition from a role that may not review" do
       document = ingest("Pugsley left.")
       flag = document.flags.first
+      delete session_path
+      sign_in(role: "viewer", name: "Viv")
 
       patch flag_path(flag), params: { disposition: "accepted" }
 
-      expect(response).to redirect_to(new_reviewer_path)
+      expect(flash[:alert]).to match(/role does not allow/)
       expect(flag.reload.disposition).to eq "open"
     end
 
     it "records the disposition against the named reviewer" do
       document = ingest("Pugsley left.")
       flag = document.flags.first
-      identify("Jeff")
 
       patch flag_path(flag), params: { disposition: "accepted" }
 
@@ -111,7 +104,6 @@ RSpec.describe "the review surface", type: :request do
 
     it "lifts the execution lock once the STOP is answered" do
       document = ingest("Pugsley left.")
-      identify("Jeff")
       expect(document.executable?).to be false
 
       document.flags.select(&:stop?).each do |flag|
@@ -124,7 +116,6 @@ RSpec.describe "the review surface", type: :request do
     it "leaves the flag itself untouched" do
       document = ingest("Pugsley left.")
       flag = document.flags.first
-      identify("Jeff")
 
       patch flag_path(flag), params: { disposition: "rejected" }
 
@@ -135,7 +126,6 @@ RSpec.describe "the review surface", type: :request do
     it "rejects a disposition it does not recognise" do
       document = ingest("Pugsley left.")
       flag = document.flags.first
-      identify("Jeff")
 
       patch flag_path(flag), params: { disposition: "ignored" }
 
@@ -143,28 +133,24 @@ RSpec.describe "the review surface", type: :request do
     end
   end
 
-  describe "identifying" do
-    it "requires a name" do
-      post reviewer_path, params: { referent: { name: "  " } }
+  describe "signing in" do
+    it "rejects a bad password" do
+      delete session_path
+
+      post session_path, params: { username: "jeff", password: "wrong" }
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include "A name is required"
-    end
-
-    it "reuses an existing person rather than duplicating them" do
-      Referent.create!(name: "Jeff", subject: "Person", role: "Reviewer", primitive: "person")
-
-      expect { identify("Jeff") }.not_to change(Referent, :count)
+      expect(response.body).to include "do not match"
     end
 
     it "returns the reviewer to the page they were on" do
       document = ingest("Pugsley left.")
-      flag = document.flags.first
-      patch flag_path(flag), params: { disposition: "accepted" },
-            headers: { "HTTP_REFERER" => document_path(document) }
+      delete session_path
 
-      identify("Jeff")
+      get document_path(document)
+      expect(response).to redirect_to(new_session_path)
 
+      sign_in(name: "Ada")
       expect(response).to redirect_to(document_path(document))
     end
   end

@@ -1,13 +1,16 @@
 class DocumentsController < ApplicationController
   def index
-    @documents = Document.order(created_at: :desc).limit(50)
+    authorize Document, :index?
+    @documents = policy_scope(Document).order(created_at: :desc).limit(50)
   end
 
   def new
     @document = Document.new
+    authorize @document
   end
 
   def create
+    authorize Document
     attrs = params.require(:document).permit(:title, :body)
 
     if attrs[:body].to_s.strip.blank?
@@ -26,6 +29,7 @@ class DocumentsController < ApplicationController
 
   def show
     @document = Document.find(params[:id])
+    authorize @document
     @claims = @document.claims.includes(:mentions)
     @transitions = @document.transitions.includes(:source, :target)
     @open_flags = @document.flags.includes(:asserter, :subject).select(&:open?)
@@ -37,6 +41,7 @@ class DocumentsController < ApplicationController
 
   def classify
     document = Document.find(params[:id])
+    authorize document, :classify?
 
     return redirect_back_to(document, alert: LOCKED) unless document.executable?
     return redirect_back_to(document, alert: NO_KEY) if ENV["ANTHROPIC_API_KEY"].blank?
@@ -49,6 +54,7 @@ class DocumentsController < ApplicationController
 
   def govern
     document = Document.find(params[:id])
+    authorize document, :govern?
 
     return redirect_back_to(document, alert: LOCKED) unless document.executable?
 

@@ -28,16 +28,25 @@
       <div class="container">
         <%= link_to "Alexicon", root_path, class: "navbar-brand fw-semibold" %>
         <div class="navbar-nav me-auto">
-          <%= link_to "Documents", documents_path, class: "nav-link" %>
-          <%= link_to "Review a text", new_document_path, class: "nav-link" %>
+          <% if signed_in? %>
+            <%= link_to "Documents", documents_path, class: "nav-link" %>
+            <% if current_user.can_ingest? %>
+              <%= link_to "Review a text", new_document_path, class: "nav-link" %>
+            <% end %>
+            <% if current_user.can_view_llm_registry? %>
+              <%= link_to "Models", llm_models_path, class: "nav-link" %>
+              <%= link_to "Invocations", llm_invocations_path, class: "nav-link" %>
+            <% end %>
+          <% end %>
         </div>
         <div class="navbar-text small">
-          <% if reviewer_identified? %>
-            Reviewing as <span class="text-white fw-semibold"><%= current_reviewer.name %></span>
-            <%= button_to "sign out", reviewer_path, method: :delete,
+          <% if signed_in? %>
+            <span class="text-white fw-semibold"><%= current_user.username %></span>
+            <span class="badge text-bg-secondary"><%= current_user.role %></span>
+            <%= button_to "sign out", session_path, method: :delete,
                           class: "btn btn-link btn-sm p-0 align-baseline link-light" %>
           <% else %>
-            <%= link_to "Identify yourself", new_reviewer_path, class: "link-light" %>
+            <%= link_to "Sign in", new_session_path, class: "link-light" %>
           <% end %>
         </div>
       </div>

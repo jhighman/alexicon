@@ -2,13 +2,9 @@ require "rails_helper"
 
 RSpec.describe "running an analysis", type: :request do
   before { seed_quietly }
+  before { sign_in }
 
-  def seed_quietly
-    original, $stdout = $stdout, StringIO.new
-    Rails.application.load_seed
-  ensure
-    $stdout = original
-  end
+
 
   def ingest(body)
     post documents_path, params: { document: { body: body } }
@@ -16,7 +12,6 @@ RSpec.describe "running an analysis", type: :request do
   end
 
   def unlock(document)
-    post reviewer_path, params: { referent: { name: "Jeff" } }
     document.open_stops.each { patch flag_path(it), params: { disposition: "accepted" } }
     document.reload
   end

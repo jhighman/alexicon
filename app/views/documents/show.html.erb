@@ -32,12 +32,14 @@
       <% end %>
     </div>
     <div class="d-flex gap-2 flex-shrink-0">
-      <%= button_to "Classify claims", classify_document_path(@document),
-                    class: "btn btn-sm btn-primary",
-                    disabled: !@document.executable? %>
-      <%= button_to "Judge the steps", govern_document_path(@document),
-                    class: "btn btn-sm btn-outline-primary",
-                    disabled: !@document.executable? || !@document.classified? %>
+      <% if current_user.can_review? %>
+        <%= button_to "Classify claims", classify_document_path(@document),
+                      class: "btn btn-sm btn-primary",
+                      disabled: !@document.executable? %>
+        <%= button_to "Judge the steps", govern_document_path(@document),
+                      class: "btn btn-sm btn-outline-primary",
+                      disabled: !@document.executable? || !@document.classified? %>
+      <% end %>
     </div>
   </div>
 </section>
@@ -66,18 +68,20 @@
               <p class="mb-0"><%= flag.message %></p>
             </div>
             <div class="d-flex gap-2 flex-shrink-0">
+              <% if current_user.can_review? %>
               <%= button_to "Let it stand", flag_path(flag),
                             method: :patch, params: { disposition: "accepted" },
                             class: "btn btn-sm btn-outline-secondary" %>
               <%= button_to "Set aside", flag_path(flag),
                             method: :patch, params: { disposition: "rejected" },
                             class: "btn btn-sm btn-outline-secondary" %>
+              <% end %>
             </div>
           </div>
 
           <%# An identity STOP can be answered properly rather than dismissed:
               say what the name refers to, or say it is not a subject at all. %>
-          <% if flag.subject.is_a?(Mention) %>
+          <% if flag.subject.is_a?(Mention) && current_user.can_review? %>
             <hr class="my-3">
             <div class="row g-2 align-items-end">
               <div class="col-auto">

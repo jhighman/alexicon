@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_290001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_300001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -320,6 +320,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_290001) do
     t.index ["key"], name: "index_terms_on_key", unique: true
   end
 
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "password_digest", null: false
+    t.bigint "referent_id", null: false
+    t.string "role", default: "viewer", null: false
+    t.datetime "updated_at", null: false
+    t.string "username", null: false
+    t.index "lower((username)::text)", name: "index_users_on_lower_username", unique: true
+    t.index ["referent_id"], name: "index_users_on_referent_id"
+    t.index ["role"], name: "index_users_on_role"
+  end
+
   add_foreign_key "assertions", "assertions", column: "supersedes_id"
   add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "claim_categories", "frameworks"
@@ -345,4 +357,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_290001) do
   add_foreign_key "referent_aliases", "referents"
   add_foreign_key "referents", "domains"
   add_foreign_key "term_aliases", "terms"
+  add_foreign_key "users", "referents"
 end

@@ -5,24 +5,18 @@ require "rails_helper"
 # of a person once and remembered.
 RSpec.describe "answering an identity STOP", type: :request do
   before { seed_quietly }
+  before { sign_in }
 
-  def seed_quietly
-    original, $stdout = $stdout, StringIO.new
-    Rails.application.load_seed
-  ensure
-    $stdout = original
-  end
+
 
   def ingest(body)
     post documents_path, params: { document: { body: body } }
     Document.order(:created_at).last
   end
 
-  def identify(name = "Jeff") = post(reviewer_path, params: { referent: { name: name } })
 
   describe "grounding a name" do
     it "creates the referent, resolves the mention and lifts the lock" do
-      identify
       document = ingest("Alec wrote about it.")
       mention = document.mentions.sole
       expect(document.executable?).to be false
@@ -35,7 +29,6 @@ RSpec.describe "answering an identity STOP", type: :request do
     end
 
     it "supersedes the STOP rather than leaving two judgements standing" do
-      identify
       document = ingest("Alec wrote about it.")
       mention = document.mentions.sole
 
@@ -48,7 +41,6 @@ RSpec.describe "answering an identity STOP", type: :request do
 
     # A partial passport is not a weaker anchor; it is no anchor.
     it "refuses an incomplete passport" do
-      identify
       document = ingest("Alec wrote about it.")
       mention = document.mentions.sole
 
@@ -58,20 +50,23 @@ RSpec.describe "answering an identity STOP", type: :request do
       expect(document.reload.executable?).to be false
     end
 
-    it "requires a named reviewer" do
+    # Grounding writes a durable decision into the graph, so it needs the
+    # capability, not merely a session.
+    it "refuses a role that may not review" do
       document = ingest("Alec wrote about it.")
       mention = document.mentions.sole
+      delete session_path
+      sign_in(role: "viewer", name: "Viv")
 
       post ground_mention_path(mention), params: { referent: { subject: "Family", role: "Friend" } }
 
-      expect(response).to redirect_to(new_reviewer_path)
+      expect(flash[:alert]).to match(/role does not allow/)
       expect(mention.reload.status).to eq "out_of_distribution"
     end
   end
 
   describe "marking a form as not a subject" do
     it "records the decision with its author and sets the flag aside" do
-      identify("Jeff")
       document = ingest("Ketamine blocks receptors.")
       mention = document.mentions.sole
 
@@ -87,7 +82,6 @@ RSpec.describe "answering an identity STOP", type: :request do
     end
 
     it "stops proposing that form in later documents" do
-      identify
       first = ingest("Ketamine blocks receptors.")
       post ignore_mention_path(first.mentions.sole)
 
@@ -99,7 +93,6 @@ RSpec.describe "answering an identity STOP", type: :request do
 
     # The record of why this was ever blocked stays intact.
     it "sets the flag aside rather than deleting it" do
-      identify
       document = ingest("Ketamine blocks receptors.")
       mention = document.mentions.sole
 

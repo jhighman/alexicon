@@ -1,30 +1,41 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  include Pundit::Authorization
 
-  # Changes to the importmap will invalidate the etag for HTML responses
+  allow_browser versions: :modern
   stale_when_importmap_changes
 
-  helper_method :current_reviewer, :reviewer_identified?
+  before_action :require_login!
+  # Fail closed: an action that forgets to authorize raises rather than
+  # quietly allowing the request. There is no `except:` list -- an exempt
+  # action is one nobody remembers to revisit.
+  after_action :verify_authorized, unless: :public_action?
+  rescue_from Pundit::NotAuthorizedError, with: :not_authorized
+
+  helper_method :current_user, :current_reviewer, :signed_in?
 
   private
 
-  # The person answering a flag. Not authentication -- identity here exists so
-  # a disposition has an accountable author, which is the same rule the rest of
-  # the architecture applies to every other judgement.
-  def current_reviewer
-    @current_reviewer ||= Referent.find_by(id: session[:reviewer_id])
+  def current_user
+    @current_user ||= User.includes(:referent).find_by(id: session[:user_id])
   end
 
-  def reviewer_identified? = current_reviewer.present?
+  # The graph identity the signed-in person acts as. Judgements attribute here,
+  # never to the User -- authorisation and provenance stay separate concerns.
+  def current_reviewer = current_user&.referent
 
-  def require_reviewer!
-    return if reviewer_identified?
+  def signed_in? = current_user.present?
 
-    # Send them back to the page they were on, not the endpoint they hit -- a
-    # PATCH path is not somewhere a browser can be redirected.
+  def require_login!
+    return if signed_in? || public_action?
+
     session[:return_to] = request.get? ? request.fullpath : request.referer
-    redirect_to new_reviewer_path,
-                alert: "Tell us who you are first — a disposition has to be attributable."
+    redirect_to new_session_path, alert: "Sign in to continue."
+  end
+
+  # Signing in is the only thing you may do without being signed in.
+  def public_action? = controller_name == "sessions"
+
+  def not_authorized
+    redirect_back fallback_location: root_path, alert: "Your role does not allow that."
   end
 end

@@ -48,14 +48,26 @@ rows scoped to a framework version, not constants. A terminology register
 tracks names that have drifted, and records contested ones as `disputed`
 rather than silently resolving them.
 
+**Model registry** — a model may not influence any judgement until an admin
+certifies it. Every call is recorded: model, tokens, cost, latency, outcome,
+linked to the judgement it produced.
+
 **Review surface** — paste a text, see its claims and their categories, and answer
 the flags waiting on a person. Flags are never presented as claims of falsehood:
 they state that the conditions for proceeding were not satisfied, and a reviewer
 may let one stand or set it aside.
 
-Disposing of a flag requires naming yourself. That is **not authentication** — it
-establishes *who* is answering, because the architecture records every judgement
-against an accountable author. It does not establish that you are entitled to.
+Authorisation and provenance are separate concerns. A **User** carries the
+credential and the role; its **Referent** carries the authorship. Every
+judgement is attributed to the Referent, so credentials never appear in the
+audit trail.
+
+| Role | May |
+|---|---|
+| `viewer` | read documents, claims and flags |
+| `reviewer` | + submit texts, run analyses, answer flags, ground names |
+| `auditor` | read + the model registry and every invocation |
+| `admin` | everything, including certifying and revoking models |
 
 ## Setup
 
@@ -66,7 +78,13 @@ bundle install
 bin/rails db:prepare   # create, migrate, seed
 bundle exec rspec
 bin/dev                # http://localhost:3000
+
+bin/rails "alexicon:user[avery,a-good-password,admin]"
 ```
+
+Then sign in and certify a model at `/llm_models` — nothing will classify until
+you do, which is the intended posture: no model influences a judgement because
+a constant named it.
 
 Classification calls the Claude API and needs a key:
 

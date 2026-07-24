@@ -1,0 +1,55 @@
+<% content_for :title, "Model registry" %>
+<h1 class="h3">Model registry</h1>
+<p class="text-body-secondary">
+  A model may not influence any judgement until a named person certifies it.
+  Revocation is terminal — register a replacement rather than re-certifying,
+  so the record of why it was withdrawn stays legible.
+</p>
+
+<table class="table align-middle bg-body shadow-sm">
+  <thead class="text-body-secondary">
+    <tr><th>Model</th><th>Provider</th><th>Cost / 1k</th><th>Status</th><th>Vouched by</th><th></th></tr>
+  </thead>
+  <tbody>
+    <% @models.each do |model| %>
+      <tr>
+        <td><code><%= model.model_identifier %></code><div class="small text-body-secondary"><%= model.display_name %></div></td>
+        <td><%= model.llm_provider.name %></td>
+        <td class="small">in <%= number_to_currency(model.cost_per_1k_input, precision: 4) %> ·
+            out <%= number_to_currency(model.cost_per_1k_output, precision: 4) %></td>
+        <td>
+          <% tone = { "certified" => "success", "revoked" => "danger" }.fetch(model.certification_status, "secondary") %>
+          <span class="badge text-bg-<%= tone %>"><%= model.certification_status %></span>
+        </td>
+        <td class="small text-body-secondary">
+          <% if model.certified_by %>
+            <%= model.certified_by.name %><br><%= model.certified_at&.to_fs(:short) %>
+          <% else %>—<% end %>
+          <% if model.revoked? %><div class="text-danger"><%= model.revocation_reason %></div><% end %>
+        </td>
+        <td class="text-end">
+          <% if policy(model).certify? && !model.certified? && !model.revoked? %>
+            <%= button_to "Certify", certify_llm_model_path(model), class: "btn btn-sm btn-primary" %>
+          <% elsif policy(model).revoke? && model.certified? %>
+            <%= button_to "Revoke", revoke_llm_model_path(model), class: "btn btn-sm btn-outline-danger",
+                          form: { data: { turbo_confirm: "Revocation is terminal. Continue?" } } %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2 class="h5 mt-4">Assignments</h2>
+<% if @assignments.empty? %>
+  <p class="text-body-secondary">None. A certified model still needs an assignment before anything routes to it.</p>
+<% else %>
+  <ul class="list-group shadow-sm">
+    <% @assignments.each do |a| %>
+      <li class="list-group-item d-flex justify-content-between">
+        <span><code><%= a.scope_description %></code> → <%= a.llm_model.display_name %></span>
+        <span class="small text-body-secondary">specificity <%= a.specificity %> · priority <%= a.priority %></span>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
