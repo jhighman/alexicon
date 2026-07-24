@@ -151,12 +151,36 @@ end
 #   LlmModel.find_by!(model_identifier: "claude-opus-5").certify!(some_referent)
 #   LlmAssignment.create!(llm_model: model, agent_pattern: "claim-classifier",
 #                         action_type: "classify")
-anthropic = LlmProvider.find_or_initialize_by(key: "anthropic")
-anthropic.update!(name: "Anthropic", status: "active")
+#
+# Three providers, because which vendor answers should be a governed decision
+# rather than a fact about the code. Each has an adapter; whether it can
+# actually be called also depends on its credential being in the environment,
+# which the Providers page reports rather than assumes.
+#
+# The OpenAI and Gemini adapters have not been exercised against their live
+# APIs. They are registered so an admin can route to them, and they are
+# uncertified like everything else -- certifying is where someone puts their
+# name to "this works", and nobody has yet.
+providers = { "anthropic" => "Anthropic", "openai" => "OpenAI", "gemini" => "Google Gemini" }
 
-LlmModel.find_or_initialize_by(llm_provider: anthropic, model_identifier: "claude-opus-5")
-        .update!(display_name: "Claude Opus 5",
-                 cost_per_1k_input: 0.005, cost_per_1k_output: 0.025)
+registered = providers.to_h do |key, name|
+  provider = LlmProvider.find_or_initialize_by(key: key)
+  provider.update!(name: name, status: "active")
+  [ key, provider ]
+end
+
+# Rates are per 1k tokens, from each vendor's published pricing. They cost the
+# record; they do not gate the call. Wrong rates make the spend wrong, quietly,
+# which is why they are seeded rather than left blank.
+[
+  [ "anthropic", "claude-opus-5",   "Claude Opus 5",   0.005,   0.025 ],
+  [ "anthropic", "claude-sonnet-5", "Claude Sonnet 5", 0.003,   0.015 ],
+  [ "openai",    "gpt-5",           "GPT-5",           0.00125, 0.010 ],
+  [ "gemini",    "gemini-2.5-pro",  "Gemini 2.5 Pro",  0.00125, 0.010 ]
+].each do |key, identifier, display, input, output|
+  LlmModel.find_or_initialize_by(llm_provider: registered.fetch(key), model_identifier: identifier)
+          .update!(display_name: display, cost_per_1k_input: input, cost_per_1k_output: output)
+end
 
 # --- Terminology register ----------------------------------------------------
 # Stored, not merely documented, because these names have drifted repeatedly.

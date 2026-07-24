@@ -38,15 +38,15 @@ RSpec.describe ClaimClassifier do
 
   # Minimal stand-in for the SDK response shape: content is a list of blocks,
   # each with a type and text.
+  # An adapter, not a vendor client: the classifier speaks only
+  # LlmClients::Base#complete, so the stub is the same shape for every provider.
   def stub_client(payload)
-    block = Struct.new(:type, :text).new("text", payload.is_a?(String) ? payload : payload.to_json)
-    usage = Struct.new(:input_tokens, :output_tokens).new(412, 89)
-    response = Struct.new(:content, :usage).new([ block ], usage)
-    messages = Class.new do
-      define_method(:create) { |**| response }
-    end.new
+    completion = LlmClients::Completion.new(
+      text: payload.is_a?(String) ? payload : payload.to_json,
+      input_tokens: 412, output_tokens: 89
+    )
     Class.new do
-      define_method(:messages) { messages }
+      define_method(:complete) { |**| completion }
     end.new
   end
 

@@ -84,23 +84,18 @@ class ClaimClassifier
     resolution
   end
 
-  def client
-    @client ||= begin
-      key = ENV["ANTHROPIC_API_KEY"]
-      raise MissingCredentials, "ANTHROPIC_API_KEY is not set" if key.blank?
-
-      Anthropic::Client.new(api_key: key)
-    end
-  end
+  # The adapter comes from the resolved model's provider, so which vendor is
+  # called is a governed decision rather than a hardcoded client.
+  def client_for(model) = @client || model.client
 
   def request(model)
-    client.messages.create(
-      model: model.model_identifier,
-      max_tokens: MAX_TOKENS,
-      system: system_prompt,
-      messages: [ { role: "user", content: claim.text } ],
-      output_config: { format: { type: "json_schema", schema: schema }, effort: EFFORT }
-    )
+    adapter = client_for(model)
+    raise MissingCredentials, "no adapter for #{model.llm_provider.key}" if adapter.nil?
+
+    adapter.complete(system: system_prompt, user: claim.text,
+                     schema: schema, max_tokens: MAX_TOKENS)
+  rescue LlmClients::MissingCredentials => e
+    raise MissingCredentials, e.message
   end
 
   def persist(proposal, resolution, response, started, asserter)
@@ -123,15 +118,14 @@ class ClaimClassifier
   end
 
   def record_invocation(resolution, started:, status:, response: nil, assertion: nil, error: nil)
-    usage = response&.usage
     LlmInvocation.create!(
       llm_model: resolution.model,
       llm_assignment: resolution.assignment,
       agent: classifier_referent,
       assertion: assertion,
       action_type: ACTION,
-      input_tokens: usage&.input_tokens.to_i,
-      output_tokens: usage&.output_tokens.to_i,
+      input_tokens: response&.input_tokens.to_i,
+      output_tokens: response&.output_tokens.to_i,
       latency_ms: ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round,
       status: status,
       error_message: error
@@ -182,7 +176,7 @@ class ClaimClassifier
   end
 
   def parse(response)
-    payload = JSON.parse(text_of(response))
+    payload = JSON.parse(response.text.to_s)
     category = payload["category"]
     confidence = payload["confidence"].to_f
     rationale = payload["rationale"].to_s
@@ -194,13 +188,8 @@ class ClaimClassifier
 
     Proposal.new(category_key: category, confidence: confidence,
                  rationale: rationale, abstained: abstained)
-  rescue JSON::ParserError, TypeError
+  rescue JSON::ParserError, TypeError, NoMethodError
     Proposal.new(category_key: ABSTAIN, confidence: 0.0,
                  rationale: "classifier returned unparseable output", abstained: true)
-  end
-
-  def text_of(response)
-    block = Array(response.content).find { it.type.to_s == "text" }
-    block&.text.to_s
   end
 end

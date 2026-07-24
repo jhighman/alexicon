@@ -52,6 +52,19 @@ rather than silently resolving them.
 certifies it. Every call is recorded: model, tokens, cost, latency, outcome,
 linked to the judgement it produced.
 
+Providers, models and routing are administered in the browser. Anthropic,
+OpenAI and Gemini each have an adapter; the classifier speaks only the adapter
+interface, so which vendor answers is a governed decision rather than a fact
+about the code.
+
+Two things a provider needs before it can be used, and the registry keeps them
+apart: an **adapter**, so the code can call it, and a **credential** in the
+environment. A provider without an adapter may still be registered — it just
+cannot be certified, because vouching for a model this application cannot reach
+would claim a capability that does not exist. Credentials are read from the
+environment and never stored; a key in the database would put a secret in the
+audit trail.
+
 **Review surface** — paste a text, see its claims and their categories, and answer
 the flags waiting on a person. Flags are never presented as claims of falsehood:
 they state that the conditions for proceeding were not satisfied, and a reviewer
@@ -86,15 +99,20 @@ Then sign in and certify a model at `/llm_models` — nothing will classify unti
 you do, which is the intended posture: no model influences a judgement because
 a constant named it.
 
-Classification calls the Claude API and needs a key:
+Classification needs a key for whichever provider you route to:
 
 ```sh
-export ANTHROPIC_API_KEY=...
+export ANTHROPIC_API_KEY=...   # or OPENAI_API_KEY, or GEMINI_API_KEY
 ```
 
-Without one, `ClaimClassifier` raises `MissingCredentials` rather than failing
-obscurely. Everything else — ingest, identity resolution, governance — runs
-without it.
+`/llm_providers` shows which of these it can see. Without one, `ClaimClassifier`
+raises `MissingCredentials` rather than failing obscurely. Everything else —
+ingest, identity resolution, governance — runs without it.
+
+The Anthropic adapter is the only one that has been exercised against a live
+API. The OpenAI and Gemini adapters are written against the published request
+formats and have not been called; certification is where a person puts their
+name to "this works", and nobody has done so for those two.
 
 `config/database.yml` reads `PGHOST` and `PGPORT`, defaulting to
 `localhost:5433`. On a standard PostgreSQL install you will want:

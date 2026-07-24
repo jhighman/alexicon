@@ -5,3 +5,10 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.uncountable "evidence"
 end
+
+# So app/services/llm_clients/open_ai.rb defines LlmClients::OpenAI rather than
+# LlmClients::OpenAi. Scoped to the autoloader rather than a global acronym,
+# which would rewrite every other "_ai" segment too.
+Rails.autoloaders.each do |autoloader|
+  autoloader.inflector.inflect("open_ai" => "OpenAI")
+end

@@ -20,6 +20,7 @@ class LlmModel < ApplicationRecord
   validates :model_identifier, uniqueness: { scope: :llm_provider_id }
   validates :certification_status, inclusion: { in: STATUSES }
   validate  :certification_needs_an_author
+  validate  :provider_must_be_invocable_to_certify
 
   scope :certified, -> { where(certification_status: "certified") }
   scope :pending,   -> { where(certification_status: "pending") }
@@ -48,9 +49,23 @@ class LlmModel < ApplicationRecord
       ((cost_per_1k_output || 0) * output_tokens / 1000.0)
   end
 
+  def client = llm_provider.adapter&.new(self)
+
+  def invocable? = llm_provider.invocable?
+
   def to_s = display_name
 
   private
+
+  # Certifying a model whose provider has no adapter would vouch for something
+  # the code cannot call. The registry must not promise what it cannot do.
+  def provider_must_be_invocable_to_certify
+    return unless certified?
+    return if llm_provider&.invocable?
+
+    errors.add(:llm_provider, "has no adapter — this application cannot call it, " \
+                              "so certifying it would claim a capability it does not have")
+  end
 
   # "Certified" with nobody's name on it is the same as uncertified.
   def certification_needs_an_author

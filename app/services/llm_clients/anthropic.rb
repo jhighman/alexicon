@@ -1,0 +1,25 @@
+module LlmClients
+  # Uses the official Anthropic SDK. Structured output via output_config.format.
+  class Anthropic < Base
+    def self.credential_env = "ANTHROPIC_API_KEY"
+
+    def complete(system:, user:, schema:, max_tokens:)
+      response = client.messages.create(
+        model: model.model_identifier,
+        max_tokens: max_tokens,
+        system: system,
+        messages: [ { role: "user", content: user } ],
+        output_config: { format: { type: "json_schema", schema: schema }, effort: "medium" }
+      )
+
+      block = Array(response.content).find { it.type.to_s == "text" }
+      Completion.new(text: block&.text.to_s,
+                     input_tokens: response.usage&.input_tokens.to_i,
+                     output_tokens: response.usage&.output_tokens.to_i)
+    end
+
+    private
+
+    def client = @client ||= ::Anthropic::Client.new(api_key: api_key)
+  end
+end
