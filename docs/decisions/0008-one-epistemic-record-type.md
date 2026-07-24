@@ -66,9 +66,23 @@ The framework's axiom is now enforced structurally rather than by convention.
 There is no table in which a judgement can be recorded without an accountable
 author, and no column in which one can be silently overwritten.
 
-## What has not been merged
+## Follow-up, since applied
 
-`Mention#status` is still a mutable column, denormalised from the resolution
-assertions. It is a cache of a derived value, and it can drift. Left as is
-because the Sentinel writes it inside the same transaction as the resolution,
-but it is the last piece of stored state that arguably should be derived.
+`Mention#status` was left as a mutable column in the first pass — a cache of a
+derived value, kept in step by hand inside the Sentinel's transaction. It has
+since been derived too:
+
+- The column is gone. Status is read from the mention's standing judgements:
+  a standing `resolve` means resolved; a standing `flag` carries a `noise` key
+  naming which Entity Noise condition was detected; neither means nothing has
+  looked yet.
+- **Re-verification supersedes the prior judgement**, so exactly one stands at
+  a time and the derived value cannot disagree with the record. The column
+  quietly permitted a stale status to survive a re-check; supersession does not.
+- Dismissing a flag lifts the execution lock but does **not** make a mention
+  resolved. A person choosing to proceed is not the same as an identity having
+  been established, and the two are now distinguishable.
+
+Nothing derived remains stored. `Mention#status`, `Relationship#status`,
+`Transition#verdict`, `Assertion#disposition`, `Claim#category` and
+`Mention#referent` are all read from assertions.

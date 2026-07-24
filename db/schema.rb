@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_250001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_260001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -161,11 +161,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_250001) do
     t.integer "char_start"
     t.bigint "claim_id", null: false
     t.datetime "created_at", null: false
-    t.string "status", default: "unresolved", null: false
     t.string "text", null: false
     t.datetime "updated_at", null: false
     t.index ["claim_id"], name: "index_mentions_on_claim_id"
-    t.index ["status"], name: "index_mentions_on_status"
   end
 
   create_table "policies", force: :cascade do |t|

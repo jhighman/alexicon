@@ -131,9 +131,14 @@ class Assertion < ApplicationRecord
 
   def flag_severity_recognised
     return unless act == "flag"
-    return if SEVERITIES.include?(claim["severity"])
 
-    errors.add(:claim, "severity must be one of #{SEVERITIES.join(', ')}")
+    errors.add(:claim, "severity must be one of #{SEVERITIES.join(', ')}") unless
+      SEVERITIES.include?(claim["severity"])
+
+    noise = claim["noise"]
+    return if noise.blank? || Mention::NOISE.include?(noise)
+
+    errors.add(:claim, "noise must be one of #{Mention::NOISE.join(', ')}")
   end
 
   def confidence_in_range

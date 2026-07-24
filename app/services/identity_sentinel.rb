@@ -39,31 +39,32 @@ class IdentitySentinel
   # that referent. Recorded as an inference, never as a finding -- and a person
   # may later resolve it differently without erasing this.
   def record_resolution(result)
-    mention.transaction do
-      Assertion.create!(
-        asserter: sentinel_referent,
-        subject: mention,
-        object: result.referent,
-        act: "resolve",
-        claim: { "confidence" => 1.0, "rationale" => result.reason, "resolver" => RESOLVER }
-      )
-      mention.update!(status: "resolved")
-    end
+    Assertion.create!(
+      asserter: sentinel_referent,
+      subject: mention,
+      object: result.referent,
+      act: "resolve",
+      claim: { "confidence" => 1.0, "rationale" => result.reason, "resolver" => RESOLVER },
+      supersedes: mention.standing_judgement
+    )
   end
 
   # The flag is an assertion, attributed to the Identity Sentinel. A governance
   # signal with no accountable author would be exactly the ungrounded claim
   # this sentinel exists to refuse.
+  #
+  # `noise` records WHICH Entity Noise condition was detected, so the mention's
+  # status can be read from the judgement rather than cached beside it.
   def raise_flag(result)
-    mention.transaction do
-      mention.update!(status: result.status.to_s)
-      Assertion.create!(
-        asserter: sentinel_referent,
-        subject: mention,
-        act: "flag",
-        claim: { "severity" => "stop", "message" => message_for(result) }
-      )
-    end
+    Assertion.create!(
+      asserter: sentinel_referent,
+      subject: mention,
+      act: "flag",
+      claim: { "severity" => "stop",
+               "noise" => result.status.to_s,
+               "message" => message_for(result) },
+      supersedes: mention.standing_judgement
+    )
   end
 
   # The message states what was not established. It never asserts who the

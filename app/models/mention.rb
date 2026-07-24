@@ -1,14 +1,19 @@
 # An occurrence of an identifier inside a claim -- the unit the Identity
 # Sentinel acts on.
 #
-# `status` is the Sentinel's verdict about the INPUT, not about the world. It
-# records whether a referent was established, never who the referent "really"
-# is.
+# Status is DERIVED, not stored. It is the Sentinel's verdict about the INPUT,
+# read from the mention's standing judgements: whether a referent was
+# established, never who the referent "really" is.
+#
+# Re-verification supersedes prior judgements, so exactly one judgement stands
+# at a time and the derived status cannot disagree with the record.
 class Mention < ApplicationRecord
-  STATUSES = %w[unresolved resolved ambiguous out_of_distribution unanchored].freeze
+  # Statuses other than `resolved` and `unresolved` name an Entity Noise
+  # condition, carried on the flag that detected it.
+  NOISE = %w[ambiguous out_of_distribution unanchored].freeze
+  STATUSES = (%w[unresolved resolved] + NOISE).freeze
 
-  # Every status other than `resolved` blocks execution. There is no partial
-  # credit: a subject is grounded or it is not.
+  # There is no partial credit: a subject is grounded or it is not.
   BLOCKING = (STATUSES - %w[resolved]).freeze
 
   belongs_to :claim
@@ -19,10 +24,13 @@ class Mention < ApplicationRecord
   has_many :assertions, as: :subject, dependent: :restrict_with_error
 
   validates :text, presence: true
-  validates :status, inclusion: { in: STATUSES }
 
-  scope :blocking, -> { where(status: BLOCKING) }
-  scope :resolved, -> { where(status: "resolved") }
+  def self.standing_resolutions
+    Assertion.acting("resolve").standing.where(subject_type: "Mention")
+  end
+
+  scope :resolved, -> { where(id: standing_resolutions.select(:subject_id)) }
+  scope :blocking, -> { where.not(id: standing_resolutions.select(:subject_id)) }
 
   def flags = assertions.flags.standing.chronological
 
@@ -36,5 +44,17 @@ class Mention < ApplicationRecord
 
   def referent = resolution&.object
 
-  def anchored? = status == "resolved"
+  def anchored? = resolution.present?
+
+  # Read from the standing judgements rather than remembered alongside them.
+  def status
+    return "resolved" if anchored?
+
+    flags.filter_map { it.claim["noise"] }.last || "unresolved"
+  end
+
+  # The judgement a fresh verification should supersede, if any.
+  def standing_judgement
+    assertions.standing.chronological.select { it.act.in?(%w[resolve flag]) }.last
+  end
 end
