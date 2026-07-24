@@ -115,6 +115,17 @@ Domain.where(framework: fw).find_each do |domain|
   )
 end
 
+# The classifier is a System referent too, and deliberately NOT a sentinel: it
+# proposes classifications, and the Governance Sentinel rules on the promotions
+# between them. Chapter 6 requires those to be different actors.
+Referent.find_or_initialize_by(key: "claim-classifier").update!(
+  name: "Claim Classifier",
+  subject: "System",
+  role: "Classifier",
+  primitive: "system",
+  notes: "Proposes claim categories. Its output is inference, never finding."
+)
+
 # --- Cross-cutting policies --------------------------------------------------
 anti_discrimination = Policy.find_or_initialize_by(key: "anti-discrimination")
 anti_discrimination.update!(
