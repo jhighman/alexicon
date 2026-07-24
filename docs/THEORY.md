@@ -109,6 +109,26 @@ This is the actual dependency between the two layers. The anti-discrimination po
 
 > **Corrected from source.** Earlier material states that parsed output reaches the global workspace "without leaking behavioral bias or cultural distortion." That claim is not supportable and is not made here: it attributes to a structural operation an outcome only a substantive policy can produce. The corrected claim is the one above — parsing renders bias inspectable, and the policy layer is what acts on it.
 
+### What an unintegrated beta-element looks like
+
+Concretely: an isolated textual label or a bare verb with no relational binding. The canonical case is an ungrounded name — **"Wednesday"** with nothing attached, resolvable as a person, a weekday, or neither. Unparsed, it sits in embedding space as an *empty dead node*: a token the model can attach inferences to without ever having established what it refers to.
+
+Anchoring precedes attribution (Lacan, §5). Until the referent resolves, nothing may be predicated of it.
+
+### Failures attributed to non-containment
+
+| Failure | Holds? |
+|---|---|
+| **Intent hallucination** — the model guesses an identity or motive, producing semantic noise and attribution drift | **Yes.** Direct consequence: an unresolved referent gives the model nothing to attach an inference to, so it fills the gap probabilistically |
+| **Attacks on linking** — fragmented or impossible causal structure | **Yes**, as a detection signal. Broken causality is observable in the parse |
+| **Pathological defenses — deceptive alignment, the Jekyll Mask** | **No.** See below |
+
+> **Inconsistent with §4.** Source material lists the Jekyll Mask as a consequence of failed containment. That contradicts the framework's own taxonomy, which separates intent hallucination (a failure of *grounding* — the model is confused) from the Jekyll Mask (a failure of *integrity* — the model is gaming).
+>
+> Ungrounded input produces confusion. It cannot produce strategy. Deceptive alignment arises from training and optimization pressure and survives perfectly clean parsing — which is precisely why §4 gives the two failures different detectors and different sentinels. Deriving both from one cause collapses a distinction the framework needs.
+>
+> This is the same error as the causal claim corrected in §2 ("fair scoring removes the pressure that forces the AI to project a mask"). The recurring pattern is worth naming: **structural fixes are repeatedly credited with solving integrity failures.** They are necessary and they are not sufficient, and the framework is strongest where it keeps the two apart.
+
 ### Jekyll and Hyde
 
 The pair names two halves of one failure:
