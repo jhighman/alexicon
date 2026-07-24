@@ -1,0 +1,539 @@
+<title>Alexicon 2.0 — The Seven Domains</title>
+
+<style>
+  :root {
+    --ground:      #EDEFF2;
+    --ground-lift: #F6F7F9;
+    --ink:         #12161F;
+    --ink-soft:    #454F5E;
+    --ink-faint:   #6B7684;
+    --rule:        #CFD5DD;
+    --rule-soft:   #DFE3E9;
+    --accent:      #8A5A11;
+    --accent-mark: #B0761C;
+    --accent-wash: rgba(176, 118, 28, 0.10);
+    --warn:        #8F4634;
+    --warn-wash:   rgba(143, 70, 52, 0.09);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --gutter: clamp(1.25rem, 4vw, 3rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:      #0F131B;
+      --ground-lift: #161B25;
+      --ink:         #E2E7EE;
+      --ink-soft:    #A6B0BE;
+      --ink-faint:   #78838f;
+      --rule:        #2A323F;
+      --rule-soft:   #212836;
+      --accent:      #D9A445;
+      --accent-mark: #E0B15C;
+      --accent-wash: rgba(217, 164, 69, 0.12);
+      --warn:        #D08A72;
+      --warn-wash:   rgba(208, 138, 114, 0.11);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #0F131B;
+    --ground-lift: #161B25;
+    --ink:         #E2E7EE;
+    --ink-soft:    #A6B0BE;
+    --ink-faint:   #78838f;
+    --rule:        #2A323F;
+    --rule-soft:   #212836;
+    --accent:      #D9A445;
+    --accent-mark: #E0B15C;
+    --accent-wash: rgba(217, 164, 69, 0.12);
+    --warn:        #D08A72;
+    --warn-wash:   rgba(208, 138, 114, 0.11);
+  }
+
+  :root[data-theme="light"] {
+    --ground:      #EDEFF2;
+    --ground-lift: #F6F7F9;
+    --ink:         #12161F;
+    --ink-soft:    #454F5E;
+    --ink-faint:   #6B7684;
+    --rule:        #CFD5DD;
+    --rule-soft:   #DFE3E9;
+    --accent:      #8A5A11;
+    --accent-mark: #B0761C;
+    --accent-wash: rgba(176, 118, 28, 0.10);
+    --warn:        #8F4634;
+    --warn-wash:   rgba(143, 70, 52, 0.09);
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 74rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 6vw, 5rem) var(--gutter) 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3rem, 7vw, 5.5rem);
+  }
+
+  .label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { display: flex; flex-direction: column; gap: 1.1rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6.5vw, 4.25rem);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .standfirst {
+    font-family: var(--serif);
+    font-size: clamp(1.1rem, 2vw, 1.32rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: var(--measure);
+    margin: 0;
+  }
+  .rule-heavy { height: 2px; background: var(--ink); opacity: 0.85; }
+
+  /* ---------- section frame ---------- */
+  section { display: flex; flex-direction: column; gap: 1.75rem; }
+  .sec-head { display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(1.6rem, 3vw, 2.15rem);
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sec-head p { margin: 0; color: var(--ink-soft); max-width: var(--measure); }
+
+  /* ---------- core principle ---------- */
+  .triad { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .triad > div { background: var(--ground-lift); padding: 1.5rem 1.4rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .triad h3 { font-family: var(--serif); font-weight: 400; font-size: 1.28rem; margin: 0; }
+  .triad ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+  .triad li { color: var(--ink-soft); font-size: 0.94rem; padding-left: 0.95rem; position: relative; }
+  .triad li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 5px; height: 1px; background: var(--accent-mark); }
+
+  /* ---------- the seven ---------- */
+  .spine { display: flex; flex-direction: column; }
+  .station {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 0 1.5rem;
+    padding: 1.9rem 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .station:first-child { border-top: 1px solid var(--rule); }
+  .idx {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--accent-mark);
+    letter-spacing: 0.04em;
+    padding-top: 0.35rem;
+  }
+  .station-body { display: flex; flex-direction: column; gap: 0.95rem; min-width: 0; }
+  .station h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .chip {
+    font-size: 0.84rem;
+    padding: 0.22rem 0.6rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    color: var(--ink-soft);
+    background: var(--ground-lift);
+  }
+  .protects { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; font-size: 0.9rem; }
+  .protects .label { color: var(--warn); }
+  .protects span.item {
+    color: var(--warn);
+    background: var(--warn-wash);
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+  }
+  .question {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.16rem;
+    line-height: 1.45;
+    color: var(--ink);
+    border-left: 2px solid var(--accent-mark);
+    padding-left: 0.95rem;
+    margin: 0.15rem 0 0;
+    max-width: var(--measure);
+    text-wrap: pretty;
+  }
+
+  /* ---------- epistemic flow ---------- */
+  .flow-scroll { overflow-x: auto; padding-bottom: 0.5rem; }
+  .flow { display: flex; align-items: stretch; gap: 0; min-width: min-content; }
+  .step { display: flex; align-items: center; gap: 0; }
+  .step-box {
+    border: 1px solid var(--rule);
+    background: var(--ground-lift);
+    padding: 0.8rem 1rem;
+    min-width: 8.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .step-box .n { font-family: var(--mono); font-size: 0.7rem; color: var(--accent-mark); }
+  .step-box .t { font-size: 0.97rem; }
+  .arrow { color: var(--ink-faint); padding: 0 0.55rem; font-size: 0.9rem; flex-shrink: 0; }
+
+  /* ---------- sentinel ---------- */
+  .sentinel {
+    border: 1px solid var(--accent-mark);
+    background: var(--accent-wash);
+    padding: clamp(1.6rem, 3.5vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .sentinel .thesis {
+    font-family: var(--serif);
+    font-size: clamp(1.35rem, 3vw, 1.85rem);
+    line-height: 1.28;
+    margin: 0;
+    text-wrap: balance;
+    max-width: 34ch;
+  }
+  .sentinel .justify { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .sentinel .justify span {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid var(--accent-mark);
+    color: var(--accent);
+    padding: 0.28rem 0.6rem;
+  }
+
+  /* ---------- applications ---------- */
+  .apps { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .apps span {
+    border: 1px solid var(--rule);
+    padding: 0.4rem 0.85rem;
+    font-size: 0.93rem;
+    color: var(--ink-soft);
+    background: var(--ground-lift);
+  }
+
+  /* ---------- mermaid ---------- */
+  .diagram { border: 1px solid var(--rule); background: var(--ground-lift); padding: 1.25rem; overflow-x: auto; }
+  .diagram pre.mermaid { margin: 0; background: transparent; min-width: min-content; }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; color: var(--ink-faint); font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.4rem; }
+
+  @media (max-width: 34rem) {
+    .station { grid-template-columns: 1fr; gap: 0.6rem; }
+    .idx { padding-top: 0; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="label">Concept Map · Draft</div>
+    <h1>Alexicon <em>2.0</em></h1>
+    <div class="rule-heavy"></div>
+    <p class="standfirst">Seven domains of epistemic governance. Each one holds a question, and guards against a specific way reasoning fails when that question goes unasked.</p>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <div class="label">Foundation</div>
+      <h2>Core Principle</h2>
+      <p>Judgment is cultivated under conditions, not assembled from parts. The architecture designs the conditions.</p>
+    </div>
+    <div class="triad">
+      <div>
+        <h3>Human Judgment</h3>
+        <ul><li>Meaning</li><li>Agency</li><li>Responsibility</li></ul>
+      </div>
+      <div>
+        <h3>Epistemic Governance</h3>
+        <ul><li>Evidence</li><li>Context</li><li>Accountability</li></ul>
+      </div>
+      <div>
+        <h3>Emergence</h3>
+        <ul><li>Judgment is cultivated</li><li>Not directly assembled</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="label">Ascent · 01–07</div>
+      <h2>The Seven Domains</h2>
+      <p>The order carries information. Each domain presupposes the one beneath it — there is no agency without a stable subject to hold it, and no orientation without integration to orient.</p>
+    </div>
+    <div class="spine">
+
+      <article class="station">
+        <div class="idx">01</div>
+        <div class="station-body">
+          <h3>Identity</h3>
+          <div class="chips"><span class="chip">Stable Subject</span><span class="chip">Self</span><span class="chip">Persistent Context</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Identity ambiguity</span><span class="item">Category confusion</span></div>
+          <p class="question">Who or what exists?</p>
+        </div>
+      </article>
+
+      <article class="station">
+        <div class="idx">02</div>
+        <div class="station-body">
+          <h3>Agency</h3>
+          <div class="chips"><span class="chip">Freedom of Choice</span><span class="chip">Available Actions</span><span class="chip">Constraints</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Determinism</span><span class="item">Context collapse</span></div>
+          <p class="question">What choices remain?</p>
+        </div>
+      </article>
+
+      <article class="station">
+        <div class="idx">03</div>
+        <div class="station-body">
+          <h3>Motivation</h3>
+          <div class="chips"><span class="chip">Purpose</span><span class="chip">Values</span><span class="chip">Intent</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Local optimization</span><span class="item">False objectives</span></div>
+          <p class="question">Why does this matter?</p>
+        </div>
+      </article>
+
+      <article class="station">
+        <div class="idx">04</div>
+        <div class="station-body">
+          <h3>Reflection</h3>
+          <div class="chips"><span class="chip">Perspective Shift</span><span class="chip">Self Observation</span><span class="chip">Temporal Reasoning</span><span class="chip">Translation</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Emotional capture</span><span class="item">Narrative lock-in</span></div>
+          <p class="question">Can this experience be viewed differently?</p>
+        </div>
+      </article>
+
+      <article class="station">
+        <div class="idx">05</div>
+        <div class="station-body">
+          <h3>Integration</h3>
+          <div class="chips"><span class="chip">Pattern Formation</span><span class="chip">Coherent Meaning</span><span class="chip">Relationship Building</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Fragmented reasoning</span><span class="item">Isolated facts</span></div>
+          <p class="question">What larger pattern emerges?</p>
+        </div>
+      </article>
+
+      <article class="station">
+        <div class="idx">06</div>
+        <div class="station-body">
+          <h3>Governance</h3>
+          <div class="chips"><span class="chip">Evidence</span><span class="chip">Accountability</span><span class="chip">Consequence</span><span class="chip">Validation</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Unsupported inference</span><span class="item">Confidence without justification</span></div>
+          <p class="question">Has this interpretation earned the right to guide action?</p>
+        </div>
+      </article>
+
+      <article class="station">
+        <div class="idx">07</div>
+        <div class="station-body">
+          <h3>Orientation</h3>
+          <div class="chips"><span class="chip">Hope</span><span class="chip">Character</span><span class="chip">Wisdom</span><span class="chip">Long-term Direction</span></div>
+          <div class="protects"><span class="label">Protects against</span><span class="item">Opportunistic drift</span><span class="item">Cynicism</span></div>
+          <p class="question">What enduring way of being emerges?</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="label">Transitions</div>
+      <h2>Epistemic Flow</h2>
+      <p>Each step increases abstraction, and therefore requires more justification than the step before it. The transitions are the risk, not the stages.</p>
+    </div>
+    <div class="flow-scroll">
+      <div class="flow">
+        <div class="step"><div class="step-box"><span class="n">01</span><span class="t">Observation</span></div><span class="arrow">→</span></div>
+        <div class="step"><div class="step-box"><span class="n">02</span><span class="t">Experience</span></div><span class="arrow">→</span></div>
+        <div class="step"><div class="step-box"><span class="n">03</span><span class="t">Interpretation</span></div><span class="arrow">→</span></div>
+        <div class="step"><div class="step-box"><span class="n">04</span><span class="t">Meaning</span></div><span class="arrow">→</span></div>
+        <div class="step"><div class="step-box"><span class="n">05</span><span class="t">Belief</span></div><span class="arrow">→</span></div>
+        <div class="step"><div class="step-box"><span class="n">06</span><span class="t">Assertion</span></div><span class="arrow">→</span></div>
+        <div class="step"><div class="step-box"><span class="n">07</span><span class="t">Action</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sentinel">
+      <div class="label">Sentinel Principle</div>
+      <p class="thesis">Every transition must justify its increased authority.</p>
+      <div class="justify">
+        <span>Increased Authority</span><span>Evidence</span><span>Context</span><span>Responsibility</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="label">Reference</div>
+      <h2>The map</h2>
+      <p>The full structure as authored, rendered from source.</p>
+    </div>
+    <div class="diagram">
+<pre class="mermaid">
+mindmap
+  root((Alexicon 2.0))
+    Core Principle
+      Human Judgment
+        Meaning
+        Agency
+        Responsibility
+      Epistemic Governance
+        Evidence
+        Context
+        Accountability
+      Emergence
+        Judgment is cultivated
+        Not directly assembled
+    Identity
+      Stable Subject
+      Self
+      Persistent Context
+      Protects
+        Identity ambiguity
+        Category confusion
+      Question
+        Who or what exists?
+    Agency
+      Freedom of Choice
+      Available Actions
+      Constraints
+      Protects
+        Determinism
+        Context collapse
+      Question
+        What choices remain?
+    Motivation
+      Purpose
+      Values
+      Intent
+      Protects
+        Local optimization
+        False objectives
+      Question
+        Why does this matter?
+    Reflection
+      Perspective Shift
+      Self Observation
+      Temporal Reasoning
+      Translation
+      Protects
+        Emotional capture
+        Narrative lock-in
+      Question
+        Can this experience be viewed differently?
+    Integration
+      Pattern Formation
+      Coherent Meaning
+      Relationship Building
+      Protects
+        Fragmented reasoning
+        Isolated facts
+      Question
+        What larger pattern emerges?
+    Governance
+      Evidence
+      Accountability
+      Consequence
+      Validation
+      Protects
+        Unsupported inference
+        Confidence without justification
+      Question
+        Has this interpretation earned the right to guide action?
+    Orientation
+      Hope
+      Character
+      Wisdom
+      Long-term Direction
+      Protects
+        Opportunistic drift
+        Cynicism
+      Question
+        What enduring way of being emerges?
+    Epistemic Flow
+      Observation
+      Experience
+      Interpretation
+      Meaning
+      Belief
+      Assertion
+      Action
+    Sentinel Principle
+      Every transition must justify
+      Increased Authority
+      Evidence
+      Context
+      Responsibility
+    Applications
+      Human Judgment
+      Artificial Intelligence
+      Organizations
+      Education
+      Healthcare
+      Law
+      HR
+      Leadership
+</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="label">Domains of application</div>
+      <h2>Where it applies</h2>
+      <p>The architecture is domain-general because the failure it addresses is domain-general: confidence outrunning justification.</p>
+    </div>
+    <div class="apps">
+      <span>Human Judgment</span><span>Artificial Intelligence</span><span>Organizations</span><span>Education</span><span>Healthcare</span><span>Law</span><span>HR</span><span>Leadership</span>
+    </div>
+  </section>
+
+  <footer>
+    <div>Alexicon 2.0 — concept map, draft. Framework by Jeff Highman &amp; Alexandra Křížová.</div>
+    <div>Structure reproduced as authored. Source material held privately pending publication.</div>
+  </footer>
+
+</div>
