@@ -2,14 +2,14 @@ require "rails_helper"
 
 # The resolver's three non-resolving outcomes map onto the framework's three
 # detection criteria for Entity Noise.
-RSpec.describe EntityResolver do
+RSpec.describe ReferentResolver do
   let(:document) { Document.create!(body: "…") }
   let(:claim)    { document.claims.create!(position: 1, text: "Wednesday left.") }
 
   def mention(text) = claim.mentions.create!(text: text)
 
   def entity(name, subject: "Family", role: "Sister")
-    Entity.create!(name: name, subject: subject, role: role)
+    Referent.create!(name: name, subject: subject, role: role)
   end
 
   describe "resolution" do
@@ -19,7 +19,7 @@ RSpec.describe EntityResolver do
       result = described_class.new(mention("Wednesday")).call
 
       expect(result).to be_resolved
-      expect(result.entity).to eq addams
+      expect(result.referent).to eq addams
     end
 
     it "matches case-insensitively" do
@@ -30,11 +30,11 @@ RSpec.describe EntityResolver do
 
     it "resolves through a declared alias" do
       addams = entity("Wednesday Addams")
-      addams.entity_aliases.create!(name: "Wednesday")
+      addams.referent_aliases.create!(name: "Wednesday")
 
       result = described_class.new(mention("Wednesday")).call
 
-      expect(result.entity).to eq addams
+      expect(result.referent).to eq addams
     end
   end
 
@@ -52,7 +52,7 @@ RSpec.describe EntityResolver do
       result = described_class.new(Mention.new(claim: claim, text: " ")).call
 
       expect(result.status).to eq :out_of_distribution
-      expect(result.entity).to be_nil
+      expect(result.referent).to be_nil
     end
   end
 
@@ -72,7 +72,7 @@ RSpec.describe EntityResolver do
     # form is known to carry non-entity senses.
     it "refuses a lone match reached through a form with non-entity senses" do
       addams = entity("Wednesday Addams")
-      addams.entity_aliases.create!(name: "Wednesday", ambiguous: true)
+      addams.referent_aliases.create!(name: "Wednesday", ambiguous: true)
 
       result = described_class.new(mention("Wednesday")).call
 

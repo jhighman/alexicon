@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_200001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_210001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -104,29 +104,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_200001) do
     t.index ["framework_id"], name: "index_domains_on_framework_id"
   end
 
-  create_table "entities", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.text "notes"
-    t.string "role"
-    t.string "subject"
-    t.string "system_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_entities_on_name"
-    t.index ["system_id"], name: "index_entities_on_system_id", unique: true
-  end
-
-  create_table "entity_aliases", force: :cascade do |t|
-    t.boolean "ambiguous", default: false, null: false
-    t.datetime "created_at", null: false
-    t.bigint "entity_id", null: false
-    t.string "name", null: false
-    t.string "source"
-    t.datetime "updated_at", null: false
-    t.index ["entity_id"], name: "index_entity_aliases_on_entity_id"
-    t.index ["name"], name: "index_entity_aliases_on_name"
-  end
-
   create_table "flow_stages", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "framework_id", null: false
@@ -172,19 +149,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_200001) do
     t.index ["key"], name: "index_policies_on_key", unique: true
   end
 
+  create_table "referent_aliases", force: :cascade do |t|
+    t.boolean "ambiguous", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "referent_id", null: false
+    t.string "source"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_referent_aliases_on_name"
+    t.index ["referent_id"], name: "index_referent_aliases_on_referent_id"
+  end
+
+  create_table "referents", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.text "notes"
+    t.string "primitive"
+    t.string "role"
+    t.string "subject"
+    t.string "system_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_referents_on_name"
+    t.index ["primitive"], name: "index_referents_on_primitive"
+    t.index ["system_id"], name: "index_referents_on_system_id", unique: true
+  end
+
   create_table "resolutions", force: :cascade do |t|
     t.decimal "confidence", precision: 5, scale: 4
     t.datetime "created_at", null: false
     t.boolean "current", default: true, null: false
-    t.bigint "entity_id", null: false
     t.bigint "mention_id", null: false
     t.string "origin", null: false
     t.text "rationale"
+    t.bigint "referent_id", null: false
     t.string "resolver"
     t.datetime "updated_at", null: false
-    t.index ["entity_id"], name: "index_resolutions_on_entity_id"
     t.index ["mention_id", "current"], name: "index_resolutions_on_mention_id_and_current"
     t.index ["mention_id"], name: "index_resolutions_on_mention_id"
+    t.index ["referent_id"], name: "index_resolutions_on_referent_id"
   end
 
   create_table "sentinel_flags", force: :cascade do |t|
@@ -249,11 +251,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_200001) do
   add_foreign_key "domain_policies", "domains"
   add_foreign_key "domain_policies", "policies"
   add_foreign_key "domains", "frameworks"
-  add_foreign_key "entity_aliases", "entities"
   add_foreign_key "flow_stages", "frameworks"
   add_foreign_key "mentions", "claims"
-  add_foreign_key "resolutions", "entities"
+  add_foreign_key "referent_aliases", "referents"
   add_foreign_key "resolutions", "mentions"
+  add_foreign_key "resolutions", "referents"
   add_foreign_key "sentinel_flags", "domains"
   add_foreign_key "term_aliases", "terms"
   add_foreign_key "transitions", "claims", column: "from_claim_id"

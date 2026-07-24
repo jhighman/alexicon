@@ -11,7 +11,7 @@
 # A STOP is a healthy freeze. Dissonance signals that the conditions were not
 # met; it is a correct outcome, not an error to be smoothed over.
 class IdentitySentinel
-  RESOLVER = "EntityResolver"
+  RESOLVER = "ReferentResolver"
 
   def self.verify!(mention) = new(mention).verify!
 
@@ -20,7 +20,7 @@ class IdentitySentinel
   end
 
   def verify!
-    result = EntityResolver.new(mention).call
+    result = ReferentResolver.new(mention).call
 
     if result.resolved?
       record_resolution(result)
@@ -39,7 +39,7 @@ class IdentitySentinel
     mention.transaction do
       mention.resolutions.by_model.update_all(current: false)
       mention.resolutions.create!(
-        entity: result.entity, origin: "model", resolver: RESOLVER,
+        referent: result.referent, origin: "model", resolver: RESOLVER,
         confidence: 1.0, rationale: result.reason
       )
       mention.update!(status: "resolved")

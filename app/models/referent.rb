@@ -14,8 +14,8 @@
 # into a time-invariant state. Without it the system cannot tell whether a
 # *claim* changed or the *subject* did -- which is how evidence gets
 # manipulated silently. So it is assigned once and frozen.
-class Entity < ApplicationRecord
-  has_many :entity_aliases, dependent: :destroy
+class Referent < ApplicationRecord
+  has_many :referent_aliases, dependent: :destroy
   has_many :resolutions, dependent: :restrict_with_error
   has_many :mentions, through: :resolutions
 
@@ -32,7 +32,7 @@ class Entity < ApplicationRecord
   def passport = [ name, subject, role ].compact.join(" → ")
 
   # Every surface form that refers to this entity.
-  def surface_forms = [ name, *entity_aliases.pluck(:name) ].uniq
+  def surface_forms = [ name, *referent_aliases.pluck(:name) ].uniq
 
   private
 

@@ -12,8 +12,8 @@
 #   :out_of_distribution  -- no match in memory
 #   :unanchored           -- Cognitive Passport could not be assigned
 #
-class EntityResolver
-  Result = Data.define(:status, :entity, :candidates, :reason) do
+class ReferentResolver
+  Result = Data.define(:status, :referent, :candidates, :reason) do
     def resolved? = status == :resolved
   end
 
@@ -30,11 +30,11 @@ class EntityResolver
     return out_of_distribution if candidates.empty?
     return ambiguous(candidates, dispersion_reason(candidates)) if dispersed?(candidates)
 
-    entity = candidates.sole
-    return unanchored(entity) unless entity.anchored?
+    referent = candidates.sole
+    return unanchored(referent) unless referent.anchored?
 
-    Result.new(status: :resolved, entity: entity, candidates: candidates,
-               reason: "resolved to #{entity.passport}")
+    Result.new(status: :resolved, referent: referent, candidates: candidates,
+               reason: "resolved to #{referent.passport}")
   end
 
   private
@@ -43,9 +43,9 @@ class EntityResolver
 
   # Case-insensitive match against canonical names and declared aliases.
   def find_candidates
-    by_name  = Entity.where("LOWER(name) = ?", text.downcase)
-    by_alias = Entity.joins(:entity_aliases).where("LOWER(entity_aliases.name) = ?", text.downcase)
-    Entity.where(id: by_name.select(:id)).or(Entity.where(id: by_alias.select(:id))).distinct.to_a
+    by_name  = Referent.where("LOWER(name) = ?", text.downcase)
+    by_alias = Referent.joins(:referent_aliases).where("LOWER(referent_aliases.name) = ?", text.downcase)
+    Referent.where(id: by_name.select(:id)).or(Referent.where(id: by_alias.select(:id))).distinct.to_a
   end
 
   # More than one candidate is dispersion. So is a single candidate reached
@@ -57,7 +57,7 @@ class EntityResolver
   end
 
   def matched_ambiguous_alias?
-    EntityAlias.ambiguous.where("LOWER(name) = ?", text.downcase).exists?
+    ReferentAlias.ambiguous.where("LOWER(name) = ?", text.downcase).exists?
   end
 
   def dispersion_reason(candidates)
@@ -71,23 +71,23 @@ class EntityResolver
   end
 
   def blank_text
-    Result.new(status: :out_of_distribution, entity: nil, candidates: [],
+    Result.new(status: :out_of_distribution, referent: nil, candidates: [],
                reason: "mention has no text to resolve")
   end
 
   def out_of_distribution
-    Result.new(status: :out_of_distribution, entity: nil, candidates: [],
+    Result.new(status: :out_of_distribution, referent: nil, candidates: [],
                reason: "#{text.inspect} matches no known entity")
   end
 
   def ambiguous(candidates, reason)
-    Result.new(status: :ambiguous, entity: nil, candidates: candidates, reason: reason)
+    Result.new(status: :ambiguous, referent: nil, candidates: candidates, reason: reason)
   end
 
-  def unanchored(entity)
-    missing = [ ("subject" if entity.subject.blank?), ("role" if entity.role.blank?) ].compact
-    Result.new(status: :unanchored, entity: entity, candidates: [ entity ],
-               reason: "Cognitive Passport incomplete for #{entity.name.inspect}: " \
+  def unanchored(referent)
+    missing = [ ("subject" if referent.subject.blank?), ("role" if referent.role.blank?) ].compact
+    Result.new(status: :unanchored, referent: referent, candidates: [ referent ],
+               reason: "Cognitive Passport incomplete for #{referent.name.inspect}: " \
                        "missing #{missing.join(' and ')}")
   end
 end

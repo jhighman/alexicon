@@ -27,7 +27,7 @@ class Mention < ApplicationRecord
     ).first
   end
 
-  def entity = resolution&.entity
+  def referent = resolution&.referent
 
   def anchored? = status == "resolved"
 end

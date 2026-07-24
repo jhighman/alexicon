@@ -7,15 +7,15 @@ RSpec.describe IdentitySentinel do
   def mention(text) = claim.mentions.create!(text: text)
 
   it "records a resolution as an inference when the subject is grounded" do
-    Entity.create!(name: "Wednesday", subject: "Family", role: "Sister")
+    Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
     m = mention("Wednesday")
 
     described_class.verify!(m)
 
     expect(m.reload.status).to eq "resolved"
     expect(m.resolution).to be_inferred
-    expect(m.resolution.resolver).to eq "EntityResolver"
-    expect(m.entity.name).to eq "Wednesday"
+    expect(m.resolution.resolver).to eq "ReferentResolver"
+    expect(m.referent.name).to eq "Wednesday"
   end
 
   it "locks execution rather than guessing when the subject is unknown" do
@@ -24,14 +24,14 @@ RSpec.describe IdentitySentinel do
     described_class.verify!(m)
 
     expect(m.reload.status).to eq "out_of_distribution"
-    expect(m.entity).to be_nil
+    expect(m.referent).to be_nil
     expect(m.sentinel_flags.sole).to be_stop
     expect(document.executable?).to be false
   end
 
   it "does not pick the likeliest candidate when several match" do
-    Entity.create!(name: "Wednesday", subject: "Family", role: "Sister")
-    Entity.create!(name: "Wednesday", subject: "Organisation", role: "Venue")
+    Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
+    Referent.create!(name: "Wednesday", subject: "Organisation", role: "Venue")
     m = mention("Wednesday")
 
     described_class.verify!(m)
@@ -69,7 +69,7 @@ RSpec.describe IdentitySentinel do
     end
 
     it "reports which mentions are blocking" do
-      Entity.create!(name: "Wednesday", subject: "Family", role: "Sister")
+      Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
       good = mention("Wednesday")
       bad  = mention("Pugsley")
       [ good, bad ].each { described_class.verify!(it) }

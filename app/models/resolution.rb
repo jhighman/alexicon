@@ -7,7 +7,7 @@ class Resolution < ApplicationRecord
   ORIGINS = %w[model human].freeze
 
   belongs_to :mention
-  belongs_to :entity
+  belongs_to :referent
 
   validates :origin, inclusion: { in: ORIGINS }
   validates :confidence,

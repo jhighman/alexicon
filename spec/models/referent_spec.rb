@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Entity do
+RSpec.describe Referent do
   it "assigns a system_id on creation" do
     entity = described_class.create!(name: "Wednesday")
 
