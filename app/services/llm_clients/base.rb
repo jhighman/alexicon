@@ -6,11 +6,9 @@
 # that a category is one of four depends on the provider enforcing the schema.
 module LlmClients
   class Base
-    # Each adapter names the environment variable holding its key, so the UI
-    # can report which providers are actually usable right now.
+    # Each adapter names the environment variable it falls back to, so the UI
+    # can tell an admin what to export if no key is stored.
     def self.credential_env = raise(NotImplementedError)
-
-    def self.credentialed? = ENV[credential_env].present?
 
     def initialize(model)
       @model = model
@@ -24,9 +22,15 @@ module LlmClients
 
     attr_reader :model
 
+    # The key comes from the provider record -- stored if an admin set one,
+    # otherwise the environment. The adapter does not decide which.
     def api_key
-      key = ENV[self.class.credential_env]
-      raise MissingCredentials, "#{self.class.credential_env} is not set" if key.blank?
+      key = model.llm_provider.api_key_in_effect
+      if key.blank?
+        raise MissingCredentials,
+              "no key for #{model.llm_provider.name}: set one at /llm_providers " \
+              "or export #{self.class.credential_env}"
+      end
 
       key
     end

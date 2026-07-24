@@ -34,6 +34,26 @@
   </div>
 
   <div class="mb-3">
+    <%= f.label :api_key, "API key", class: "form-label" %>
+    <%= f.password_field :api_key, class: "form-control", value: nil,
+                         autocomplete: "off", placeholder: key_placeholder(provider) %>
+    <div class="form-text">
+      <% if provider.credential_source == "stored" %>
+        A key is stored (<code><%= provider.api_key_hint %></code>, set
+        <%= provider.api_key_set_at&.to_fs(:short) %><%= " by #{provider.api_key_set_by.name}" if provider.api_key_set_by %>).
+        Leave this blank to keep it. Entering a new one replaces it.
+      <% elsif provider.credential_source == "environment" %>
+        Currently taking <code><%= provider.credential_env %></code> from the
+        environment. A key entered here overrides it.
+      <% else %>
+        Stored encrypted, never shown again, and never written to the audit
+        trail or the log. Leave blank to use
+        <code><%= provider.credential_env || "an environment variable" %></code> instead.
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mb-3">
     <%= f.label :notes, class: "form-label" %>
     <%= f.text_area :notes, rows: 3, class: "form-control" %>
   </div>

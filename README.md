@@ -58,12 +58,14 @@ interface, so which vendor answers is a governed decision rather than a fact
 about the code.
 
 Two things a provider needs before it can be used, and the registry keeps them
-apart: an **adapter**, so the code can call it, and a **credential** in the
-environment. A provider without an adapter may still be registered — it just
-cannot be certified, because vouching for a model this application cannot reach
-would claim a capability that does not exist. Credentials are read from the
-environment and never stored; a key in the database would put a secret in the
-audit trail.
+apart: an **adapter**, so the code can call it, and a **credential**. A provider
+without an adapter may still be registered — it just cannot be certified,
+because vouching for a model this application cannot reach would claim a
+capability that does not exist.
+
+A credential can be set in the browser or exported into the environment. Either
+way it stays out of the audit trail: assertions and invocations record who
+judged, on which model, at what cost — never the key.
 
 **Review surface** — paste a text, see its claims and their categories, and answer
 the flags waiting on a person. Flags are never presented as claims of falsehood:
@@ -99,15 +101,24 @@ Then sign in and certify a model at `/llm_models` — nothing will classify unti
 you do, which is the intended posture: no model influences a judgement because
 a constant named it.
 
-Classification needs a key for whichever provider you route to:
+Classification needs a key for whichever provider you route to. Set one at
+`/llm_providers` — encrypted at rest, shown afterwards only as its last four
+characters plus who set it and when, and filtered out of the logs. Or export it:
 
 ```sh
 export ANTHROPIC_API_KEY=...   # or OPENAI_API_KEY, or GEMINI_API_KEY
 ```
 
-`/llm_providers` shows which of these it can see. Without one, `ClaimClassifier`
-raises `MissingCredentials` rather than failing obscurely. Everything else —
-ingest, identity resolution, governance — runs without it.
+A stored key wins over the environment, because setting one is a deliberate act
+by a named person and an exported variable is ambient; clearing it falls back.
+`/llm_providers` states which of the two is actually in effect for each provider.
+
+Encryption uses `config/master.key`, so it protects database dumps, backups and
+replicas — not someone holding both the database and the master key.
+
+With no key in either place, `ClaimClassifier` raises `MissingCredentials`
+naming both places to look, rather than failing obscurely. Everything else —
+ingest, identity resolution, governance — runs without a key at all.
 
 The Anthropic adapter is the only one that has been exercised against a live
 API. The OpenAI and Gemini adapters are written against the published request

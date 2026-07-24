@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_300001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_300002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -224,12 +224,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_300001) do
   end
 
   create_table "llm_providers", force: :cascade do |t|
+    t.text "api_key"
+    t.datetime "api_key_set_at"
+    t.bigint "api_key_set_by_id"
     t.datetime "created_at", null: false
     t.string "key", null: false
     t.string "name", null: false
     t.text "notes"
     t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
+    t.index ["api_key_set_by_id"], name: "index_llm_providers_on_api_key_set_by_id"
     t.index ["key"], name: "index_llm_providers_on_key", unique: true
   end
 
@@ -353,6 +357,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_300001) do
   add_foreign_key "llm_invocations", "referents", column: "agent_id"
   add_foreign_key "llm_models", "llm_providers"
   add_foreign_key "llm_models", "referents", column: "certified_by_id"
+  add_foreign_key "llm_providers", "referents", column: "api_key_set_by_id"
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
   add_foreign_key "referents", "domains"

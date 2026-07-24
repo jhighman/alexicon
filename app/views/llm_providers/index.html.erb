@@ -36,12 +36,24 @@
         <td class="small">
           <% if provider.credential_env.nil? %>
             <span class="text-body-secondary">—</span>
-          <% elsif provider.credentialed? %>
-            <span class="text-success">set</span>
-            <div class="text-body-secondary"><code><%= provider.credential_env %></code></div>
           <% else %>
-            <span class="text-warning-emphasis">missing</span>
-            <div class="text-body-secondary">export <code><%= provider.credential_env %></code></div>
+            <%= credential_badge(provider) %>
+            <div class="text-body-secondary">
+              <% case provider.credential_source %>
+              <% when "stored" %>
+                <code><%= provider.api_key_hint %></code>
+                <% if provider.api_key_set_by %>· <%= provider.api_key_set_by.name %><% end %>
+                <% if policy(provider).update? %>
+                  <%= button_to "Clear", credential_llm_provider_path(provider), method: :delete,
+                                class: "btn btn-sm btn-link text-danger p-0", form_class: "d-inline",
+                                form: { data: { turbo_confirm: "Remove the stored key for #{provider.name}?" } } %>
+                <% end %>
+              <% when "environment" %>
+                <code><%= provider.credential_env %></code>
+              <% else %>
+                set one below, or export <code><%= provider.credential_env %></code>
+              <% end %>
+            </div>
           <% end %>
         </td>
         <td>
@@ -68,8 +80,15 @@
   </tbody>
 </table>
 
-<p class="small text-body-secondary">
-  Credentials are read from the environment, never stored here. A key in the
-  database would be a secret in the audit trail, and this system records
-  judgements, not credentials.
+<p class="small text-body-secondary" style="max-width: 46rem;">
+  A key set here is encrypted at rest and never shown again — only its last four
+  characters, who set it, and when. It never reaches an assertion, an
+  invocation, or a log line. A stored key takes precedence over the environment
+  variable, because setting one is a deliberate act by a named person and an
+  exported variable is ambient; clearing it falls back to the environment.
+</p>
+<p class="small text-body-secondary" style="max-width: 46rem;">
+  Encryption protects database dumps, backups and replicas. It does not protect
+  against someone holding both the database and <code>config/master.key</code>
+  — at that point they have the application.
 </p>

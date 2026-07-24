@@ -13,7 +13,9 @@ Rails.application.routes.draw do
   resource :session, only: %i[new create destroy]
 
   # The registry: what models exist, what they were asked, and who vouched.
-  resources :llm_providers, only: %i[index new create edit update]
+  resources :llm_providers, only: %i[index new create edit update] do
+    delete :credential, on: :member, action: :clear_credential
+  end
   resources :llm_assignments, only: %i[create destroy]
   resources :llm_models, only: %i[index new create] do
     member do

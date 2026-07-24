@@ -44,6 +44,63 @@ RSpec.describe "the LLM registry", type: :request do
     end
   end
 
+  describe "setting a key from the browser" do
+    let!(:admin) { sign_in(role: "admin", name: "Ana") }
+
+    it "stores it against the person who set it" do
+      patch llm_provider_path(anthropic), params: {
+        llm_provider: { key: "anthropic", name: "Anthropic", status: "active",
+                        api_key: "  sk-ant-typed-in  " }
+      }
+
+      anthropic.reload
+      expect(anthropic.api_key).to eq "sk-ant-typed-in"
+      expect(anthropic.api_key_set_by.name).to eq "Ana"
+    end
+
+    it "never renders it back — only a hint" do
+      anthropic.set_api_key!("sk-ant-typed-in", by: admin.referent)
+
+      get edit_llm_provider_path(anthropic)
+
+      expect(response.body).not_to include "sk-ant-typed-in"
+      expect(response.body).to include "…d-in"
+    end
+
+    it "leaves it alone when the field is submitted blank" do
+      anthropic.set_api_key!("sk-ant-typed-in", by: admin.referent)
+
+      patch llm_provider_path(anthropic), params: {
+        llm_provider: { key: "anthropic", name: "Anthropic Inc", status: "active", api_key: "" }
+      }
+
+      anthropic.reload
+      expect(anthropic.name).to eq "Anthropic Inc"
+      expect(anthropic.api_key).to eq "sk-ant-typed-in"
+    end
+
+    it "clears it only on a deliberate act" do
+      anthropic.set_api_key!("sk-ant-typed-in", by: admin.referent)
+
+      delete credential_llm_provider_path(anthropic)
+
+      expect(anthropic.reload.api_key).to be_nil
+      expect(anthropic.api_key_set_by).to be_nil
+    end
+
+    it "is refused to an auditor, who may read the registry but not arm it" do
+      sign_in(role: "auditor", name: "Ada")
+
+      patch llm_provider_path(anthropic), params: {
+        llm_provider: { key: "anthropic", name: "Anthropic", status: "active",
+                        api_key: "sk-ant-sneaked-in" }
+      }
+
+      expect(anthropic.reload.api_key).to be_nil
+      expect(flash[:alert]).to match(/role does not allow/)
+    end
+  end
+
   describe "registering a model" do
     before { sign_in(role: "admin", name: "Ana") }
 

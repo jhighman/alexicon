@@ -1,12 +1,4 @@
 module AuthHelpers
-  # Seeds print a summary line; keep spec output readable.
-  def seed_quietly
-    original, $stdout = $stdout, StringIO.new
-    Rails.application.load_seed
-  ensure
-    $stdout = original
-  end
-
   # Sign in as a role. Judgements attribute to the user's Referent, never to
   # the User — authorisation and provenance stay separate.
   def sign_in(role: "reviewer", name: "Jeff")
