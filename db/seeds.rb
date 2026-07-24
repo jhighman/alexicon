@@ -154,9 +154,11 @@ terms = [
 
   { key: "alpha-function", canonical_name: "Alpha-function",
     kind: "mechanism", status: "active",
-    notes: "Bion. Metabolises raw unstructured tokens (beta-elements) into stable, " \
-           "bindable components (alpha-elements) by replacing linear syntax with " \
-           "relational geometry.",
+    notes: "Bion. Parses raw unstructured tokens (beta-elements) into stable, bindable " \
+           "relations (alpha-elements) by replacing linear syntax with relational " \
+           "geometry. Makes bias addressable; does not remove it -- a well-formed " \
+           "graph encodes a biased relation perfectly well. Precondition for the " \
+           "policy layer, not a substitute for it.",
     aliases: [ [ "detoxification", "later material" ] ] },
 
   { key: "double-vector-bypass", canonical_name: "Double Vector Bypass",

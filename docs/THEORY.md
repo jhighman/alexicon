@@ -93,15 +93,21 @@ Containment is the direct ancestor of the Sentinel: **it does not perform the ta
 
 ### Detoxification: beta → alpha
 
-The alpha-function runs in three stages:
+Stripped of the metabolic metaphor, the alpha-function is **parsing into a typed relational structure**. It runs in three stages:
 
-1. **Beta-elements arrive.** Raw, un-integrated linguistic noise — unstructured tokens, isolated labels, bare verbs with no directional orientation, context, or relational binding. Left unmetabolized these produce what Bion calls anxiety, and what the architecture calls intent hallucination, attention-map dispersion, and behavioral bias.
-2. **The alpha-function metabolizes them.** Linear layout and token sequencing are dismantled and the input is restructured as `Actor — Force — Target — Environment`. Translating syntax into geometry removes surface friction and stops the system leaning on sequential detail that may carry latent bias.
-3. **Alpha-elements emerge.** Stable, bindable components of thought, ready for downstream relational work and passable to the global workspace without leaking behavioral bias or cultural distortion.
+1. **Beta-elements arrive.** Raw, un-integrated linguistic noise — unstructured tokens, isolated labels, bare verbs with no directional orientation, context, or relational binding. Unparsed, these are what the architecture calls intent hallucination and attention-map dispersion: the model has nothing stable to attach an inference to, so it guesses.
+2. **The alpha-function metabolizes them.** Linear layout and token sequencing are dismantled and the input is restructured as `Actor — Force — Target — Environment`. Referents are resolved, roles assigned, modifiers bound.
+3. **Alpha-elements emerge.** Stable, individually addressable components, each one a relation that can be named, queried, and tested on its own terms.
 
-Container and contained: the matrix bounds the chaotic stream, and only metabolized material proceeds.
+Container and contained: the matrix bounds the chaotic stream, and only parsed material proceeds.
 
-> **Reading note.** "Detoxification" is doing metaphorical work that should be unpacked before implementation. Concretely, what stages 1–3 describe is *parsing into a typed relational structure* — resolving referents, assigning roles, binding modifiers. That is a real and valuable operation. What it does **not** do is remove bias: a well-formed graph can encode a biased relation perfectly. Structure and content are independent. The framework's own anti-discrimination policy exists precisely because *structural* correctness does not deliver *substantive* fairness — so "passed without leaking behavioral bias" overclaims what a parse can achieve.
+**What this achieves — stated precisely.** Parsing does not remove bias. A well-formed graph encodes a biased relation perfectly well; structure and content are independent, and no amount of correct role assignment makes a relation fair. What parsing achieves is prior to that and necessary for it:
+
+> It makes bias **addressable**. An unparsed token stream offers nothing to test. A typed relation — *this actor, this force, this target* — can be inspected, compared against a policy, and rejected.
+
+This is the actual dependency between the two layers. The anti-discrimination policy (§2) cannot act on an unparsed stream, because it needs a specific relation to evaluate before it can refuse to penalise it. The alpha-function is what supplies that relation. It is a **precondition** for substantive fairness, never a substitute for it — and the framework needs the policy layer precisely because parsing alone does not deliver it.
+
+> **Corrected from source.** Earlier material states that parsed output reaches the global workspace "without leaking behavioral bias or cultural distortion." That claim is not supportable and is not made here: it attributes to a structural operation an outcome only a substantive policy can produce. The corrected claim is the one above — parsing renders bias inspectable, and the policy layer is what acts on it.
 
 ### Jekyll and Hyde
 
