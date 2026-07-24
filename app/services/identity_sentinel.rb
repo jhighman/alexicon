@@ -35,12 +35,17 @@ class IdentitySentinel
 
   attr_reader :mention
 
+  # A resolution is an assertion: the Sentinel claiming this mention refers to
+  # that referent. Recorded as an inference, never as a finding -- and a person
+  # may later resolve it differently without erasing this.
   def record_resolution(result)
     mention.transaction do
-      mention.resolutions.by_model.update_all(current: false)
-      mention.resolutions.create!(
-        referent: result.referent, origin: "model", resolver: RESOLVER,
-        confidence: 1.0, rationale: result.reason
+      Assertion.create!(
+        asserter: sentinel_referent,
+        subject: mention,
+        object: result.referent,
+        act: "resolve",
+        claim: { "confidence" => 1.0, "rationale" => result.reason, "resolver" => RESOLVER }
       )
       mention.update!(status: "resolved")
     end

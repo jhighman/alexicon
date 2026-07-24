@@ -16,8 +16,10 @@
 # manipulated silently. So it is assigned once and frozen.
 class Referent < ApplicationRecord
   has_many :referent_aliases, dependent: :destroy
-  has_many :resolutions, dependent: :restrict_with_error
-  has_many :mentions, through: :resolutions
+  # Assertions pointing AT this referent -- resolutions, chiefly. A referent
+  # something has been resolved to cannot be deleted out from under it.
+  has_many :referencing_assertions, class_name: "Assertion", as: :object,
+           dependent: :restrict_with_error
 
   has_many :outgoing_relationships, class_name: "Relationship", as: :source,
            dependent: :restrict_with_error

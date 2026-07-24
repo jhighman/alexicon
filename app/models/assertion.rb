@@ -1,27 +1,34 @@
 # An accountable claim, made by someone, at a time, about a subject.
 #
-# An assertion is an EVENT, not a property of an object. It records that a
-# claim WAS MADE. It does not record that the claim was correct -- an assertion
-# may be perfectly authentic and entirely mistaken, and the architecture must
-# be able to hold both facts at once.
+# This is the single epistemic record type. A sentinel's flag, a reviewer's
+# dismissal, a verdict on a transition, a classification, an identity
+# resolution, and an employer's claim about employment are all the same kind of
+# object: immutable, attributed, evidenced, supersedable, challengeable.
+#
+# An assertion is an EVENT, not a property. It records that a claim WAS MADE.
+# It does not record that the claim was correct -- an assertion may be
+# perfectly authentic and entirely mistaken, and the architecture must hold
+# both facts at once.
 #
 # Immutability is the point. Issuing an assertion enlarges the historical
 # record without destroying what preceded it, so the architecture preserves
 # disagreement rather than resolving it prematurely. An error is not erased.
 # It is ANSWERED -- by a later assertion that references it.
-#
-# A Sentinel flag is an assertion too: a sentinel claiming that the conditions
-# for proceeding have not been satisfied. Its disposition is a further
-# assertion about it, which is why "open" is the ABSENCE of a disposition
-# rather than a stored default.
 class Assertion < ApplicationRecord
   # What the assertion does to its subject.
-  ACTS = %w[assert amend revoke challenge delegate flag accept reject].freeze
+  ACTS = %w[assert amend revoke challenge delegate flag accept reject classify resolve].freeze
   DISPOSING = %w[accept reject].freeze
   SEVERITIES = %w[notice concern stop].freeze
 
   belongs_to :asserter, class_name: "Referent"
+
+  # What the claim is ABOUT.
   belongs_to :subject, polymorphic: true
+  # What the claim points AT, when it points at something: a ClaimCategory for
+  # a classification, a Referent for a resolution. Nullable -- most claims
+  # carry their content in `claim` alone.
+  belongs_to :object, polymorphic: true, optional: true
+
   belongs_to :supersedes, class_name: "Assertion", optional: true
   has_many :superseded_by, class_name: "Assertion", foreign_key: :supersedes_id,
                            dependent: :nullify, inverse_of: :supersedes
@@ -37,6 +44,8 @@ class Assertion < ApplicationRecord
   validates :asserted_at, presence: true
   validate  :validity_window_ordered
   validate  :flag_severity_recognised
+  validate  :confidence_in_range
+  validate  :execution_must_not_be_locked, on: :create
 
   before_validation :stamp_asserted_at, on: :create
 
@@ -56,13 +65,23 @@ class Assertion < ApplicationRecord
   def supersedes?(other) = supersedes_id == other.id
 
   # Whether the claim purports to hold at a given moment. Distinct from
-  # whether it is believed, which is a question for the subject's status.
+  # whether it is believed, which is a question for the subject's standing.
   def covers?(moment)
     return false if valid_from.present? && moment < valid_from
     return false if valid_until.present? && moment > valid_until
 
     true
   end
+
+  # --- Judgements ------------------------------------------------------------
+
+  # Origin is not a column. A judgement is an inference when a system made it
+  # and a decision when a person did, which is a fact about the asserter.
+  def inferred? = asserter&.primitive == "system"
+  def human? = asserter&.primitive == "person"
+
+  def confidence = claim["confidence"]&.to_f
+  def rationale  = claim["rationale"]
 
   # --- Flags -----------------------------------------------------------------
   #
@@ -115,5 +134,29 @@ class Assertion < ApplicationRecord
     return if SEVERITIES.include?(claim["severity"])
 
     errors.add(:claim, "severity must be one of #{SEVERITIES.join(', ')}")
+  end
+
+  def confidence_in_range
+    value = claim["confidence"]
+    return if value.blank?
+    return if value.to_f.between?(0, 1)
+
+    errors.add(:claim, "confidence must be between 0 and 1")
+  end
+
+  # Identity verification precedes reasoning. Nothing may be predicated of an
+  # ungrounded subject, so a claim in a document with open identity STOPs
+  # cannot be classified at all.
+  #
+  # Agency is preserved: a person may dispose of the flag and proceed. What
+  # they may not do is reason past it silently.
+  def execution_must_not_be_locked
+    return unless act == "classify"
+
+    document = subject.try(:document)
+    return if document.blank? || document.executable?
+
+    errors.add(:base, "execution is locked: unresolved identity in this document must be " \
+                      "cleared before a claim may be classified")
   end
 end

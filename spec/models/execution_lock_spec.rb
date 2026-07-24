@@ -19,19 +19,31 @@ RSpec.describe "execution lock" do
     Referent.create!(name: "Jeff", subject: "Person", role: "Reviewer", primitive: "person")
   end
 
+  let(:classifier) do
+    Referent.create!(name: "Claim Classifier", subject: "System", role: "Classifier",
+                     primitive: "system")
+  end
+
   def lock!
     mention = claim.mentions.create!(text: "Pugsley")
     IdentitySentinel.verify!(mention)
   end
 
+  # Build-then-save so the validation failure is inspectable.
+  def classify(asserter)
+    assertion = claim.assertions.build(asserter: asserter, act: "classify", object: category)
+    assertion.save
+    assertion
+  end
+
   it "permits classification when nothing is blocking" do
-    expect(claim.classifications.create(claim_category: category, origin: "model")).to be_persisted
+    expect(classify(classifier)).to be_persisted
   end
 
   it "refuses to classify a claim while identity is unresolved" do
     lock!
 
-    classification = claim.classifications.create(claim_category: category, origin: "model")
+    classification = classify(classifier)
 
     expect(classification).not_to be_persisted
     expect(classification.errors[:base].join).to include "execution is locked"
@@ -40,8 +52,7 @@ RSpec.describe "execution lock" do
   it "refuses a human classification too — the lock is not about who is asking" do
     lock!
 
-    classification = claim.classifications.create(claim_category: category, origin: "human",
-                                                  classifier: "jeff")
+    classification = classify(reviewer)
 
     expect(classification).not_to be_persisted
   end
@@ -61,10 +72,10 @@ RSpec.describe "execution lock" do
   # they may not do is reason past it silently.
   it "lifts once a person disposes of the flag" do
     lock!
-    expect(claim.classifications.create(claim_category: category, origin: "model")).not_to be_persisted
+    expect(classify(classifier)).not_to be_persisted
 
     document.open_stops.each { it.dispose!(as: "accepted", by: reviewer) }
 
-    expect(claim.classifications.create(claim_category: category, origin: "model")).to be_persisted
+    expect(classify(classifier)).to be_persisted
   end
 end

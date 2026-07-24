@@ -40,8 +40,8 @@ RSpec.describe Transition do
       observation = category("observation", 1)
       ontological = category("ontological", 2)
       a, b = claim(1, "I experienced peace."), claim(2, "Therefore God exists.")
-      a.classifications.create!(claim_category: observation, origin: "model")
-      b.classifications.create!(claim_category: ontological, origin: "model")
+      a.classify!(observation, asserter: sentinel)
+      b.classify!(ontological, asserter: sentinel)
 
       expect(transition(a, b).category_change?).to be true
     end
@@ -49,7 +49,7 @@ RSpec.describe Transition do
     it "is false when both claims share a category" do
       observation = category("observation", 1)
       a, b = claim(1, "I saw a wall."), claim(2, "I saw it collapse.")
-      [ a, b ].each { it.classifications.create!(claim_category: observation, origin: "model") }
+      [ a, b ].each { it.classify!(observation, asserter: sentinel) }
 
       expect(transition(a, b).category_change?).to be false
     end
@@ -57,7 +57,7 @@ RSpec.describe Transition do
     it "is false when either claim is unclassified, rather than guessing" do
       observation = category("observation", 1)
       a, b = claim(1, "I experienced peace."), claim(2, "Therefore God exists.")
-      a.classifications.create!(claim_category: observation, origin: "model")
+      a.classify!(observation, asserter: sentinel)
 
       expect(transition(a, b).category_change?).to be false
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_250001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -20,6 +20,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
     t.bigint "asserter_id", null: false
     t.jsonb "claim", default: {}, null: false
     t.datetime "created_at", null: false
+    t.bigint "object_id"
+    t.string "object_type"
     t.text "provenance"
     t.bigint "subject_id", null: false
     t.string "subject_type", null: false
@@ -29,6 +31,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
     t.datetime "valid_until"
     t.index ["act"], name: "index_assertions_on_act"
     t.index ["asserter_id"], name: "index_assertions_on_asserter_id"
+    t.index ["object_type", "object_id"], name: "index_assertions_on_object"
     t.index ["subject_type", "subject_id", "asserted_at"], name: "idx_on_subject_type_subject_id_asserted_at_f9911a1d7d"
     t.index ["subject_type", "subject_id"], name: "index_assertions_on_subject"
     t.index ["supersedes_id"], name: "index_assertions_on_supersedes_id"
@@ -57,21 +60,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
     t.datetime "updated_at", null: false
     t.index ["document_id", "position"], name: "index_claims_on_document_id_and_position", unique: true
     t.index ["document_id"], name: "index_claims_on_document_id"
-  end
-
-  create_table "classifications", force: :cascade do |t|
-    t.bigint "claim_category_id", null: false
-    t.bigint "claim_id", null: false
-    t.string "classifier"
-    t.decimal "confidence", precision: 5, scale: 4
-    t.datetime "created_at", null: false
-    t.boolean "current", default: true, null: false
-    t.string "origin", null: false
-    t.text "rationale"
-    t.datetime "updated_at", null: false
-    t.index ["claim_category_id"], name: "index_classifications_on_claim_category_id"
-    t.index ["claim_id", "current"], name: "index_classifications_on_claim_id_and_current"
-    t.index ["claim_id"], name: "index_classifications_on_claim_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -235,21 +223,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
     t.index ["target_type", "target_id"], name: "index_relationships_on_target"
   end
 
-  create_table "resolutions", force: :cascade do |t|
-    t.decimal "confidence", precision: 5, scale: 4
-    t.datetime "created_at", null: false
-    t.boolean "current", default: true, null: false
-    t.bigint "mention_id", null: false
-    t.string "origin", null: false
-    t.text "rationale"
-    t.bigint "referent_id", null: false
-    t.string "resolver"
-    t.datetime "updated_at", null: false
-    t.index ["mention_id", "current"], name: "index_resolutions_on_mention_id_and_current"
-    t.index ["mention_id"], name: "index_resolutions_on_mention_id"
-    t.index ["referent_id"], name: "index_resolutions_on_referent_id"
-  end
-
   create_table "term_aliases", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -276,8 +249,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
   add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "claim_categories", "frameworks"
   add_foreign_key "claims", "documents"
-  add_foreign_key "classifications", "claim_categories"
-  add_foreign_key "classifications", "claims"
   add_foreign_key "domain_components", "domains"
   add_foreign_key "domain_failure_modes", "domains"
   add_foreign_key "domain_policies", "domains"
@@ -289,7 +260,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
   add_foreign_key "referents", "domains"
-  add_foreign_key "resolutions", "mentions"
-  add_foreign_key "resolutions", "referents"
   add_foreign_key "term_aliases", "terms"
 end

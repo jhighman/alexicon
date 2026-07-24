@@ -12,14 +12,11 @@ class Mention < ApplicationRecord
   BLOCKING = (STATUSES - %w[resolved]).freeze
 
   belongs_to :claim
-  has_many :resolutions, dependent: :destroy
 
-  # Flags raised about this mention. NOT dependent: :destroy -- a flag is an
-  # immutable assertion, so a mention that has been flagged cannot be deleted
-  # without erasing the governance history that explains why it was blocked.
+  # Resolutions and flags are both assertions about this mention. NOT
+  # dependent: :destroy -- deleting would erase the governance history that
+  # explains why the mention was blocked.
   has_many :assertions, as: :subject, dependent: :restrict_with_error
-
-  def flags = assertions.flags.standing.chronological
 
   validates :text, presence: true
   validates :status, inclusion: { in: STATUSES }
@@ -27,13 +24,17 @@ class Mention < ApplicationRecord
   scope :blocking, -> { where(status: BLOCKING) }
   scope :resolved, -> { where(status: "resolved") }
 
+  def flags = assertions.flags.standing.chronological
+
+  def resolutions = assertions.acting("resolve").standing.chronological
+
+  # A person's resolution wins over a system's, without erasing it.
   def resolution
-    resolutions.where(current: true).order(
-      Arel.sql("CASE origin WHEN 'human' THEN 0 ELSE 1 END")
-    ).first
+    candidates = resolutions.includes(:asserter).to_a
+    candidates.select(&:human?).last || candidates.last
   end
 
-  def referent = resolution&.referent
+  def referent = resolution&.object
 
   def anchored? = status == "resolved"
 end

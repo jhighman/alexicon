@@ -29,7 +29,8 @@ RSpec.describe IdentitySentinel do
 
     expect(m.reload.status).to eq "resolved"
     expect(m.resolution).to be_inferred
-    expect(m.resolution.resolver).to eq "ReferentResolver"
+    expect(m.resolution.asserter).to eq identity_sentinel
+    expect(m.resolution.claim["resolver"]).to eq "ReferentResolver"
     expect(m.referent.name).to eq "Wednesday"
   end
 
