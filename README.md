@@ -48,6 +48,15 @@ rows scoped to a framework version, not constants. A terminology register
 tracks names that have drifted, and records contested ones as `disputed`
 rather than silently resolving them.
 
+**Review surface** — paste a text, see its claims and their categories, and answer
+the flags waiting on a person. Flags are never presented as claims of falsehood:
+they state that the conditions for proceeding were not satisfied, and a reviewer
+may let one stand or set it aside.
+
+Disposing of a flag requires naming yourself. That is **not authentication** — it
+establishes *who* is answering, because the architecture records every judgement
+against an accountable author. It does not establish that you are entitled to.
+
 ## Setup
 
 Requires Ruby 3.4.8 and PostgreSQL 16+.
@@ -56,8 +65,18 @@ Requires Ruby 3.4.8 and PostgreSQL 16+.
 bundle install
 bin/rails db:prepare   # create, migrate, seed
 bundle exec rspec
-bin/dev                # or bin/rails server
+bin/dev                # http://localhost:3000
 ```
+
+Classification calls the Claude API and needs a key:
+
+```sh
+export ANTHROPIC_API_KEY=...
+```
+
+Without one, `ClaimClassifier` raises `MissingCredentials` rather than failing
+obscurely. Everything else — ingest, identity resolution, governance — runs
+without it.
 
 `config/database.yml` reads `PGHOST` and `PGPORT`, defaulting to
 `localhost:5433`. On a standard PostgreSQL install you will want:

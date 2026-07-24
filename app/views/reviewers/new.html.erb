@@ -1,0 +1,21 @@
+<% content_for :title, "Identify yourself" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <h1 class="h3">Who is reviewing?</h1>
+    <p class="text-body-secondary">
+      Answering a flag is a judgement, and every judgement here is recorded against
+      whoever made it. This is not a login — it establishes who you are, not that
+      you are allowed.
+    </p>
+
+    <%= form_with model: Referent.new, url: reviewer_path, method: :post do |f| %>
+      <div class="mb-3">
+        <%= f.label :name, "Your name", class: "form-label" %>
+        <%= f.text_field :name, class: "form-control", autofocus: true,
+                         placeholder: "e.g. Jeff Highman" %>
+      </div>
+      <%= f.submit "Continue", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>

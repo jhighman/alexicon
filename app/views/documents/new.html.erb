@@ -1,0 +1,31 @@
+<% content_for :title, "Review a text" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3">Review a text</h1>
+    <p class="text-body-secondary">
+      The text is split into claims by sentence, names are proposed for identity
+      checking, and adjacent claims are connected. Nothing is classified and nothing
+      is judged at this stage — that is the work of sentinels that did not build the graph.
+    </p>
+
+    <%= form_with model: @document, url: documents_path do |f| %>
+      <div class="mb-3">
+        <%= f.label :title, "Title", class: "form-label" %>
+        <span class="text-body-secondary small">optional</span>
+        <%= f.text_field :title, class: "form-control" %>
+      </div>
+      <div class="mb-3">
+        <%= f.label :body, "Text", class: "form-label" %>
+        <%= f.text_area :body, rows: 12, class: "form-control font-monospace", required: true,
+                        placeholder: "Paste the text you want to examine." %>
+        <div class="form-text">
+          The original is never modified. Claims reference it by character offset, so
+          every claim stays traceable to the exact span it came from.
+        </div>
+      </div>
+      <%= f.submit "Ingest", class: "btn btn-primary" %>
+      <%= link_to "Cancel", documents_path, class: "btn btn-link" %>
+    <% end %>
+  </div>
+</div>

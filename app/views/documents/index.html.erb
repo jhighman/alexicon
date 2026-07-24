@@ -1,0 +1,43 @@
+<% content_for :title, "Documents" %>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h1 class="h3 mb-1">Documents</h1>
+    <p class="text-body-secondary mb-0">
+      Alexicon does not decide whether claims are true. It decides what kind of claim
+      each one is, and whether a step to the next kind has been earned.
+    </p>
+  </div>
+  <%= link_to "Review a text", new_document_path, class: "btn btn-primary flex-shrink-0" %>
+</div>
+
+<% if @documents.empty? %>
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <p class="text-body-secondary mb-3">Nothing has been reviewed yet.</p>
+      <%= link_to "Review your first text", new_document_path, class: "btn btn-outline-primary" %>
+    </div>
+  </div>
+<% else %>
+  <div class="list-group shadow-sm">
+    <% @documents.each do |document| %>
+      <% label, tone, = document_state(document) %>
+      <%= link_to document, class: "list-group-item list-group-item-action" do %>
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="me-3">
+            <div class="fw-semibold"><%= document.title.presence || "Untitled" %></div>
+            <div class="small text-body-secondary text-truncate" style="max-width: 60ch;">
+              <%= document.body.truncate(120) %>
+            </div>
+          </div>
+          <div class="text-end flex-shrink-0">
+            <span class="badge text-bg-<%= tone %>"><%= label %></span>
+            <div class="small text-body-secondary mt-1">
+              <%= pluralize(document.claims.count, "claim") %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

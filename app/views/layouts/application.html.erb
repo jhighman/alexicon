@@ -23,7 +23,34 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="bg-body-tertiary">
+    <nav class="navbar navbar-expand bg-dark border-bottom border-body" data-bs-theme="dark">
+      <div class="container">
+        <%= link_to "Alexicon", root_path, class: "navbar-brand fw-semibold" %>
+        <div class="navbar-nav me-auto">
+          <%= link_to "Documents", documents_path, class: "nav-link" %>
+          <%= link_to "Review a text", new_document_path, class: "nav-link" %>
+        </div>
+        <div class="navbar-text small">
+          <% if reviewer_identified? %>
+            Reviewing as <span class="text-white fw-semibold"><%= current_reviewer.name %></span>
+            <%= button_to "sign out", reviewer_path, method: :delete,
+                          class: "btn btn-link btn-sm p-0 align-baseline link-light" %>
+          <% else %>
+            <%= link_to "Identify yourself", new_reviewer_path, class: "link-light" %>
+          <% end %>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-4">
+      <% if notice %>
+        <div class="alert alert-success" role="status"><%= notice %></div>
+      <% end %>
+      <% if alert %>
+        <div class="alert alert-warning" role="alert"><%= alert %></div>
+      <% end %>
+      <%= yield %>
+    </main>
   </body>
 </html>
