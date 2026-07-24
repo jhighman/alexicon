@@ -19,12 +19,10 @@ class Referent < ApplicationRecord
   has_many :resolutions, dependent: :restrict_with_error
   has_many :mentions, through: :resolutions
 
-  has_many :outgoing_relationships, class_name: "Relationship",
-           foreign_key: :source_referent_id, dependent: :destroy,
-           inverse_of: :source_referent
-  has_many :incoming_relationships, class_name: "Relationship",
-           foreign_key: :target_referent_id, dependent: :destroy,
-           inverse_of: :target_referent
+  has_many :outgoing_relationships, class_name: "Relationship", as: :source,
+           dependent: :restrict_with_error
+  has_many :incoming_relationships, class_name: "Relationship", as: :target,
+           dependent: :restrict_with_error
 
   # Assertions this referent has made. Accountability begins with attribution,
   # so every claim traces back to someone who can answer for it.
@@ -37,7 +35,8 @@ class Referent < ApplicationRecord
   has_many :assertions, as: :subject, dependent: :restrict_with_error
 
   def relationships
-    Relationship.where(source_referent_id: id).or(Relationship.where(target_referent_id: id))
+    Relationship.where(source_type: "Referent", source_id: id)
+                .or(Relationship.where(target_type: "Referent", target_id: id))
   end
 
   validates :name, presence: true

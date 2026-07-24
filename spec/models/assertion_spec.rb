@@ -4,7 +4,7 @@ RSpec.describe Assertion do
   let(:sarah) { Referent.create!(name: "Sarah", subject: "Person", role: "Employee", primitive: "person") }
   let(:acme)  { Referent.create!(name: "Acme", subject: "Corporation", role: "Employer", primitive: "entity") }
   let(:employment) do
-    Relationship.create!(source_referent: sarah, target_referent: acme, kind: "employment")
+    Relationship.create!(source: sarah, target: acme, kind: "employment")
   end
 
   def assert!(act: "assert", **attrs)

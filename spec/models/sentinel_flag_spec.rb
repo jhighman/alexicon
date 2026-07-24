@@ -8,7 +8,7 @@ RSpec.describe SentinelFlag do
   let(:transition) do
     a = document.claims.create!(position: 1, text: "one")
     b = document.claims.create!(position: 2, text: "two")
-    Transition.create!(document: document, from_claim: a, to_claim: b)
+    Transition.create!(source: a, target: b)
   end
 
   it "opens undisposed" do

@@ -2,15 +2,18 @@
 # reference it by offset, so the source stays auditable.
 class Document < ApplicationRecord
   has_many :claims, -> { order(:position) }, dependent: :destroy
-  has_many :transitions, dependent: :destroy
 
   validates :body, presence: true
 
   def mentions = Mention.where(claim_id: claims.select(:id))
 
+  # Transitions are edges between this document's claims, derived rather than
+  # owned -- an edge belongs to its endpoints, not to a container.
+  def transitions = Transition.where(source_type: "Claim", source_id: claims.select(:id))
+
   def flags
     SentinelFlag
-      .where(flaggable_type: "Transition", flaggable_id: transitions.select(:id))
+      .where(flaggable_type: "Relationship", flaggable_id: transitions.select(:id))
       .or(SentinelFlag.where(flaggable_type: "Mention", flaggable_id: mentions.select(:id)))
   end
 

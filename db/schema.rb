@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_220001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_230001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -219,12 +219,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_220001) do
     t.datetime "created_at", null: false
     t.text "description"
     t.string "kind", null: false
-    t.bigint "source_referent_id", null: false
-    t.bigint "target_referent_id", null: false
+    t.text "note"
+    t.bigint "source_id", null: false
+    t.string "source_type", null: false
+    t.bigint "target_id", null: false
+    t.string "target_type", null: false
+    t.string "type", null: false
     t.datetime "updated_at", null: false
-    t.index ["source_referent_id", "target_referent_id", "kind"], name: "index_relationships_on_endpoints_and_kind"
-    t.index ["source_referent_id"], name: "index_relationships_on_source_referent_id"
-    t.index ["target_referent_id"], name: "index_relationships_on_target_referent_id"
+    t.index ["source_type", "source_id", "target_type", "target_id", "kind"], name: "index_relationships_on_endpoints_and_kind"
+    t.index ["source_type", "source_id"], name: "index_relationships_on_source"
+    t.index ["target_type", "target_id"], name: "index_relationships_on_target"
   end
 
   create_table "resolutions", force: :cascade do |t|
@@ -280,21 +284,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_220001) do
     t.index ["key"], name: "index_terms_on_key", unique: true
   end
 
-  create_table "transitions", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "document_id", null: false
-    t.bigint "from_claim_id", null: false
-    t.text "note"
-    t.decimal "score", precision: 5, scale: 4
-    t.bigint "to_claim_id", null: false
-    t.datetime "updated_at", null: false
-    t.string "verdict", default: "undetermined", null: false
-    t.index ["document_id"], name: "index_transitions_on_document_id"
-    t.index ["from_claim_id", "to_claim_id"], name: "index_transitions_on_from_claim_id_and_to_claim_id", unique: true
-    t.index ["from_claim_id"], name: "index_transitions_on_from_claim_id"
-    t.index ["to_claim_id"], name: "index_transitions_on_to_claim_id"
-  end
-
   add_foreign_key "assertions", "assertions", column: "supersedes_id"
   add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "claim_categories", "frameworks"
@@ -311,13 +300,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_220001) do
   add_foreign_key "flow_stages", "frameworks"
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
-  add_foreign_key "relationships", "referents", column: "source_referent_id"
-  add_foreign_key "relationships", "referents", column: "target_referent_id"
   add_foreign_key "resolutions", "mentions"
   add_foreign_key "resolutions", "referents"
   add_foreign_key "sentinel_flags", "domains"
   add_foreign_key "term_aliases", "terms"
-  add_foreign_key "transitions", "claims", column: "from_claim_id"
-  add_foreign_key "transitions", "claims", column: "to_claim_id"
-  add_foreign_key "transitions", "documents"
 end

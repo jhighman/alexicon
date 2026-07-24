@@ -7,14 +7,14 @@ RSpec.describe Relationship do
   let(:sarah) { Referent.create!(name: "Sarah", subject: "Person", role: "Employee", primitive: "person") }
   let(:acme)  { Referent.create!(name: "Acme", subject: "Corporation", role: "Employer", primitive: "entity") }
   let(:hr)    { Referent.create!(name: "Acme HR", subject: "System", role: "Issuer", primitive: "system") }
-  let(:employment) { described_class.create!(source_referent: sarah, target_referent: acme, kind: "employment") }
+  let(:employment) { described_class.create!(source: sarah, target: acme, kind: "employment") }
 
   def assert!(act: "assert", asserter: acme, subject: employment, **attrs)
     Assertion.create!(asserter: asserter, subject: subject, act: act, **attrs)
   end
 
   it "cannot connect a referent to itself" do
-    loop_rel = described_class.new(source_referent: sarah, target_referent: sarah, kind: "employment")
+    loop_rel = described_class.new(source: sarah, target: sarah, kind: "employment")
 
     expect(loop_rel).not_to be_valid
   end
