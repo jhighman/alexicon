@@ -11,6 +11,22 @@ RSpec.describe ClaimClassifier do
                      role: "Classifier", primitive: "system")
   end
 
+  let!(:certifier) do
+    Referent.create!(name: "Jeff", subject: "Person", role: "Reviewer", primitive: "person")
+  end
+  let!(:model) do
+    provider = LlmProvider.create!(key: "anthropic", name: "Anthropic")
+    m = LlmModel.create!(llm_provider: provider, model_identifier: "claude-opus-5",
+                         display_name: "Claude Opus 5",
+                         cost_per_1k_input: 0.005, cost_per_1k_output: 0.025)
+    m.certify!(certifier)
+    m
+  end
+  let!(:assignment) do
+    LlmAssignment.create!(llm_model: model, agent_pattern: "claim-classifier",
+                          action_type: "classify")
+  end
+
   before do
     [ [ "objective", 1, 1 ], [ "observation", 2, 1 ],
       [ "interpretive", 3, 2 ], [ "ontological", 4, 3 ] ].each do |key, position, rank|
@@ -24,7 +40,8 @@ RSpec.describe ClaimClassifier do
   # each with a type and text.
   def stub_client(payload)
     block = Struct.new(:type, :text).new("text", payload.is_a?(String) ? payload : payload.to_json)
-    response = Struct.new(:content).new([ block ])
+    usage = Struct.new(:input_tokens, :output_tokens).new(412, 89)
+    response = Struct.new(:content, :usage).new([ block ], usage)
     messages = Class.new do
       define_method(:create) { |**| response }
     end.new

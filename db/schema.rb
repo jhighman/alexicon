@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_280001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_290001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -167,6 +167,72 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_280001) do
     t.index ["decided_by_id"], name: "index_ignored_forms_on_decided_by_id"
   end
 
+  create_table "llm_assignments", force: :cascade do |t|
+    t.string "action_type"
+    t.boolean "active", default: true, null: false
+    t.string "agent_pattern", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.bigint "llm_model_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_llm_assignments_on_active"
+    t.index ["created_by_id"], name: "index_llm_assignments_on_created_by_id"
+    t.index ["llm_model_id"], name: "index_llm_assignments_on_llm_model_id"
+  end
+
+  create_table "llm_invocations", force: :cascade do |t|
+    t.string "action_type"
+    t.bigint "agent_id", null: false
+    t.bigint "assertion_id"
+    t.decimal "cost_usd", precision: 12, scale: 6, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "latency_ms"
+    t.bigint "llm_assignment_id"
+    t.bigint "llm_model_id", null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.string "status", null: false
+    t.integer "total_tokens", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_id"], name: "index_llm_invocations_on_agent_id"
+    t.index ["assertion_id"], name: "index_llm_invocations_on_assertion_id"
+    t.index ["created_at"], name: "index_llm_invocations_on_created_at"
+    t.index ["llm_assignment_id"], name: "index_llm_invocations_on_llm_assignment_id"
+    t.index ["llm_model_id"], name: "index_llm_invocations_on_llm_model_id"
+    t.index ["status"], name: "index_llm_invocations_on_status"
+  end
+
+  create_table "llm_models", force: :cascade do |t|
+    t.string "certification_status", default: "pending", null: false
+    t.datetime "certified_at"
+    t.bigint "certified_by_id"
+    t.decimal "cost_per_1k_input", precision: 12, scale: 6
+    t.decimal "cost_per_1k_output", precision: 12, scale: 6
+    t.datetime "created_at", null: false
+    t.string "display_name", null: false
+    t.bigint "llm_provider_id", null: false
+    t.string "model_identifier", null: false
+    t.text "revocation_reason"
+    t.datetime "revoked_at"
+    t.datetime "updated_at", null: false
+    t.index ["certification_status"], name: "index_llm_models_on_certification_status"
+    t.index ["certified_by_id"], name: "index_llm_models_on_certified_by_id"
+    t.index ["llm_provider_id", "model_identifier"], name: "index_llm_models_on_llm_provider_id_and_model_identifier", unique: true
+    t.index ["llm_provider_id"], name: "index_llm_models_on_llm_provider_id"
+  end
+
+  create_table "llm_providers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "key", null: false
+    t.string "name", null: false
+    t.text "notes"
+    t.string "status", default: "active", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_llm_providers_on_key", unique: true
+  end
+
   create_table "mentions", force: :cascade do |t|
     t.integer "char_end"
     t.integer "char_start"
@@ -267,6 +333,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_280001) do
   add_foreign_key "evidence_links", "evidence"
   add_foreign_key "flow_stages", "frameworks"
   add_foreign_key "ignored_forms", "referents", column: "decided_by_id"
+  add_foreign_key "llm_assignments", "llm_models"
+  add_foreign_key "llm_assignments", "referents", column: "created_by_id"
+  add_foreign_key "llm_invocations", "assertions"
+  add_foreign_key "llm_invocations", "llm_assignments"
+  add_foreign_key "llm_invocations", "llm_models"
+  add_foreign_key "llm_invocations", "referents", column: "agent_id"
+  add_foreign_key "llm_models", "llm_providers"
+  add_foreign_key "llm_models", "referents", column: "certified_by_id"
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
   add_foreign_key "referents", "domains"

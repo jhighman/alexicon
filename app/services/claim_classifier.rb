@@ -3,23 +3,25 @@
 # This is the one place a language model is allowed to judge, and it is
 # deliberately fenced:
 #
+#   * The model is RESOLVED, not chosen here. Which model answers is a
+#     governed decision recorded in the registry, and an uncertified model is
+#     unreachable — nobody's judgement runs because a constant said so.
 #   * It PROPOSES. The proposal is recorded as an assertion by the classifier
-#     referent -- an inference, attributable and challengeable, never a finding.
+#     referent — an inference, attributable and challengeable, never a finding.
 #   * It may ABSTAIN. "uncertain" is a first-class answer, and a proposal below
 #     the confidence floor is discarded. An unclassified claim leaves its
 #     transitions unjudged, which is the honest outcome.
 #   * It does NOT govern. The Governance Sentinel rules on whether a promotion
-#     was earned, and refuses to do so if it authored the classification --
-#     Chapter 6's independence requirement, enforced in code.
+#     was earned, and refuses to do so if it authored the classification.
+#   * Every call is RECORDED — model, tokens, cost, latency, outcome — in the
+#     same transaction as the assertion it produced. A judgement with no
+#     account of the call behind it is the gap this system refuses elsewhere.
 #
 # The abstention floor is a policy decision, not a cognitive necessity:
 # prediction is unavoidable, but treating a prediction as operational truth is
 # a choice. This is where that choice is made explicit and tunable.
-#
-# The categories are read from the seeded framework rather than hardcoded, so
-# revising the taxonomy is a `db:seed` run and the prompt follows.
 class ClaimClassifier
-  MODEL = "claude-opus-5".freeze
+  ACTION = "classify".freeze
   MAX_TOKENS = 1024
   EFFORT = "medium".freeze
 
@@ -33,6 +35,7 @@ class ClaimClassifier
   end
 
   class MissingCredentials < StandardError; end
+  class NoGovernedModel < StandardError; end
 
   def self.classify!(claim, asserter: nil, **) = new(claim, **).classify!(asserter: asserter)
 
@@ -43,25 +46,26 @@ class ClaimClassifier
     @confidence_floor = confidence_floor
   end
 
-  # Returns the proposal without recording anything.
-  def call
-    response = request
-    parse(response)
+  # Records the proposal as an assertion, unless the classifier abstained.
+  # The invocation is recorded either way.
+  def classify!(asserter: nil)
+    resolution = resolve_model
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+    begin
+      response = request(resolution.model)
+    rescue StandardError => e
+      record_invocation(resolution, started: started, status: status_for(e), error: e.message)
+      raise
+    end
+
+    proposal = parse(response)
+    persist(proposal, resolution, response, started, asserter)
   end
 
-  # Records the proposal as an assertion, unless the classifier abstained.
-  # Returns the assertion, or nil when nothing was recorded.
-  def classify!(asserter: nil)
-    proposal = call
-    return nil if proposal.abstained?
-
-    category = categories.find { it.key == proposal.category_key }
-    return nil if category.nil?
-
-    claim.classify!(category,
-                    asserter: asserter || classifier_referent,
-                    confidence: proposal.confidence,
-                    rationale: proposal.rationale)
+  # The proposal alone, recording nothing.
+  def call
+    parse(request(resolve_model.model))
   end
 
   private
@@ -70,7 +74,15 @@ class ClaimClassifier
 
   def categories = @categories ||= framework.claim_categories.to_a
 
-  def classifier_referent = Referent.find_by!(key: "claim-classifier")
+  def classifier_referent = @classifier_referent ||= Referent.find_by!(key: "claim-classifier")
+
+  # Which model may answer is a governed decision, not a constant.
+  def resolve_model
+    resolution = LlmResolver.resolve(agent: classifier_referent, action_type: ACTION)
+    raise NoGovernedModel, resolution.error unless resolution.resolved?
+
+    resolution
+  end
 
   def client
     @client ||= begin
@@ -81,14 +93,53 @@ class ClaimClassifier
     end
   end
 
-  def request
+  def request(model)
     client.messages.create(
-      model: MODEL,
+      model: model.model_identifier,
       max_tokens: MAX_TOKENS,
       system: system_prompt,
       messages: [ { role: "user", content: claim.text } ],
       output_config: { format: { type: "json_schema", schema: schema }, effort: EFFORT }
     )
+  end
+
+  def persist(proposal, resolution, response, started, asserter)
+    assertion = nil
+
+    ActiveRecord::Base.transaction do
+      unless proposal.abstained?
+        category = categories.find { it.key == proposal.category_key }
+        assertion = claim.classify!(category,
+                                    asserter: asserter || classifier_referent,
+                                    confidence: proposal.confidence,
+                                    rationale: proposal.rationale) if category
+      end
+
+      record_invocation(resolution, started: started, status: "success",
+                        response: response, assertion: assertion)
+    end
+
+    assertion
+  end
+
+  def record_invocation(resolution, started:, status:, response: nil, assertion: nil, error: nil)
+    usage = response&.usage
+    LlmInvocation.create!(
+      llm_model: resolution.model,
+      llm_assignment: resolution.assignment,
+      agent: classifier_referent,
+      assertion: assertion,
+      action_type: ACTION,
+      input_tokens: usage&.input_tokens.to_i,
+      output_tokens: usage&.output_tokens.to_i,
+      latency_ms: ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round,
+      status: status,
+      error_message: error
+    )
+  end
+
+  def status_for(error)
+    error.class.name.include?("Timeout") ? "timeout" : "error"
   end
 
   # The model is told what the categories mean, that they differ in kind rather

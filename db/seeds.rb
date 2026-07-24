@@ -142,6 +142,22 @@ anti_discrimination.update!(
   DomainPolicy.find_or_create_by!(policy: anti_discrimination, domain: domain)
 end
 
+# --- LLM registry ------------------------------------------------------------
+# The provider and model are registered but NOT certified. Nothing may run on a
+# model until a named person certifies it -- the same posture the Identity
+# Sentinel takes toward an unresolved name: refuse until someone establishes
+# the ground. Certify with:
+#
+#   LlmModel.find_by!(model_identifier: "claude-opus-5").certify!(some_referent)
+#   LlmAssignment.create!(llm_model: model, agent_pattern: "claim-classifier",
+#                         action_type: "classify")
+anthropic = LlmProvider.find_or_initialize_by(key: "anthropic")
+anthropic.update!(name: "Anthropic", status: "active")
+
+LlmModel.find_or_initialize_by(llm_provider: anthropic, model_identifier: "claude-opus-5")
+        .update!(display_name: "Claude Opus 5",
+                 cost_per_1k_input: 0.005, cost_per_1k_output: 0.025)
+
 # --- Terminology register ----------------------------------------------------
 # Stored, not merely documented, because these names have drifted repeatedly.
 terms = [
