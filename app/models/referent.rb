@@ -19,6 +19,27 @@ class Referent < ApplicationRecord
   has_many :resolutions, dependent: :restrict_with_error
   has_many :mentions, through: :resolutions
 
+  has_many :outgoing_relationships, class_name: "Relationship",
+           foreign_key: :source_referent_id, dependent: :destroy,
+           inverse_of: :source_referent
+  has_many :incoming_relationships, class_name: "Relationship",
+           foreign_key: :target_referent_id, dependent: :destroy,
+           inverse_of: :target_referent
+
+  # Assertions this referent has made. Accountability begins with attribution,
+  # so every claim traces back to someone who can answer for it.
+  has_many :assertions_made, class_name: "Assertion",
+           foreign_key: :asserter_id, dependent: :restrict_with_error,
+           inverse_of: :asserter
+
+  # Assertions made ABOUT this referent. Restricted for the same reason as
+  # assertions_made: the historical record is not deletable.
+  has_many :assertions, as: :subject, dependent: :restrict_with_error
+
+  def relationships
+    Relationship.where(source_referent_id: id).or(Relationship.where(target_referent_id: id))
+  end
+
   validates :name, presence: true
   validates :system_id, presence: true, uniqueness: true
   validate  :system_id_is_immutable, on: :update

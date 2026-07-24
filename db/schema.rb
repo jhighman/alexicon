@@ -10,9 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_210001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_220001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "assertions", force: :cascade do |t|
+    t.string "act", default: "assert", null: false
+    t.datetime "asserted_at", null: false
+    t.bigint "asserter_id", null: false
+    t.jsonb "claim", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.text "provenance"
+    t.bigint "subject_id", null: false
+    t.string "subject_type", null: false
+    t.bigint "supersedes_id"
+    t.datetime "updated_at", null: false
+    t.datetime "valid_from"
+    t.datetime "valid_until"
+    t.index ["act"], name: "index_assertions_on_act"
+    t.index ["asserter_id"], name: "index_assertions_on_asserter_id"
+    t.index ["subject_type", "subject_id", "asserted_at"], name: "idx_on_subject_type_subject_id_asserted_at_f9911a1d7d"
+    t.index ["subject_type", "subject_id"], name: "index_assertions_on_subject"
+    t.index ["supersedes_id"], name: "index_assertions_on_supersedes_id"
+  end
 
   create_table "claim_categories", force: :cascade do |t|
     t.string "confidence_source", null: false
@@ -104,6 +124,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_210001) do
     t.index ["framework_id"], name: "index_domains_on_framework_id"
   end
 
+  create_table "evidence", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "kind", null: false
+    t.datetime "obtained_at"
+    t.string "reference"
+    t.datetime "updated_at", null: false
+    t.index ["kind"], name: "index_evidence_on_kind"
+  end
+
+  create_table "evidence_links", force: :cascade do |t|
+    t.bigint "assertion_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "evidence_id", null: false
+    t.text "note"
+    t.datetime "updated_at", null: false
+    t.index ["assertion_id", "evidence_id"], name: "index_evidence_links_on_assertion_id_and_evidence_id", unique: true
+    t.index ["assertion_id"], name: "index_evidence_links_on_assertion_id"
+    t.index ["evidence_id"], name: "index_evidence_links_on_evidence_id"
+  end
+
   create_table "flow_stages", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "framework_id", null: false
@@ -174,6 +215,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_210001) do
     t.index ["system_id"], name: "index_referents_on_system_id", unique: true
   end
 
+  create_table "relationships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "kind", null: false
+    t.bigint "source_referent_id", null: false
+    t.bigint "target_referent_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_referent_id", "target_referent_id", "kind"], name: "index_relationships_on_endpoints_and_kind"
+    t.index ["source_referent_id"], name: "index_relationships_on_source_referent_id"
+    t.index ["target_referent_id"], name: "index_relationships_on_target_referent_id"
+  end
+
   create_table "resolutions", force: :cascade do |t|
     t.decimal "confidence", precision: 5, scale: 4
     t.datetime "created_at", null: false
@@ -242,6 +295,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_210001) do
     t.index ["to_claim_id"], name: "index_transitions_on_to_claim_id"
   end
 
+  add_foreign_key "assertions", "assertions", column: "supersedes_id"
+  add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "claim_categories", "frameworks"
   add_foreign_key "claims", "documents"
   add_foreign_key "classifications", "claim_categories"
@@ -251,9 +306,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_210001) do
   add_foreign_key "domain_policies", "domains"
   add_foreign_key "domain_policies", "policies"
   add_foreign_key "domains", "frameworks"
+  add_foreign_key "evidence_links", "assertions"
+  add_foreign_key "evidence_links", "evidence"
   add_foreign_key "flow_stages", "frameworks"
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
+  add_foreign_key "relationships", "referents", column: "source_referent_id"
+  add_foreign_key "relationships", "referents", column: "target_referent_id"
   add_foreign_key "resolutions", "mentions"
   add_foreign_key "resolutions", "referents"
   add_foreign_key "sentinel_flags", "domains"
