@@ -8,8 +8,8 @@ RSpec.describe EntityResolver do
 
   def mention(text) = claim.mentions.create!(text: text)
 
-  def entity(name, category: "Family", role: "Sister")
-    Entity.create!(name: name, category: category, role: role)
+  def entity(name, subject: "Family", role: "Sister")
+    Entity.create!(name: name, subject: subject, role: role)
   end
 
   describe "resolution" do
@@ -59,7 +59,7 @@ RSpec.describe EntityResolver do
   describe "ambiguous — attention-map dispersion" do
     it "refuses when several entities share a surface form" do
       entity("Wednesday", role: "Sister")
-      entity("Wednesday", category: "Organisation", role: "Venue")
+      entity("Wednesday", subject: "Organisation", role: "Venue")
 
       result = described_class.new(mention("Wednesday")).call
 
@@ -92,11 +92,11 @@ RSpec.describe EntityResolver do
     end
 
     it "names every missing level" do
-      entity("Wednesday", category: nil, role: nil)
+      entity("Wednesday", subject: nil, role: nil)
 
       result = described_class.new(mention("Wednesday")).call
 
-      expect(result.reason).to include "missing category and role"
+      expect(result.reason).to include "missing subject and role"
     end
   end
 end

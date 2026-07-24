@@ -85,7 +85,7 @@ class EntityResolver
   end
 
   def unanchored(entity)
-    missing = [ ("category" if entity.category.blank?), ("role" if entity.role.blank?) ].compact
+    missing = [ ("subject" if entity.subject.blank?), ("role" if entity.role.blank?) ].compact
     Result.new(status: :unanchored, entity: entity, candidates: [ entity ],
                reason: "Cognitive Passport incomplete for #{entity.name.inspect}: " \
                        "missing #{missing.join(' and ')}")

@@ -7,7 +7,7 @@ RSpec.describe IdentitySentinel do
   def mention(text) = claim.mentions.create!(text: text)
 
   it "records a resolution as an inference when the subject is grounded" do
-    Entity.create!(name: "Wednesday", category: "Family", role: "Sister")
+    Entity.create!(name: "Wednesday", subject: "Family", role: "Sister")
     m = mention("Wednesday")
 
     described_class.verify!(m)
@@ -30,8 +30,8 @@ RSpec.describe IdentitySentinel do
   end
 
   it "does not pick the likeliest candidate when several match" do
-    Entity.create!(name: "Wednesday", category: "Family", role: "Sister")
-    Entity.create!(name: "Wednesday", category: "Organisation", role: "Venue")
+    Entity.create!(name: "Wednesday", subject: "Family", role: "Sister")
+    Entity.create!(name: "Wednesday", subject: "Organisation", role: "Venue")
     m = mention("Wednesday")
 
     described_class.verify!(m)
@@ -69,7 +69,7 @@ RSpec.describe IdentitySentinel do
     end
 
     it "reports which mentions are blocking" do
-      Entity.create!(name: "Wednesday", category: "Family", role: "Sister")
+      Entity.create!(name: "Wednesday", subject: "Family", role: "Sister")
       good = mention("Wednesday")
       bad  = mention("Pugsley")
       [ good, bad ].each { described_class.verify!(it) }

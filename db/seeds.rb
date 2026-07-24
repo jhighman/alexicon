@@ -179,7 +179,9 @@ terms = [
   { key: "cognitive-passport", canonical_name: "Cognitive Passport",
     kind: "mechanism", status: "active",
     notes: "Name -> Subject -> Role hierarchy attached to an identifier at the input " \
-           "boundary. Failure to assign one classifies the node as Entity Noise.",
+           "boundary (Wednesday -> Family -> Sister). Failure to assign one classifies " \
+           "the node as Entity Noise. Lacan's point de capiton: binds a sliding " \
+           "signifier to a structural position, sealing identity time-invariantly.",
     aliases: [ [ "kognitivny pas", "manuscript, section 3" ],
                [ "System ID", "manuscript, section 3" ] ] },
 

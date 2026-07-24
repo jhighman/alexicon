@@ -19,7 +19,7 @@ RSpec.describe Entity do
   end
 
   it "survives a rename with its identity intact" do
-    entity = described_class.create!(name: "Wednesday", category: "Family", role: "Sister")
+    entity = described_class.create!(name: "Wednesday", subject: "Family", role: "Sister")
     original = entity.system_id
 
     entity.update!(name: "Wednesday Addams", role: "Daughter")
@@ -29,18 +29,18 @@ RSpec.describe Entity do
 
   describe "#anchored?" do
     it "is true only with a complete passport" do
-      expect(described_class.create!(name: "W", category: "Family", role: "Sister")).to be_anchored
+      expect(described_class.create!(name: "W", subject: "Family", role: "Sister")).to be_anchored
     end
 
     it "is false when a level is missing — a partial passport is no anchor" do
-      expect(described_class.create!(name: "W", category: "Family")).not_to be_anchored
+      expect(described_class.create!(name: "W", subject: "Family")).not_to be_anchored
       expect(described_class.create!(name: "W", role: "Sister")).not_to be_anchored
       expect(described_class.create!(name: "W")).not_to be_anchored
     end
   end
 
   it "renders the passport hierarchy" do
-    entity = described_class.create!(name: "Wednesday", category: "Family", role: "Sister")
+    entity = described_class.create!(name: "Wednesday", subject: "Family", role: "Sister")
 
     expect(entity.passport).to eq "Wednesday → Family → Sister"
   end

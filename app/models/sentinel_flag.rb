@@ -5,7 +5,7 @@
 # confidence now exceeds the evidence class presented, or that a subject was
 # never grounded.
 #
-# `subject` is polymorphic: Governance flags transitions, Identity flags
+# `flaggable` is polymorphic: Governance flags transitions, Identity flags
 # mentions, and later domains will flag other things again.
 #
 # Agency is preserved throughout. The author may accept or reject any flag, and
@@ -14,7 +14,7 @@ class SentinelFlag < ApplicationRecord
   SEVERITIES   = %w[notice concern stop].freeze
   DISPOSITIONS = %w[open accepted rejected].freeze
 
-  belongs_to :subject, polymorphic: true
+  belongs_to :flaggable, polymorphic: true
   belongs_to :domain, optional: true
 
   validates :message, presence: true

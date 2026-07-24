@@ -13,7 +13,7 @@ class Mention < ApplicationRecord
 
   belongs_to :claim
   has_many :resolutions, dependent: :destroy
-  has_many :sentinel_flags, as: :subject, dependent: :destroy
+  has_many :sentinel_flags, as: :flaggable, dependent: :destroy
 
   validates :text, presence: true
   validates :status, inclusion: { in: STATUSES }

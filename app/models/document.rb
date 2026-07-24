@@ -10,8 +10,8 @@ class Document < ApplicationRecord
 
   def flags
     SentinelFlag
-      .where(subject_type: "Transition", subject_id: transitions.select(:id))
-      .or(SentinelFlag.where(subject_type: "Mention", subject_id: mentions.select(:id)))
+      .where(flaggable_type: "Transition", flaggable_id: transitions.select(:id))
+      .or(SentinelFlag.where(flaggable_type: "Mention", flaggable_id: mentions.select(:id)))
   end
 
   # Execution is locked while any STOP stands undisposed. This is the lock the
