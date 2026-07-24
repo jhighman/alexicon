@@ -12,5 +12,6 @@ class GovernDocumentJob < ApplicationJob
 
   def perform(document)
     GovernanceSentinel.review_document!(document)
+    DomainSentinel.review_all!(document)
   end
 end

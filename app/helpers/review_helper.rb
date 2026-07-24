@@ -33,8 +33,10 @@ module ReviewHelper
   def flag_subject_label(flag)
     case flag.subject
     when Mention     then "the name #{flag.subject.text.inspect}"
+    when Claim       then "claim #{flag.subject.position}"
     when Transition  then "the step from claim #{flag.subject.from_claim&.position} to #{flag.subject.to_claim&.position}"
     when Relationship then "a relationship"
+    when Document    then "this document as a whole"
     else "this document"
     end
   end

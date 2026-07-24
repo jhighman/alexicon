@@ -17,11 +17,18 @@ class Document < ApplicationRecord
   def transitions = Transition.where(source_type: "Claim", source_id: claims.select(:id))
 
   # Every standing flag raised about anything in this document.
+  #
+  # Sentinels flag different things: Identity flags mentions, Governance flags
+  # transitions, and the domain sentinels flag claims or the document itself.
+  # A subject type missing from this list is a flag nobody ever sees.
   def flags
     Assertion.flags.standing.where(
       "(assertions.subject_type = 'Relationship' AND assertions.subject_id IN (:rel)) " \
-      "OR (assertions.subject_type = 'Mention' AND assertions.subject_id IN (:men))",
-      rel: transitions.select(:id), men: mentions.select(:id)
+      "OR (assertions.subject_type = 'Mention' AND assertions.subject_id IN (:men)) " \
+      "OR (assertions.subject_type = 'Claim' AND assertions.subject_id IN (:cla)) " \
+      "OR (assertions.subject_type = 'Document' AND assertions.subject_id = :doc)",
+      rel: transitions.select(:id), men: mentions.select(:id),
+      cla: claims.select(:id), doc: id
     )
   end
 
