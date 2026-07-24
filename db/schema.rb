@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_230001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_240001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -203,6 +203,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_230001) do
 
   create_table "referents", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.bigint "domain_id"
+    t.string "key"
     t.string "name", null: false
     t.text "notes"
     t.string "primitive"
@@ -210,6 +212,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_230001) do
     t.string "subject"
     t.string "system_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["domain_id"], name: "index_referents_on_domain_id"
+    t.index ["key"], name: "index_referents_on_key", unique: true
     t.index ["name"], name: "index_referents_on_name"
     t.index ["primitive"], name: "index_referents_on_primitive"
     t.index ["system_id"], name: "index_referents_on_system_id", unique: true
@@ -244,22 +248,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_230001) do
     t.index ["mention_id", "current"], name: "index_resolutions_on_mention_id_and_current"
     t.index ["mention_id"], name: "index_resolutions_on_mention_id"
     t.index ["referent_id"], name: "index_resolutions_on_referent_id"
-  end
-
-  create_table "sentinel_flags", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "disposed_at"
-    t.string "disposed_by"
-    t.string "disposition", default: "open", null: false
-    t.bigint "domain_id"
-    t.bigint "flaggable_id", null: false
-    t.string "flaggable_type", null: false
-    t.text "message", null: false
-    t.string "severity", default: "notice", null: false
-    t.datetime "updated_at", null: false
-    t.index ["disposition"], name: "index_sentinel_flags_on_disposition"
-    t.index ["domain_id"], name: "index_sentinel_flags_on_domain_id"
-    t.index ["flaggable_type", "flaggable_id"], name: "index_sentinel_flags_on_subject"
   end
 
   create_table "term_aliases", force: :cascade do |t|
@@ -300,8 +288,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_230001) do
   add_foreign_key "flow_stages", "frameworks"
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
+  add_foreign_key "referents", "domains"
   add_foreign_key "resolutions", "mentions"
   add_foreign_key "resolutions", "referents"
-  add_foreign_key "sentinel_flags", "domains"
   add_foreign_key "term_aliases", "terms"
 end

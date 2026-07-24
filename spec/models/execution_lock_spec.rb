@@ -11,6 +11,13 @@ RSpec.describe "execution lock" do
     ClaimCategory.create!(framework: framework, key: "observation", name: "Observation",
                           position: 1, definition: "…", confidence_source: "…")
   end
+  let!(:identity_sentinel) do
+    Referent.create!(key: "identity-sentinel", name: "Identity Sentinel", subject: "System",
+                     role: "Sentinel", primitive: "system")
+  end
+  let(:reviewer) do
+    Referent.create!(name: "Jeff", subject: "Person", role: "Reviewer", primitive: "person")
+  end
 
   def lock!
     mention = claim.mentions.create!(text: "Pugsley")
@@ -56,7 +63,7 @@ RSpec.describe "execution lock" do
     lock!
     expect(claim.classifications.create(claim_category: category, origin: "model")).not_to be_persisted
 
-    document.flags.open.stopping.each { it.dispose!(as: "accepted", by: "jeff") }
+    document.open_stops.each { it.dispose!(as: "accepted", by: reviewer) }
 
     expect(claim.classifications.create(claim_category: category, origin: "model")).to be_persisted
   end

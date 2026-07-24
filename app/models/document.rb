@@ -11,16 +11,23 @@ class Document < ApplicationRecord
   # owned -- an edge belongs to its endpoints, not to a container.
   def transitions = Transition.where(source_type: "Claim", source_id: claims.select(:id))
 
+  # Every standing flag raised about anything in this document.
   def flags
-    SentinelFlag
-      .where(flaggable_type: "Relationship", flaggable_id: transitions.select(:id))
-      .or(SentinelFlag.where(flaggable_type: "Mention", flaggable_id: mentions.select(:id)))
+    Assertion.flags.standing.where(
+      "(assertions.subject_type = 'Relationship' AND assertions.subject_id IN (:rel)) " \
+      "OR (assertions.subject_type = 'Mention' AND assertions.subject_id IN (:men))",
+      rel: transitions.select(:id), men: mentions.select(:id)
+    )
   end
+
+  # A STOP nobody has answered yet. Disposition is derived from assertions
+  # about the flag, so this cannot be resolved in SQL alone.
+  def open_stops = flags.stopping.select(&:open?)
 
   # Execution is locked while any STOP stands undisposed. This is the lock the
   # Identity Sentinel applies: not a warning to be read past, but a refusal to
   # proceed until a person resolves the ambiguity.
-  def executable? = flags.open.stopping.none?
+  def executable? = open_stops.none?
 
   def blocking_mentions = mentions.blocking
 
@@ -29,7 +36,7 @@ class Document < ApplicationRecord
   def require_executable!
     return if executable?
 
-    raise ExecutionLocked, "execution locked: #{flags.open.stopping.count} unresolved " \
+    raise ExecutionLocked, "execution locked: #{open_stops.count} unresolved " \
                            "identity flag(s). Unresolved: #{blocking_mentions.pluck(:text).join(', ')}"
   end
 

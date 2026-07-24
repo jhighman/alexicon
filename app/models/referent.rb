@@ -39,7 +39,18 @@ class Referent < ApplicationRecord
                 .or(Relationship.where(target_type: "Referent", target_id: id))
   end
 
+  # The accountable actor for a domain's flags.
+  def self.sentinel_for(domain_key)
+    find_by!(key: "#{domain_key}-sentinel")
+  end
+
+  # A sentinel is a System referent serving a domain. Flags are attributed to
+  # it, because a governance signal with no accountable author is exactly the
+  # ungrounded claim the architecture refuses elsewhere.
+  belongs_to :domain, optional: true
+
   validates :name, presence: true
+  validates :key, uniqueness: true, allow_nil: true
   validates :system_id, presence: true, uniqueness: true
   validate  :system_id_is_immutable, on: :update
 

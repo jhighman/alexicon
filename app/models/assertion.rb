@@ -9,9 +9,16 @@
 # record without destroying what preceded it, so the architecture preserves
 # disagreement rather than resolving it prematurely. An error is not erased.
 # It is ANSWERED -- by a later assertion that references it.
+#
+# A Sentinel flag is an assertion too: a sentinel claiming that the conditions
+# for proceeding have not been satisfied. Its disposition is a further
+# assertion about it, which is why "open" is the ABSENCE of a disposition
+# rather than a stored default.
 class Assertion < ApplicationRecord
   # What the assertion does to its subject.
-  ACTS = %w[assert amend revoke challenge delegate].freeze
+  ACTS = %w[assert amend revoke challenge delegate flag accept reject].freeze
+  DISPOSING = %w[accept reject].freeze
+  SEVERITIES = %w[notice concern stop].freeze
 
   belongs_to :asserter, class_name: "Referent"
   belongs_to :subject, polymorphic: true
@@ -20,7 +27,7 @@ class Assertion < ApplicationRecord
                            dependent: :nullify, inverse_of: :supersedes
 
   # Assertions made ABOUT this assertion -- challenges, corroborations,
-  # revocations. This is what makes the structure recursive.
+  # revocations, dispositions. This is what makes the structure recursive.
   has_many :assertions, as: :subject, dependent: :restrict_with_error
 
   has_many :evidence_links, dependent: :destroy
@@ -29,6 +36,7 @@ class Assertion < ApplicationRecord
   validates :act, inclusion: { in: ACTS }
   validates :asserted_at, presence: true
   validate  :validity_window_ordered
+  validate  :flag_severity_recognised
 
   before_validation :stamp_asserted_at, on: :create
 
@@ -36,6 +44,10 @@ class Assertion < ApplicationRecord
   scope :acting, ->(act) { where(act: act) }
   # An assertion that nothing later has replaced.
   scope :standing, -> { where.missing(:superseded_by) }
+
+  scope :flags, -> { acting("flag") }
+  # Qualified: `claim` is ambiguous once this is joined against other tables.
+  scope :stopping, -> { flags.where("assertions.claim->>'severity' = ?", "stop") }
 
   # Enforced immutability. Rails refuses to save changes to a readonly record,
   # so an assertion cannot be revised after the fact -- only answered.
@@ -52,6 +64,40 @@ class Assertion < ApplicationRecord
     true
   end
 
+  # --- Flags -----------------------------------------------------------------
+  #
+  # A flag NEVER asserts that a claim is false, or that an author is wrong. It
+  # asserts that the conditions for proceeding have not been satisfied.
+
+  def flag? = act == "flag"
+  def severity = claim["severity"]
+  def message  = claim["message"]
+
+  # A STOP is a healthy freeze, not a failure. Dissonance signals that the
+  # conditions for proceeding were not met.
+  def stop? = flag? && severity == "stop"
+
+  # Derived from the standing disposition assertions about this flag. Absence
+  # of one means open -- nobody has answered it yet.
+  def disposition
+    latest = assertions.standing.chronological.select { it.act.in?(DISPOSING) }.last
+    return "open" if latest.nil?
+
+    latest.act == "accept" ? "accepted" : "rejected"
+  end
+
+  def open? = disposition == "open"
+
+  # Agency is preserved: a person may accept or reject any flag. Their
+  # judgement is recorded ALONGSIDE the flag rather than overwriting it, and
+  # is itself attributable and challengeable.
+  def dispose!(as:, by:)
+    disposing_act = { "accepted" => "accept", "rejected" => "reject" }[as.to_s]
+    raise ArgumentError, "unknown disposition #{as}" if disposing_act.nil?
+
+    assertions.create!(asserter: by, act: disposing_act, claim: { "disposition" => as.to_s })
+  end
+
   private
 
   def stamp_asserted_at
@@ -62,5 +108,12 @@ class Assertion < ApplicationRecord
     return if valid_from.blank? || valid_until.blank? || valid_until >= valid_from
 
     errors.add(:valid_until, "cannot precede valid_from")
+  end
+
+  def flag_severity_recognised
+    return unless act == "flag"
+    return if SEVERITIES.include?(claim["severity"])
+
+    errors.add(:claim, "severity must be one of #{SEVERITIES.join(', ')}")
   end
 end

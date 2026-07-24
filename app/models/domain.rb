@@ -10,7 +10,8 @@ class Domain < ApplicationRecord
   has_many :domain_failure_modes, dependent: :destroy
   has_many :domain_policies, dependent: :destroy
   has_many :policies, through: :domain_policies
-  has_many :sentinel_flags, dependent: :nullify
+  # Sentinels serving this domain. A flag is attributed to one of them.
+  has_many :sentinels, class_name: "Referent", dependent: :nullify
 
   validates :key, :name, :question, presence: true
   validates :position, numericality: { only_integer: true, greater_than: 0 }

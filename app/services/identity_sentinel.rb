@@ -46,13 +46,17 @@ class IdentitySentinel
     end
   end
 
+  # The flag is an assertion, attributed to the Identity Sentinel. A governance
+  # signal with no accountable author would be exactly the ungrounded claim
+  # this sentinel exists to refuse.
   def raise_flag(result)
     mention.transaction do
       mention.update!(status: result.status.to_s)
-      mention.sentinel_flags.create!(
-        domain: identity_domain,
-        severity: "stop",
-        message: message_for(result)
+      Assertion.create!(
+        asserter: sentinel_referent,
+        subject: mention,
+        act: "flag",
+        claim: { "severity" => "stop", "message" => message_for(result) }
       )
     end
   end
@@ -74,7 +78,7 @@ class IdentitySentinel
     end
   end
 
-  def identity_domain
-    @identity_domain ||= Domain.find_by(framework: Framework.current, key: "identity")
+  def sentinel_referent
+    @sentinel_referent ||= Referent.sentinel_for("identity")
   end
 end

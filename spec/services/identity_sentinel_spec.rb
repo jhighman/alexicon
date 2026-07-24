@@ -1,6 +1,21 @@
 require "rails_helper"
 
 RSpec.describe IdentitySentinel do
+  let(:framework) { Framework.create!(key: "test-fw", name: "Test", version: "0") }
+  let(:identity_domain) do
+    Domain.create!(framework: framework, key: "identity", name: "Identity",
+                   position: 1, question: "Who or what exists?")
+  end
+  # A flag needs an accountable author, so the sentinel must exist before it
+  # can raise one.
+  let!(:identity_sentinel) do
+    Referent.create!(key: "identity-sentinel", name: "Identity Sentinel", subject: "System",
+                     role: "Sentinel", primitive: "system", domain: identity_domain)
+  end
+  let(:reviewer) do
+    Referent.create!(name: "Jeff", subject: "Person", role: "Reviewer", primitive: "person")
+  end
+
   let(:document) { Document.create!(body: "…") }
   let(:claim)    { document.claims.create!(position: 1, text: "Wednesday left.") }
 
@@ -25,7 +40,7 @@ RSpec.describe IdentitySentinel do
 
     expect(m.reload.status).to eq "out_of_distribution"
     expect(m.referent).to be_nil
-    expect(m.sentinel_flags.sole).to be_stop
+    expect(m.flags.sole).to be_stop
     expect(document.executable?).to be false
   end
 
@@ -45,16 +60,19 @@ RSpec.describe IdentitySentinel do
 
     described_class.verify!(m)
 
-    expect(m.sentinel_flags.sole.message).to start_with "Identity not established"
+    expect(m.flags.sole.message).to start_with "Identity not established"
   end
 
-  it "attributes the flag to the Identity domain" do
-    Rails.application.load_seed
+  # A governance signal with no accountable author would be the ungrounded
+  # claim this sentinel exists to refuse.
+  it "attributes the flag to the Identity Sentinel, which serves the Identity domain" do
     m = mention("Pugsley")
 
     described_class.verify!(m)
 
-    expect(m.sentinel_flags.sole.domain.key).to eq "identity"
+    flag = m.flags.sole
+    expect(flag.asserter).to eq identity_sentinel
+    expect(flag.asserter.domain.key).to eq "identity"
   end
 
   describe "the execution lock" do
@@ -63,9 +81,21 @@ RSpec.describe IdentitySentinel do
       described_class.verify!(m)
       expect(document.executable?).to be false
 
-      m.sentinel_flags.sole.dispose!(as: "accepted", by: "jeff")
+      m.flags.sole.dispose!(as: "accepted", by: reviewer)
 
       expect(document.executable?).to be true
+    end
+
+    it "records who lifted the lock, without erasing the flag" do
+      m = mention("Pugsley")
+      described_class.verify!(m)
+      flag = m.flags.sole
+
+      flag.dispose!(as: "accepted", by: reviewer)
+
+      expect(flag.disposition).to eq "accepted"
+      expect(flag.assertions.sole.asserter).to eq reviewer
+      expect(flag.reload.message).to start_with "Identity not established"
     end
 
     it "reports which mentions are blocking" do

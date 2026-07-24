@@ -93,6 +93,22 @@ domains.each do |d|
   end
 end
 
+# --- Sentinels ---------------------------------------------------------------
+# A sentinel is a System referent serving a domain. Flags are attributed to it:
+# a governance signal with no accountable author would be the ungrounded claim
+# the architecture refuses everywhere else.
+Domain.where(framework: fw).find_each do |domain|
+  referent = Referent.find_or_initialize_by(key: "#{domain.key}-sentinel")
+  referent.update!(
+    name: "#{domain.name} Sentinel",
+    subject: "System",
+    role: "Sentinel",
+    primitive: "system",
+    domain: domain,
+    notes: "Governs: #{domain.question}"
+  )
+end
+
 # --- Cross-cutting policies --------------------------------------------------
 anti_discrimination = Policy.find_or_initialize_by(key: "anti-discrimination")
 anti_discrimination.update!(
@@ -214,4 +230,5 @@ end
 puts "Seeded #{Framework.count} framework(s): " \
      "#{Domain.count} domains, #{ClaimCategory.count} categories, " \
      "#{FlowStage.count} flow stages, #{Policy.count} policies, #{Term.count} terms " \
-     "(#{Term.disputed.count} disputed)."
+     "(#{Term.disputed.count} disputed), " \
+     "#{Referent.where.not(key: nil).count} sentinels."

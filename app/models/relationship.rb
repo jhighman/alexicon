@@ -26,7 +26,7 @@ class Relationship < ApplicationRecord
   # edge that has been asserted about cannot be deleted -- it is revoked.
   # Deleting would erase accountable claims rather than answer them.
   has_many :assertions, as: :subject, dependent: :restrict_with_error
-  has_many :sentinel_flags, as: :flaggable, dependent: :destroy
+  def flags = assertions.flags.standing.chronological
 
   validates :kind, presence: true
   validate  :endpoints_must_differ

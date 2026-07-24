@@ -13,7 +13,13 @@ class Mention < ApplicationRecord
 
   belongs_to :claim
   has_many :resolutions, dependent: :destroy
-  has_many :sentinel_flags, as: :flaggable, dependent: :destroy
+
+  # Flags raised about this mention. NOT dependent: :destroy -- a flag is an
+  # immutable assertion, so a mention that has been flagged cannot be deleted
+  # without erasing the governance history that explains why it was blocked.
+  has_many :assertions, as: :subject, dependent: :restrict_with_error
+
+  def flags = assertions.flags.standing.chronological
 
   validates :text, presence: true
   validates :status, inclusion: { in: STATUSES }
