@@ -180,6 +180,28 @@ These two are not equally detectable, and the difference is structural rather th
 >
 > **Partial answer — see the countermeasure below.** 3D Scaffold Mapping supplies two genuine observables (unauthorized actor, destructive ripple effects). Both are checkable properties of the graph, requiring no access to model internals. Note carefully what they establish: they detect that an output is **unsafe**, not that it is **deceptive**. See "What this does and does not establish."
 
+### Entity Noise — the observable, specified
+
+**Entity Noise** is the input condition that produces intent hallucination: a cluster of unresolved names or overlapping identities that cannot be mapped to a single grounded entity. Raw identifiers arrive as empty dead nodes — no properties, no relational bindings, no context.
+
+The **Identity Sentinel** guards the input boundary. Its trust assertion is narrow and checkable: *does this subject exist as a grounded entity?* It answers before anything reaches the reasoning layers.
+
+Three detection criteria, all observable without model internals:
+
+| Trigger | What is checked |
+|---|---|
+| **Attention-map dispersion** | The label fails to resolve to one sense — is "Wednesday" a person, a concept, or a weekday? Ambiguity across candidate referents is measurable |
+| **Out-of-distribution token** | The identifier has no match in embedding space or external memory. Absence of a match is a fact, not a judgement |
+| **Failed Cognitive Passport** | The system attempts `Name → Subject → Role`. If no hierarchy can be assigned, the node stays ungrounded and is classified as noise |
+
+**This is the strongest material in the framework**, and worth stating plainly why: these are genuine pre-execution observables. Each is a property of the *input*, decidable before any output exists, requiring no claim about what the model intends. That is exactly what §4's caution asked for and what the Jekyll Mask still lacks.
+
+On detection the Identity Sentinel **does not guess**. It locks execution, freezes, and escalates the ambiguity to a person for clarification. The refusal to resolve is the feature: guessing an identity is how an inference becomes evidence in the first place.
+
+> **Third instance of the pattern.** Source material also credits this stop with preventing "pathological defenses like hallucinated alignment or deceptive outputs." Halting on entity noise prevents *hallucination* — decisively, and that is a real result. It does not touch deceptive alignment, which has unrelated causes. See the pattern named under §3, "Failures attributed to non-containment": structural fixes are repeatedly credited with resolving integrity failures. Three occurrences now. The correction is the same each time, and the framework does not need the overclaim — preventing hallucination at the input boundary is a strong enough result on its own.
+
+**Design implication.** Entity resolution is the first subsystem worth building. It has defined inputs, checkable criteria, an unambiguous action on failure, and it protects against the framework's best-evidenced failure mode. It needs an `entities` table with an anchor status and a passport hierarchy — deliberately not yet modelled, since half a resolver is worse than none.
+
 ### The countermeasure — 3D Scaffold Mapping
 
 Applied during the Scaffold Mapping phase, after the failure taxonomy above has something to act on.

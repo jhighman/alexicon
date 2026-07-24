@@ -167,6 +167,28 @@ terms = [
            "the surface shape of a record.",
     aliases: [ [ "Timeline Normalization", "later material" ] ] },
 
+  { key: "entity-noise", canonical_name: "Entity Noise",
+    kind: "failure_mode", status: "active",
+    notes: "Unresolved or overlapping identities that cannot be mapped to one grounded " \
+           "entity. The input condition producing intent hallucination. Detected by " \
+           "attention-map dispersion, out-of-distribution tokens, or failed passport " \
+           "creation -- all observable pre-execution, without model internals.",
+    aliases: [ [ "empty dead nodes", "manuscript, Column C" ],
+               [ "ungrounded node", "later material" ] ] },
+
+  { key: "cognitive-passport", canonical_name: "Cognitive Passport",
+    kind: "mechanism", status: "active",
+    notes: "Name -> Subject -> Role hierarchy attached to an identifier at the input " \
+           "boundary. Failure to assign one classifies the node as Entity Noise.",
+    aliases: [ [ "kognitivny pas", "manuscript, section 3" ],
+               [ "System ID", "manuscript, section 3" ] ] },
+
+  { key: "identity-sentinel", canonical_name: "Identity Sentinel",
+    kind: "mechanism", status: "active",
+    notes: "Guards the input boundary. Trust assertion: does this subject exist as a " \
+           "grounded entity? Locks execution and escalates rather than guessing.",
+    aliases: [] },
+
   { key: "stop-moment", canonical_name: "STOP Moment",
     kind: "mechanism", status: "active",
     notes: "A healthy freeze. Dissonance signals that conditions for proceeding were " \
