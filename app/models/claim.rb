@@ -2,6 +2,7 @@
 class Claim < ApplicationRecord
   belongs_to :document
   has_many :classifications, dependent: :destroy
+  has_many :mentions, dependent: :destroy
   has_many :outgoing_transitions, class_name: "Transition", foreign_key: :from_claim_id, dependent: :destroy, inverse_of: :from_claim
   has_many :incoming_transitions, class_name: "Transition", foreign_key: :to_claim_id, dependent: :destroy, inverse_of: :to_claim
 

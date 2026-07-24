@@ -12,7 +12,7 @@ class Transition < ApplicationRecord
   belongs_to :document
   belongs_to :from_claim, class_name: "Claim", inverse_of: :outgoing_transitions
   belongs_to :to_claim,   class_name: "Claim", inverse_of: :incoming_transitions
-  has_many :sentinel_flags, dependent: :destroy
+  has_many :sentinel_flags, as: :subject, dependent: :destroy
 
   validates :verdict, inclusion: { in: VERDICTS }
   validates :score,

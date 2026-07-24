@@ -6,5 +6,18 @@ class Document < ApplicationRecord
 
   validates :body, presence: true
 
-  def flags = SentinelFlag.joins(:transition).where(transitions: { document_id: id })
+  def mentions = Mention.where(claim_id: claims.select(:id))
+
+  def flags
+    SentinelFlag
+      .where(subject_type: "Transition", subject_id: transitions.select(:id))
+      .or(SentinelFlag.where(subject_type: "Mention", subject_id: mentions.select(:id)))
+  end
+
+  # Execution is locked while any STOP stands undisposed. This is the lock the
+  # Identity Sentinel applies: not a warning to be read past, but a refusal to
+  # proceed until a person resolves the ambiguity.
+  def executable? = flags.open.stopping.none?
+
+  def blocking_mentions = mentions.blocking
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_180004) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_190002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -104,6 +104,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_180004) do
     t.index ["framework_id"], name: "index_domains_on_framework_id"
   end
 
+  create_table "entities", force: :cascade do |t|
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.text "notes"
+    t.string "role"
+    t.string "system_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_entities_on_name"
+    t.index ["system_id"], name: "index_entities_on_system_id", unique: true
+  end
+
+  create_table "entity_aliases", force: :cascade do |t|
+    t.boolean "ambiguous", default: false, null: false
+    t.datetime "created_at", null: false
+    t.bigint "entity_id", null: false
+    t.string "name", null: false
+    t.string "source"
+    t.datetime "updated_at", null: false
+    t.index ["entity_id"], name: "index_entity_aliases_on_entity_id"
+    t.index ["name"], name: "index_entity_aliases_on_name"
+  end
+
   create_table "flow_stages", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "framework_id", null: false
@@ -127,6 +150,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_180004) do
     t.index ["key"], name: "index_frameworks_on_key", unique: true
   end
 
+  create_table "mentions", force: :cascade do |t|
+    t.integer "char_end"
+    t.integer "char_start"
+    t.bigint "claim_id", null: false
+    t.datetime "created_at", null: false
+    t.string "status", default: "unresolved", null: false
+    t.string "text", null: false
+    t.datetime "updated_at", null: false
+    t.index ["claim_id"], name: "index_mentions_on_claim_id"
+    t.index ["status"], name: "index_mentions_on_status"
+  end
+
   create_table "policies", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "key", null: false
@@ -137,6 +172,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_180004) do
     t.index ["key"], name: "index_policies_on_key", unique: true
   end
 
+  create_table "resolutions", force: :cascade do |t|
+    t.decimal "confidence", precision: 5, scale: 4
+    t.datetime "created_at", null: false
+    t.boolean "current", default: true, null: false
+    t.bigint "entity_id", null: false
+    t.bigint "mention_id", null: false
+    t.string "origin", null: false
+    t.text "rationale"
+    t.string "resolver"
+    t.datetime "updated_at", null: false
+    t.index ["entity_id"], name: "index_resolutions_on_entity_id"
+    t.index ["mention_id", "current"], name: "index_resolutions_on_mention_id_and_current"
+    t.index ["mention_id"], name: "index_resolutions_on_mention_id"
+  end
+
   create_table "sentinel_flags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "disposed_at"
@@ -145,11 +195,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_180004) do
     t.bigint "domain_id"
     t.text "message", null: false
     t.string "severity", default: "notice", null: false
-    t.bigint "transition_id", null: false
+    t.bigint "subject_id", null: false
+    t.string "subject_type", null: false
     t.datetime "updated_at", null: false
     t.index ["disposition"], name: "index_sentinel_flags_on_disposition"
     t.index ["domain_id"], name: "index_sentinel_flags_on_domain_id"
-    t.index ["transition_id"], name: "index_sentinel_flags_on_transition_id"
+    t.index ["subject_type", "subject_id"], name: "index_sentinel_flags_on_subject"
   end
 
   create_table "term_aliases", force: :cascade do |t|
@@ -198,9 +249,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_180004) do
   add_foreign_key "domain_policies", "domains"
   add_foreign_key "domain_policies", "policies"
   add_foreign_key "domains", "frameworks"
+  add_foreign_key "entity_aliases", "entities"
   add_foreign_key "flow_stages", "frameworks"
+  add_foreign_key "mentions", "claims"
+  add_foreign_key "resolutions", "entities"
+  add_foreign_key "resolutions", "mentions"
   add_foreign_key "sentinel_flags", "domains"
-  add_foreign_key "sentinel_flags", "transitions"
   add_foreign_key "term_aliases", "terms"
   add_foreign_key "transitions", "claims", column: "from_claim_id"
   add_foreign_key "transitions", "claims", column: "to_claim_id"
