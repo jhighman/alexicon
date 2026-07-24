@@ -13,23 +13,29 @@ fw.update!(
 )
 
 # --- The four categories -----------------------------------------------------
-# Different in KIND, not in rank. Merging them is the error to be caught.
+# Different in KIND, not in value. Merging them is the error to be caught.
+#
+# `position` is presentation order; `justification_rank` is how much warrant a
+# claim of that kind requires. Objective and Observation share rank 1 --
+# neither outranks the other, and a move between them is an error of kind
+# rather than an unearned promotion.
 [
-  [ "objective", "Objective", 1,
+  [ "objective", "Objective", 1, 1,
     "Publicly checkable fact or mechanism.",
     "External evidence, measurement" ],
-  [ "observation", "Observation", 2,
+  [ "observation", "Observation", 2, 1,
     "First-person report of what was experienced.",
     "Subjective experience" ],
-  [ "interpretive", "Interpretive", 3,
+  [ "interpretive", "Interpretive", 3, 2,
     "Meaning assigned to an observation.",
     "Personal inference, narrative" ],
-  [ "ontological", "Ontological", 4,
+  [ "ontological", "Ontological", 4, 3,
     "Claim about what ultimately exists or is true of reality.",
     "Philosophical or existential commitment" ]
-].each do |key, name, pos, definition, source|
+].each do |key, name, pos, rank, definition, source|
   ClaimCategory.find_or_initialize_by(framework: fw, key: key).update!(
-    name: name, position: pos, definition: definition, confidence_source: source
+    name: name, position: pos, justification_rank: rank,
+    definition: definition, confidence_source: source
   )
 end
 
