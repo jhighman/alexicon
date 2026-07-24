@@ -15,6 +15,14 @@ Rails.application.routes.draw do
 
   resources :flags, only: %i[update]
 
+  # Answering an identity STOP: ground the name, or say it is not a subject.
+  resources :mentions, only: [] do
+    member do
+      post :ground
+      post :ignore
+    end
+  end
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   get "up" => "rails/health#show", as: :rails_health_check
 end

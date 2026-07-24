@@ -61,13 +61,53 @@ can dismiss; under-proposing produces silent reasoning about ungrounded
 subjects, which is the failure the architecture exists to prevent. **But it is
 noise, and at document scale it makes the lock impractical.**
 
-The fix is better candidate detection, not a weaker sentinel. Options, roughly
-in order of cost:
+### Resolved — but not the way this ADR proposed
 
-1. A common-noun lexicon, so capitalised dictionary words are not proposed.
-2. Proposing only where capitalisation is unexplained by sentence position.
-3. A named-entity model — which is itself a transformation and would need its
-   own governance rather than being trusted directly.
+Option 1 above, a common-noun lexicon, **is wrong**, and measurably so. The
+system dictionary (`/usr/share/dict/words`) contains *alec* and *wednesday* but
+not *ketamine* or *nmda* — it would suppress the real subjects and keep the
+noise. Any general word list has this problem: personal names are words.
 
-Recorded rather than fixed, because the right answer depends on what documents
-this is actually pointed at.
+Option 2 was rejected on inspection. Suppressing sentence-initial capitalisation
+kills *Ketamine* in "Ketamine blocks…" but also kills *Alec* in "Alec wrote…" —
+real subjects start sentences as often as noise does.
+
+**Structure cannot make this distinction.** "Ketamine" and "Alec" are both
+capitalised words the extractor has never seen. The difference is world
+knowledge, and no rule over the string will find it.
+
+So the distinction is asked of a person **once**, and remembered:
+
+| Answer | Effect |
+|---|---|
+| **Ground it** — this is a subject, here is its passport | Creates the referent, re-verifies the mention. The resolution *supersedes* the STOP, so one judgement stands. Resolves in every later document. |
+| **Not a subject** | Records an `IgnoredForm` with its author, and *disposes* of the flag. The form is never proposed again. |
+
+The two differ deliberately: grounding supersedes the flag, ignoring answers it.
+Either way the record of why the document was ever blocked stays intact.
+
+One structural rule did survive, because it follows the project's own axiom —
+capitalisation that is *explained* is not evidence:
+
+- **An all-capital token's case is explained by acronym convention**, not by
+  proper-nounhood. `NMDA` is no longer proposed; a known acronym still matches
+  through the `known` path, so `NASA` is unaffected.
+
+Measured on the five-sentence excerpt from this ADR:
+
+```
+before:  Ketamine, Legos, God, Alec   (4 STOPs)
+after:   God, Alec                    (0 STOPs — both grounded, both resolve)
+taught:  Ketamine, Legos
+```
+
+This turns the extractor's weakness into the product's core loop: an unknown
+name is not noise to filter, it is an ungrounded referent, and grounding it is
+what the Cognitive Passport exists for.
+
+**Residual limit.** The first document containing an unfamiliar name still
+stops on it. That is the intended behaviour — it is the Sentinel refusing to
+reason about a subject nobody has established — but it means the cost is paid
+once per new name, not once per document. A named-entity model would reduce
+the initial noise and would itself be a transformation requiring its own
+governance; it is not needed to make the system usable.

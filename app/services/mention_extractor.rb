@@ -26,6 +26,11 @@ class MentionExtractor
 
   CAPITALISED = /\b[A-Z][\p{Alpha}'’-]+(?:\s+[A-Z][\p{Alpha}'’-]+)*/
 
+  # An all-capital token's case is explained by acronym convention, not by
+  # proper-nounhood, so it is not evidence on its own. "NMDA" in "NMDA
+  # receptors" is a technical term; a known acronym still matches via `known`.
+  ACRONYM = /\A[\p{Lu}][\p{Lu}\d]+\z/
+
   # Capitalised words that are almost never identifiers. Sentence-initial
   # function words and the English first-person pronoun.
   STOPWORDS = %w[
@@ -46,6 +51,7 @@ class MentionExtractor
 
   def call
     (known + capitalised)
+      .reject { IgnoredForm.ignores?(it.text) }
       .sort_by { [ it.char_start, -it.text.length ] }
       .then { drop_overlaps(it) }
   end
@@ -66,7 +72,9 @@ class MentionExtractor
   # whole candidate, or every claim beginning with "Therefore" would lose its
   # subject.
   def capitalised
-    matches_for(CAPITALISED).filter_map { trim_leading_stopwords(it) }
+    matches_for(CAPITALISED)
+      .filter_map { trim_leading_stopwords(it) }
+      .reject { it.text.match?(ACRONYM) }
   end
 
   def trim_leading_stopwords(candidate)

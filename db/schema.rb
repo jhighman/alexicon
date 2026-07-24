@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_270001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_280001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -157,6 +157,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_270001) do
     t.index ["key"], name: "index_frameworks_on_key", unique: true
   end
 
+  create_table "ignored_forms", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "decided_by_id"
+    t.string "form", null: false
+    t.text "reason"
+    t.datetime "updated_at", null: false
+    t.index "lower((form)::text)", name: "index_ignored_forms_on_lower_form", unique: true
+    t.index ["decided_by_id"], name: "index_ignored_forms_on_decided_by_id"
+  end
+
   create_table "mentions", force: :cascade do |t|
     t.integer "char_end"
     t.integer "char_start"
@@ -256,6 +266,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_270001) do
   add_foreign_key "evidence_links", "assertions"
   add_foreign_key "evidence_links", "evidence"
   add_foreign_key "flow_stages", "frameworks"
+  add_foreign_key "ignored_forms", "referents", column: "decided_by_id"
   add_foreign_key "mentions", "claims"
   add_foreign_key "referent_aliases", "referents"
   add_foreign_key "referents", "domains"
