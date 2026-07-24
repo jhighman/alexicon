@@ -1,0 +1,22 @@
+Documentation in this directory
+==============================
+
+© 2026 Jeff Highman & Alexandra Křížová.
+
+Licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives
+4.0 International License (CC BY-NC-ND 4.0).
+
+    Summary:   https://creativecommons.org/licenses/by-nc-nd/4.0/
+    Full text: https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+
+You may share this material in any medium or format, provided you give
+appropriate credit to both authors, link to the license, and indicate if
+changes were made. You may not use it for commercial purposes, and if you
+remix, transform, or build upon it you may not distribute the modified
+material.
+
+This license applies ONLY to the contents of this directory. Source code
+elsewhere in this repository is all rights reserved -- see /COPYRIGHT.md.
+
+The `private/` subdirectory is excluded from version control and is not
+published under this or any other license.
