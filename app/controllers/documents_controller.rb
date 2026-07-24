@@ -35,7 +35,35 @@ class DocumentsController < ApplicationController
                         .chronological
   end
 
+  def classify
+    document = Document.find(params[:id])
+
+    return redirect_back_to(document, alert: LOCKED) unless document.executable?
+    return redirect_back_to(document, alert: NO_KEY) if ENV["ANTHROPIC_API_KEY"].blank?
+
+    ClassifyDocumentJob.perform_later(document)
+    redirect_to document,
+                notice: "Classifying #{helpers.pluralize(document.unclassified_claims.count, 'claim')}. " \
+                        "Refresh in a moment."
+  end
+
+  def govern
+    document = Document.find(params[:id])
+
+    return redirect_back_to(document, alert: LOCKED) unless document.executable?
+
+    GovernDocumentJob.perform_later(document)
+    redirect_to document, notice: "Judging the steps between claims. Refresh in a moment."
+  end
+
   private
+
+  LOCKED = "Identity has to be established first — answer the open STOPs.".freeze
+  NO_KEY = "Classification needs ANTHROPIC_API_KEY set on the server.".freeze
+
+  def redirect_back_to(document, alert:)
+    redirect_to document, alert: alert
+  end
 
   def ingest_notice(result)
     parts = [ "#{result.claims.count} claims", "#{result.mentions.count} mentions" ]

@@ -3,6 +3,11 @@
 class Document < ApplicationRecord
   has_many :claims, -> { order(:position) }, dependent: :destroy
 
+  # Run records — a classifier or sentinel claiming what it did to this
+  # document. Immutable like every other assertion, so a document that has been
+  # analysed cannot be deleted without erasing the record of the analysis.
+  has_many :assertions, as: :subject, dependent: :restrict_with_error
+
   validates :body, presence: true
 
   def mentions = Mention.where(claim_id: claims.select(:id))
@@ -30,6 +35,15 @@ class Document < ApplicationRecord
   def executable? = open_stops.none?
 
   def blocking_mentions = mentions.blocking
+
+  # The most recent classification run, derived from its own record.
+  def last_classification_run
+    assertions.standing.chronological.reverse_each.find { it.claim["run"] == "classification" }
+  end
+
+  def classified? = last_classification_run.present?
+
+  def unclassified_claims = claims.reject(&:category)
 
   # The lock has to bite, or it is only a question that downstream code may
   # decline to ask. Reasoning layers call this before proceeding.

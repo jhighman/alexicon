@@ -1,7 +1,12 @@
 Rails.application.routes.draw do
   root "documents#index"
 
-  resources :documents, only: %i[index new create show]
+  resources :documents, only: %i[index new create show] do
+    member do
+      post :classify
+      post :govern
+    end
+  end
 
   # Disposing of a flag is an accountable act, so it needs a named reviewer.
   # There is no authentication here -- this only establishes WHO is answering,
