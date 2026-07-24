@@ -75,6 +75,20 @@ Five functions, in the order they act:
 
 The output is an **Attributable Intent State** — a judgment that can be traced, contested, and audited, rather than a score of unknown provenance.
 
+> **Implemented.** The narrow claim below is now enforced rather than asserted.
+> `GapInvariance` states it as a property — *two records identical in what they
+> establish score the same, however they are spaced in time* — and checks any
+> scorer against it by construction. `EquitableBaseline` satisfies it and says
+> what it is made of; `PolicyAudit` records the result as an assertion against
+> the policy, pass **or** fail, so "we checked" is itself an accountable claim.
+> A deliberately gap-penalising scorer is caught, which is what keeps the check
+> from passing vacuously.
+>
+> The **Average Ceiling Metric is deliberately not implemented.** Its relation
+> to Equitable Baseline Scoring is circular across sources (§7.4, both terms
+> marked disputed), and inventing a resolution would put a guess underneath the
+> one part of this system with real-world stakes.
+
 > **Design caution.** Source material describes this as producing judgment "stripped of statistical biases." That claim should be weakened before it reaches a spec. Bias cannot be mathematically eliminated in general — formal fairness criteria (demographic parity, equalized odds, calibration) are provably not simultaneously satisfiable except in degenerate cases, so any implementation is *choosing* which fairness definition to honor and which to sacrifice. The defensible claim is narrower and still strong: **this specific penalty — treating a documented gap as evidence of degradation — is identified, made explicit, and removed.** Naming the chosen criterion is a requirement, not a detail.
 >
 > Note also that "a mathematical clamp at Layer 38" is a transformer-internal mechanism. The *policy* — gaps carry no penalty — is fully implementable at the application level; the layer-level clamp is not. See §6.
