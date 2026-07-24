@@ -200,7 +200,19 @@ On detection the Identity Sentinel **does not guess**. It locks execution, freez
 
 > **Third instance of the pattern.** Source material also credits this stop with preventing "pathological defenses like hallucinated alignment or deceptive outputs." Halting on entity noise prevents *hallucination* — decisively, and that is a real result. It does not touch deceptive alignment, which has unrelated causes. See the pattern named under §3, "Failures attributed to non-containment": structural fixes are repeatedly credited with resolving integrity failures. Three occurrences now. The correction is the same each time, and the framework does not need the overclaim — preventing hallucination at the input boundary is a strong enough result on its own.
 
-**Design implication.** Entity resolution is the first subsystem worth building. It has defined inputs, checkable criteria, an unambiguous action on failure, and it protects against the framework's best-evidenced failure mode. It needs an `entities` table with an anchor status and a passport hierarchy — deliberately not yet modelled, since half a resolver is worse than none.
+### Why identity comes first — the fiduciary baseline
+
+Polanyi supplies the argument, and it is stronger than an ordering convention.
+
+Every coherent system of knowledge rests on commitments it cannot itself prove. Science cannot demonstrate by experiment that the universe is intelligible or that evidence matters; those are the conditions that make experiment possible. **A verified identity is this system's equivalent** — the non-provable structural baseline that must be inhabited before any dynamic evaluation of truth or intent can begin.
+
+This is why the Identity Sentinel sits at the input boundary rather than among the reasoning layers. It is not the first check in a sequence of checks; it establishes the ground the later checks stand on. Until the subject resolves, the node stays *unvalidated* and never enters the workspace where relational binding — and contextual distortion — would apply to it.
+
+Festinger closes the argument from the other end. Under unresolved dissonance a system reaches for pathological defenses: rationalisation in humans, hallucinated alignment in models, both preserving an illusion of consistency. Escalating to a person is the refusal of that defense. The burden of resolution moves to someone who can actually discharge it, instead of being absorbed by a system that can only appear to.
+
+**Implemented.** `Entity` (Cognitive Passport, immutable `system_id`), `EntityResolver` (three detection criteria), `IdentitySentinel` (STOP, execution lock), enforced via `Document#require_executable!` and a guard on `Classification` — a claim in a locked document cannot be classified at all, by a model or a human.
+
+**Not implemented.** *Escalation* currently means an open STOP flag that blocks. There is no routing, notification, or queue directing it to a specific person. The lock is real; the delivery of the question is not built.
 
 ### The countermeasure — 3D Scaffold Mapping
 

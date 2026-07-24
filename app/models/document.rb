@@ -20,4 +20,15 @@ class Document < ApplicationRecord
   def executable? = flags.open.stopping.none?
 
   def blocking_mentions = mentions.blocking
+
+  # The lock has to bite, or it is only a question that downstream code may
+  # decline to ask. Reasoning layers call this before proceeding.
+  def require_executable!
+    return if executable?
+
+    raise ExecutionLocked, "execution locked: #{flags.open.stopping.count} unresolved " \
+                           "identity flag(s). Unresolved: #{blocking_mentions.pluck(:text).join(', ')}"
+  end
+
+  class ExecutionLocked < StandardError; end
 end
