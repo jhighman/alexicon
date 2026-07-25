@@ -5,7 +5,9 @@
 # Policies here ask capability questions instead — `can_review?`, not
 # `role == "reviewer"` — so changing who may do what is one edit in one file.
 class User < ApplicationRecord
-  ROLES = %w[admin auditor reviewer viewer].freeze
+  include Capabilities
+
+  ROLES = Capabilities::ROLES
 
   has_secure_password
 
@@ -28,30 +30,6 @@ class User < ApplicationRecord
                                subject: "Person", role: role.titleize, primitive: "person")
     create!(username: username, password: password, role: role, referent: referent)
   end
-
-  def admin?    = role == "admin"
-  def auditor?  = role == "auditor"
-  def reviewer? = role == "reviewer"
-
-  # --- Capabilities ---------------------------------------------------------
-  #
-  # Policies call these. Roles compose into them here and nowhere else.
-
-  # Reading the work: documents, claims, flags.
-  def can_view? = true
-
-  # Answering a flag, grounding a name, marking a form as not a subject.
-  # These write accountable judgements into the graph.
-  def can_review? = admin? || reviewer?
-
-  # Submitting new text for analysis, and running the analysis.
-  def can_ingest? = admin? || reviewer?
-
-  # Seeing which models exist, what they cost, and what they were asked.
-  def can_view_llm_registry? = admin? || auditor?
-
-  # Deciding that a model may influence judgements at all.
-  def can_certify_models? = admin?
 
   def to_s = username
 end

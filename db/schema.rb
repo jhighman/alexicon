@@ -10,9 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_25_011334) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_093402) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.string "hint", null: false
+    t.bigint "issued_by_id"
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.bigint "referent_id", null: false
+    t.string "revocation_reason"
+    t.datetime "revoked_at"
+    t.string "role", default: "viewer", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.index ["issued_by_id"], name: "index_api_tokens_on_issued_by_id"
+    t.index ["referent_id"], name: "index_api_tokens_on_referent_id"
+    t.index ["token_digest"], name: "index_api_tokens_on_token_digest", unique: true
+  end
 
   create_table "assertions", force: :cascade do |t|
     t.string "act", default: "assert", null: false
@@ -63,6 +81,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_011334) do
     t.datetime "updated_at", null: false
     t.index ["document_id", "position"], name: "index_claims_on_document_id_and_position", unique: true
     t.index ["document_id"], name: "index_claims_on_document_id"
+  end
+
+  create_table "delegations", force: :cascade do |t|
+    t.string "act", null: false
+    t.boolean "active", default: true, null: false
+    t.string "agent_pattern", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.bigint "granted_by_id", null: false
+    t.text "rationale"
+    t.datetime "updated_at", null: false
+    t.index ["agent_pattern", "act"], name: "index_delegations_on_agent_pattern_and_act"
+    t.index ["granted_by_id"], name: "index_delegations_on_granted_by_id"
   end
 
   create_table "documents", force: :cascade do |t|
@@ -337,11 +368,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_011334) do
     t.index ["role"], name: "index_users_on_role"
   end
 
+  add_foreign_key "api_tokens", "referents"
+  add_foreign_key "api_tokens", "referents", column: "issued_by_id"
   add_foreign_key "assertions", "assertions", column: "supersedes_id"
   add_foreign_key "assertions", "llm_invocations"
   add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "claim_categories", "frameworks"
   add_foreign_key "claims", "documents"
+  add_foreign_key "delegations", "referents", column: "granted_by_id"
   add_foreign_key "domain_components", "domains"
   add_foreign_key "domain_failure_modes", "domains"
   add_foreign_key "domain_policies", "domains"
