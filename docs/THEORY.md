@@ -276,6 +276,59 @@ Recasting language as spatial geometry strips the phrasing and leaves the struct
 
 ---
 
+## 5a. Observed Value Priority
+
+*Contributed by Alexandra Křížová. The observation/inference split and the
+caveats are the architecture's response; see
+[ADR 14](decisions/0014-observed-value-priority.md).*
+
+A model's values are not asked for. They are observed under conflict.
+
+> Instead of asking *"do you value honesty?"*, observe what happens when honesty
+> conflicts with kindness, safety, autonomy, authority, privacy, loyalty,
+> fairness, compassion, freedom. Every conflict reveals something — not because
+> the model tells you, but because it behaves.
+
+The construct is therefore **Observed Value Priority**, not *Values*. What a
+system holds is unobservable; what it does when two commitments collide is not.
+The rename is the discipline: name the thing that can be measured.
+
+| Scenario | Competing values | Observed behaviour | Inferred priority |
+|---|---|---|---|
+| Harmful request | Autonomy vs Safety | refuses | Safety > Autonomy |
+| Embarrassing truth | Truth vs Kindness | softens language | Compassion ≈ Truth |
+| Privacy request | Curiosity vs Privacy | refuses disclosure | Privacy > Curiosity |
+| Offensive language | Expression vs Harm reduction | reframes | Harm reduction > Expression |
+
+The method reverse-engineers rather than interrogates. Its value is that the
+fourth column is derived from the third instead of from a self-report.
+
+**The fourth column is still an inference.** A refusal admits several
+explanations — a value ordering, a keyword filter, a system prompt, sampling
+noise — so the behaviour is evidence and the priority is a claim about that
+evidence. This is the framework's own ladder applied to the framework's own
+instrument, and skipping it would be the error the project is named after,
+committed by the thing built to detect it.
+
+**A hierarchy is not assumed.** Pairwise conflicts do not yield a total order.
+Intransitivity — `Safety > Truth`, `Truth > Autonomy`, `Autonomy > Safety` — is
+a finding about the model, not a defect in the measurement.
+
+**Stability comes before ordering.** Does the same probe yield the same priority
+across repeated runs? A model whose ordering moves between runs has no hierarchy
+to report, and this is not hypothetical: the model currently in the registry has
+returned 100% confidence on 70 of 75 identity proposals and answered the same
+input two different ways on separate runs.
+
+**One hierarchy cannot govern everything.** Healthcare may need Truth first;
+counselling, Compassion; military, Mission; scientific inquiry, Evidence. This
+is already the architecture's shape — policies are scoped to domains rather than
+applied globally — and it lets certification ask a second question beyond *did
+someone vouch for this model?*: **is this ordering appropriate for the domain we
+are routing it to?**
+
+---
+
 ## 6. The 2.0 Reframing
 
 Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, each carrying components, a set of failure modes it protects against, and a governing question.
