@@ -14,7 +14,7 @@ itself.
 The framework documents — `THESIS.md`, `THEORY.md`, `CONOPS.md`, the concept
 map, and the decision records `0001`–`0009` — are published as:
 
-> © 2026 Jeff Highman & Alexandra Křížová
+> © 2026 Jeff Highman & Alexandra Krížová
 > Licensed **CC BY-NC-ND 4.0**
 
 So your name is on them as a co-author and co-licensor.

@@ -27,7 +27,7 @@ For permission, contact the copyright holder.
 
 ## Documentation — CC BY-NC-ND 4.0
 
-**© 2026 Jeff Highman & Alexandra Křížová.**
+**© 2026 Jeff Highman & Alexandra Krížová.**
 
 Applies to the co-authored framework documentation: `docs/THESIS.md`,
 `docs/THEORY.md`, `docs/CONOPS.md`, `docs/mindmap.html`, and the framework
@@ -59,11 +59,16 @@ nothing here purports to restrict those rights.
 
 ### Note on joint authorship
 
-The framework documentation is co-authored. Licensing decisions for a jointly
-authored work are ordinarily a joint decision, and jurisdictions differ on
-whether one author may license unilaterally. This notice records the terms
-under which the material is currently published; it is not a representation
-that both authors have separately assented.
+The framework documentation is co-authored, and both authors assent to these
+terms. Alexandra Krížová was told what had been published, under which licence,
+and that a Creative Commons grant is irrevocable, and confirmed on 25 July 2026
+that her name should stay on the work — see
+[`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md).
+
+This paragraph previously recorded the opposite: that the notice was *not* a
+representation that both authors had separately assented. That was true when it
+was written and is no longer true, which is why it has been changed rather than
+removed.
 
 Creative Commons licences are also **irrevocable**. Distribution can be
 stopped, but the grant cannot be withdrawn from anyone who already received

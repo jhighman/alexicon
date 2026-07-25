@@ -278,7 +278,7 @@ Recasting language as spatial geometry strips the phrasing and leaves the struct
 
 ## 5a. Observed Value Priority
 
-*Contributed by Alexandra Křížová. The observation/inference split and the
+*Contributed by Alexandra Krížová. The observation/inference split and the
 caveats are the architecture's response; see
 [ADR 14](decisions/0014-observed-value-priority.md).*
 

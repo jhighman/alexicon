@@ -233,7 +233,7 @@ Two kinds of work, two sets of terms — see [`COPYRIGHT.md`](COPYRIGHT.md).
 
 - **Source code** — © 2026 Jeff Highman. All rights reserved. Viewable and
   forkable; no use, modification, or redistribution without written permission.
-- **Documentation** (`docs/`) — © 2026 Jeff Highman & Alexandra Křížová.
+- **Documentation** (`docs/`) — © 2026 Jeff Highman & Alexandra Krížová.
   [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 `docs/THESIS.md` is a draft. Confirm its status with the author before citing

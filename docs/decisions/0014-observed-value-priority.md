@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-25
 **Status:** Accepted; probe, judge and stability check built
-**Source:** Alexandra Křížová, in discourse — the method and the domain argument
+**Source:** Alexandra Krížová, in discourse — the method and the domain argument
 are hers. The observation/inference split and the two caveats below are the
 architecture's response to it.
 
