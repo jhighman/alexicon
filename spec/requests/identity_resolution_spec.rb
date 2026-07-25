@@ -79,14 +79,19 @@ RSpec.describe "answering an identity STOP", type: :request do
       expect(mention.flags).to be_empty
     end
 
-    # A partial passport is not a weaker anchor; it is no anchor.
-    it "refuses an incomplete passport" do
+    # A partial passport is not a weaker anchor; it is no anchor. This used to
+    # create the half-referent and let the resolver call it "unanchored", which
+    # left a subject in the graph that anchored nothing. Now nothing is created.
+    it "refuses an incomplete passport without leaving a half-subject behind" do
       document = ingest("Alec wrote about it.")
       mention = document.mentions.sole
 
-      post ground_mention_path(mention), params: { referent: { subject: "Family", role: "" } }
+      expect {
+        post ground_mention_path(mention), params: { referent: { subject: "Family", role: "" } }
+      }.not_to change { Referent.count }
 
-      expect(mention.reload.status).to eq "unanchored"
+      expect(flash[:alert]).to match(/partial one is no anchor/)
+      expect(mention.reload.status).to eq "out_of_distribution"
       expect(document.reload.executable?).to be false
     end
 
@@ -159,6 +164,59 @@ RSpec.describe "answering an identity STOP", type: :request do
       document = ingest("The NASA report was published.")
 
       expect(document.mentions.map(&:text)).to include "NASA"
+    end
+  end
+
+  # Two spellings, one philosopher. Grounding "Polayani" separately would create
+  # a second person who wrote the same book -- object constancy broken by a
+  # transposed letter.
+  describe "declaring a name to be another spelling" do
+    it "resolves the variant to the existing referent rather than making a second one" do
+      first = ingest("Polanyi wrote it.")
+      post ground_mention_path(first.mentions.sole),
+           params: { referent: { subject: "Person", role: "Philosopher" } }
+      polanyi = Referent.find_by!(name: "Polanyi")
+
+      second = ingest("Polayani was right about that.")
+      variant = second.mentions.find { it.text == "Polayani" }
+
+      expect {
+        post ground_mention_path(variant), params: { referent: { same_as_id: polanyi.id } }
+      }.not_to change { Referent.where(primitive: "person").count }
+
+      expect(variant.reload.referent).to eq polanyi
+      expect(second.reload.open_stops).to be_empty
+    end
+
+    it "records the alias rather than correcting the document" do
+      first = ingest("Polanyi wrote it.")
+      post ground_mention_path(first.mentions.sole),
+           params: { referent: { subject: "Person", role: "Philosopher" } }
+      polanyi = Referent.find_by!(name: "Polanyi")
+
+      second = ingest("Polayani was right about that.")
+      variant = second.mentions.find { it.text == "Polayani" }
+      post ground_mention_path(variant), params: { referent: { same_as_id: polanyi.id } }
+
+      expect(polanyi.referent_aliases.pluck(:name)).to include "Polayani"
+      # The misspelling is evidence; editing it away would destroy the record
+      # that it was ever there.
+      expect(variant.reload.text).to eq "Polayani"
+    end
+
+    it "resolves later occurrences of the variant on sight" do
+      first = ingest("Polanyi wrote it.")
+      post ground_mention_path(first.mentions.sole),
+           params: { referent: { subject: "Person", role: "Philosopher" } }
+      polanyi = Referent.find_by!(name: "Polanyi")
+      second = ingest("Polayani was right about that.")
+      post ground_mention_path(second.mentions.find { it.text == "Polayani" }),
+           params: { referent: { same_as_id: polanyi.id } }
+
+      third = ingest("Polayani said so again.")
+
+      expect(third.open_stops).to be_empty
+      expect(third.mentions.sole.referent).to eq polanyi
     end
   end
 end

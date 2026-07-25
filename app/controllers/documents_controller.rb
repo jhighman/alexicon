@@ -34,6 +34,10 @@ class DocumentsController < ApplicationController
     @transitions = @document.transitions.includes(:source, :target)
     open_flags = @document.flags.includes(:asserter, :subject).select(&:open?)
 
+    # Subjects a name could be declared another spelling of. People only: the
+    # system's own referents are not things a document names.
+    @groundable_referents = Referent.where(primitive: "person").order(:name)
+
     # One question per name, not per occurrence. An essay naming Polanyi three
     # times raised three identical STOPs; answering the name answers all of them.
     identity, @open_flags = open_flags.partition { it.subject.is_a?(Mention) }

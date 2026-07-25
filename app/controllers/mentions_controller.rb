@@ -12,14 +12,15 @@ class MentionsController < ApplicationController
   def ground
     mention = Mention.find(params[:id])
     authorize mention
-    attrs = params.require(:referent).permit(:subject, :role)
+    attrs = params.require(:referent).permit(:subject, :role, :same_as_id)
 
-    referent = Referent.create!(
-      name: mention.text,
-      subject: attrs[:subject].presence,
-      role: attrs[:role].presence,
-      primitive: "person"
-    )
+    if attrs[:same_as_id].blank? && (attrs[:subject].blank? || attrs[:role].blank?)
+      return redirect_back fallback_location: root_path,
+                           alert: "A passport needs a subject and a role — a partial one is no anchor. " \
+                                  "Or say which subject this is another name for."
+    end
+
+    referent = attrs[:same_as_id].present? ? alias_to(mention, attrs[:same_as_id]) : new_referent(mention, attrs)
 
     # Re-verify: the resolution supersedes the STOP, so exactly one judgement
     # stands and the derived status follows.
@@ -59,6 +60,28 @@ class MentionsController < ApplicationController
   end
 
   private
+
+  # Two spellings, one philosopher. "Polayani" is a typo for "Polanyi", and
+  # grounding it separately would create a second person who wrote the same
+  # book — object constancy broken by a transposed letter.
+  #
+  # The alias is recorded rather than the mention being edited: the document
+  # said what it said, and correcting the text would destroy the evidence that
+  # the misspelling was ever there.
+  def alias_to(mention, referent_id)
+    referent = Referent.find(referent_id)
+
+    ReferentAlias.find_or_create_by!(referent: referent, name: mention.text) do |entry|
+      entry.source = "Judged during review to be another name for #{referent.name}."
+    end
+
+    referent
+  end
+
+  def new_referent(mention, attrs)
+    Referent.create!(name: mention.text, subject: attrs[:subject].presence,
+                     role: attrs[:role].presence, primitive: "person")
+  end
 
   # A judgement about a name applies wherever that name appears. Scoped to the
   # exact surface form, since that is what was actually judged.

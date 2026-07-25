@@ -92,14 +92,27 @@
                 <div>
                   <label class="form-label small mb-1" for="subject-<%= mention.id %>">subject</label>
                   <input class="form-control form-control-sm" id="subject-<%= mention.id %>"
-                         name="referent[subject]" placeholder="e.g. Person" required
+                         name="referent[subject]" placeholder="e.g. Person"
                          value="<%= proposal&.claim&.dig('subject') %>">
                 </div>
                 <div>
                   <label class="form-label small mb-1" for="role-<%= mention.id %>">role</label>
                   <input class="form-control form-control-sm" id="role-<%= mention.id %>"
-                         name="referent[role]" placeholder="e.g. Philosopher" required
+                         name="referent[role]" placeholder="e.g. Philosopher"
                          value="<%= proposal&.claim&.dig('role') %>">
+                </div>
+                <div>
+                  <label class="form-label small mb-1" for="same-as-<%= mention.id %>">or the same as</label>
+                  <select class="form-select form-select-sm" id="same-as-<%= mention.id %>"
+                          name="referent[same_as_id]">
+                    <option value="">— a new subject —</option>
+                    <% @groundable_referents.each do |candidate| %>
+                      <option value="<%= candidate.id %>"
+                        <%= "selected" if proposal&.claim&.dig("same_as") == candidate.name %>>
+                        <%= candidate.passport %>
+                      </option>
+                    <% end %>
+                  </select>
                 </div>
                 <button class="btn btn-sm btn-primary" type="submit">
                   <%= proposal&.claim&.dig("proposal") == "subject" ? "Accept" : "Ground it" %>
@@ -114,7 +127,9 @@
             </div>
             <div class="form-text mt-2">
               A passport needs all three levels — a partial one is not a weaker anchor, it is no anchor.
-              A proposal is inference; accepting it is your judgement, recorded under your name.
+              Choose "the same as" when this is another spelling of a subject already grounded;
+              two spellings must not become two people. A proposal is inference; accepting it is
+              your judgement, recorded under your name.
             </div>
           <% end %>
         </div>

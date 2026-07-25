@@ -30,7 +30,7 @@ class IdentityProposer
   # the answer was truncated mid-object every time.
   BATCH_SIZE = 15
 
-  Proposal = Data.define(:name, :kind, :subject, :role, :confidence, :rationale) do
+  Proposal = Data.define(:name, :kind, :subject, :role, :same_as, :confidence, :rationale) do
     def subject? = kind == "subject"
     def not_a_subject? = kind == "not_a_subject"
     def abstained? = kind == "unknown"
@@ -112,6 +112,7 @@ class IdentityProposer
           asserter: proposer, subject: mention, act: "assert",
           claim: { "proposal" => proposal.kind, "name" => proposal.name,
                    "subject" => proposal.subject, "role" => proposal.role,
+                   "same_as" => proposal.same_as,
                    "confidence" => proposal.confidence, "rationale" => proposal.rationale }
         )
       end
@@ -165,6 +166,14 @@ class IdentityProposer
       sentence position, emphasis, a heading, or document structure.
       "Fortunately", "Wow", "Part Two" and "Postscript" are all this.
 
+      If a string is a variant of another name in the SAME list -- a
+      misspelling, a surname alone, a possessive, a shortening -- still answer
+      "subject", and additionally give SAME_AS: the fullest form of that name
+      as it appears in the list. "Polayani" is a misspelling of "Polanyi";
+      "Goggins" is the surname of "David Goggins". Leave SAME_AS empty when the
+      name stands on its own. Getting this right keeps one person from becoming
+      three.
+
       "unknown" -- you genuinely cannot tell from the document or from what you
       know. Answer this rather than guessing. A wrong passport is worse than no
       passport, because the whole point of this step is to refuse to invent a
@@ -201,10 +210,11 @@ class IdentityProposer
               kind: { type: "string", enum: %w[subject not_a_subject unknown] },
               subject: { type: "string" },
               role: { type: "string" },
+              same_as: { type: "string" },
               confidence: { type: "number" },
               rationale: { type: "string" }
             },
-            required: %w[name kind subject role confidence rationale],
+            required: %w[name kind subject role same_as confidence rationale],
             additionalProperties: false
           }
         }
@@ -229,7 +239,12 @@ class IdentityProposer
       role = row["role"].to_s.presence
       kind = "unknown" if kind == "subject" && (subject.nil? || role.nil?)
 
-      Proposal.new(name: name, kind: kind, subject: subject, role: role,
+      # Only a name actually asked about, and never itself: a self-alias would
+      # be a referent that is another name for itself.
+      same_as = row["same_as"].to_s.presence
+      same_as = nil unless asked.include?(same_as) && same_as != name
+
+      Proposal.new(name: name, kind: kind, subject: subject, role: role, same_as: same_as,
                    confidence: row["confidence"].to_f, rationale: row["rationale"].to_s)
     end
   rescue JSON::ParserError, TypeError, NoMethodError

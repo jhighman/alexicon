@@ -50,6 +50,14 @@ resolution meant one essay citing unfamiliar authors produced 204 blocking
 questions and could not be read at all — and names like "God" would never
 resolve, because that is a contested ontological question, not missing data.
 
+One entity may go by several names. A misspelling, a surname alone, a fuller
+form — "Polayani", "Polanyi" and "Michael Polanyi" are one philosopher, and
+grounding them separately would break object constancy over a transposed
+letter. Declaring a name to be another spelling records an **alias** against
+the existing referent; the document's text is never corrected, because the
+misspelling is evidence that it was there. The Identity Proposer suggests these
+links too, and on a real essay it found both that existed.
+
 Identity accumulates in the graph, not in the document. Writing does not
 introduce the people it names, and requiring it to would require prose to be
 self-contained in a way it never is. So a name is asked about **once**, however
