@@ -67,7 +67,13 @@
   <ul class="list-group shadow-sm">
     <% @assignments.each do |a| %>
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span><code><%= a.scope_description %></code> → <%= a.llm_model.display_name %></span>
+        <span>
+          <code><%= a.scope_description %></code> → <%= a.llm_model.display_name %>
+          <% unless a.usable? %>
+            <span class="badge text-bg-warning ms-1">routes nowhere</span>
+            <span class="small text-body-secondary"><%= a.unusable_reason %></span>
+          <% end %>
+        </span>
         <span class="small text-body-secondary">
           specificity <%= a.specificity %> · priority <%= a.priority %>
           <% if policy(a).destroy? %>

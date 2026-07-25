@@ -141,11 +141,57 @@ RSpec.describe "LLM governance" do
       expect(result.error).to include "no assignment matches"
     end
 
+    it "reports a rule that routes nowhere, and why" do
+      m = certified_model
+      rule = LlmAssignment.create!(llm_model: m, agent_pattern: "claim-classifier",
+                                   action_type: "classify")
+      expect(rule).to be_usable
+
+      provider.update!(status: "inactive")
+
+      expect(rule.reload).not_to be_usable
+      expect(rule.unusable_reason).to eq "Anthropic inactive"
+    end
+
     it "ignores an inactive assignment" do
       m = certified_model
       LlmAssignment.create!(llm_model: m, agent_pattern: "claim-classifier", active: false)
 
       expect(described_class.resolve(agent: classifier, action_type: "classify")).not_to be_resolved
+    end
+
+    # A rule that exists but points somewhere unusable is a different problem
+    # from a rule that was never written, and sends an admin somewhere else.
+    describe "when a rule matches but its model cannot be used" do
+      it "names the provider that was switched off, not a missing rule" do
+        m = certified_model
+        other = LlmProvider.create!(key: "gemini", name: "Google Gemini")
+        LlmModel.create!(llm_provider: other, model_identifier: "gemini-2.5-pro",
+                         display_name: "Gemini 2.5 Pro").certify!(person)
+        LlmAssignment.create!(llm_model: m, agent_pattern: "claim-classifier",
+                              action_type: "classify")
+        provider.update!(status: "inactive")
+
+        result = described_class.resolve(agent: classifier, action_type: "classify")
+
+        expect(result).not_to be_resolved
+        expect(result.error).to include "routed to claude-opus-5"
+        expect(result.error).to include "Anthropic is inactive"
+        expect(result.error).not_to include "no assignment matches"
+      end
+
+      it "names revocation when the routed model was withdrawn" do
+        m = certified_model
+        LlmModel.create!(llm_provider: provider, model_identifier: "claude-sonnet-5",
+                         display_name: "Claude Sonnet 5").certify!(person)
+        LlmAssignment.create!(llm_model: m, agent_pattern: "claim-classifier",
+                              action_type: "classify")
+        m.revoke!(reason: "started fabricating citations", by: person)
+
+        result = described_class.resolve(agent: classifier, action_type: "classify")
+
+        expect(result.error).to include "it is revoked"
+      end
     end
   end
 

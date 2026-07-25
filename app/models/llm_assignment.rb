@@ -41,6 +41,20 @@ class LlmAssignment < ApplicationRecord
 
   def scope_description = "#{agent_pattern} / #{action_type || 'any action'}"
 
+  # A rule can be perfectly well-formed and still route nowhere, because the
+  # model beneath it was revoked or its provider switched off. That state is
+  # invisible unless it is stated.
+  def usable? = active? && llm_model.certified? && llm_model.llm_provider.active?
+
+  def unusable_reason
+    return nil if usable?
+    return "switched off" unless active?
+    return "model revoked" if llm_model.revoked?
+    return "model not certified" unless llm_model.certified?
+
+    "#{llm_model.llm_provider.name} inactive"
+  end
+
   private
 
   # Enforced here as well as in the resolver: an uncertified model must not be

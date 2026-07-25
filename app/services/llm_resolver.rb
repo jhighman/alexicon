@@ -30,7 +30,7 @@ class LlmResolver
     return failure(nothing_assignable) if LlmModel.assignable.none?
 
     best = candidates.max_by { [ it.specificity, it.priority ] }
-    return failure("no assignment matches #{agent_key.inspect} / #{action_type.inspect}") if best.nil?
+    return failure(no_usable_rule) if best.nil?
 
     Result.new(model: best.llm_model, assignment: best, error: nil)
   end
@@ -44,6 +44,36 @@ class LlmResolver
   def candidates
     LlmAssignment.active.with_assignable_model.includes(llm_model: :llm_provider)
                  .select { it.matches?(agent_key: agent_key, action_type: action_type) }
+  end
+
+  # Rules that name this caller and act, whether or not their model can be used.
+  def matching_rules
+    LlmAssignment.includes(llm_model: :llm_provider)
+                 .select { it.matches?(agent_key: agent_key, action_type: action_type) }
+  end
+
+  # "No assignment matches" and "the assignment that matches points somewhere
+  # unusable" send an admin to opposite places -- one to write a rule, the other
+  # to fix the model a rule already names. Reporting both as the first was
+  # sending people to look for a rule that was sitting right in front of them.
+  def no_usable_rule
+    stale = matching_rules
+    return "no assignment matches #{agent_key.inspect} / #{action_type.inspect}" if stale.empty?
+
+    "#{agent_key} is routed to #{stale.map { unusable(it) }.uniq.to_sentence}"
+  end
+
+  def unusable(assignment)
+    model = assignment.llm_model
+    reason =
+      if !assignment.active then "the rule is switched off"
+      elsif model.revoked? then "it is revoked"
+      elsif !model.certified? then "it is not certified"
+      elsif !model.llm_provider.active? then "#{model.llm_provider.name} is inactive"
+      else "it is unavailable"
+      end
+
+    "#{model.display_name}, which cannot be used because #{reason}"
   end
 
   # "Nothing is assignable" has two quite different causes, and telling them
