@@ -38,7 +38,13 @@
 <%# ---- Identity questions, one per name ------------------------------------ %>
 <% if @identity_groups.any? %>
   <section class="mb-4">
-    <h2 class="h5">Names with no established reference</h2>
+    <div class="d-flex justify-content-between align-items-start gap-3">
+      <h2 class="h5">Names with no established reference</h2>
+      <% if current_user.can_review? %>
+        <%= button_to "Ask the model", propose_identities_document_path(@document),
+                      class: "btn btn-sm btn-outline-primary flex-shrink-0" %>
+      <% end %>
+    </div>
     <p class="text-body-secondary small" style="max-width: 46rem;">
       A flag never says a claim is false. A name here is not a name that is
       wrong — it is one this system has never been introduced to, and it is
@@ -61,30 +67,54 @@
             <span class="small text-body-secondary"><%= flags.first.message %></span>
           </div>
 
+          <% mention = flags.first.subject %>
+          <% proposal = mention.identity_proposal %>
+
+          <% if proposal %>
+            <div class="mt-2 small">
+              <span class="badge text-bg-light border">proposed</span>
+              <% if proposal.claim["proposal"] == "not_a_subject" %>
+                not a subject
+              <% else %>
+                <strong><%= name %> → <%= proposal.claim["subject"] %> → <%= proposal.claim["role"] %></strong>
+              <% end %>
+              <span class="text-body-secondary">
+                by <%= proposal.asserter.name %><% if proposal.confidence %>
+                · <%= number_to_percentage(proposal.confidence * 100, precision: 0) %><% end %>
+                — <%= proposal.rationale %>
+              </span>
+            </div>
+          <% end %>
+
           <% if current_user.can_review? %>
-            <% mention = flags.first.subject %>
             <div class="row g-2 align-items-end mt-2">
               <%= form_with url: ground_mention_path(mention), class: "col d-flex gap-2 align-items-end" do %>
                 <div>
                   <label class="form-label small mb-1" for="subject-<%= mention.id %>">subject</label>
                   <input class="form-control form-control-sm" id="subject-<%= mention.id %>"
-                         name="referent[subject]" placeholder="e.g. Person" required>
+                         name="referent[subject]" placeholder="e.g. Person" required
+                         value="<%= proposal&.claim&.dig('subject') %>">
                 </div>
                 <div>
                   <label class="form-label small mb-1" for="role-<%= mention.id %>">role</label>
                   <input class="form-control form-control-sm" id="role-<%= mention.id %>"
-                         name="referent[role]" placeholder="e.g. Philosopher" required>
+                         name="referent[role]" placeholder="e.g. Philosopher" required
+                         value="<%= proposal&.claim&.dig('role') %>">
                 </div>
-                <button class="btn btn-sm btn-primary" type="submit">Ground it</button>
+                <button class="btn btn-sm btn-primary" type="submit">
+                  <%= proposal&.claim&.dig("proposal") == "subject" ? "Accept" : "Ground it" %>
+                </button>
               <% end %>
               <div class="col-auto">
-                <%= button_to "Not a subject", ignore_mention_path(mention),
-                              class: "btn btn-sm btn-outline-secondary",
+                <%= button_to (proposal&.claim&.dig("proposal") == "not_a_subject" ? "Accept: not a subject" : "Not a subject"),
+                              ignore_mention_path(mention),
+                              class: "btn btn-sm #{proposal&.claim&.dig('proposal') == 'not_a_subject' ? 'btn-primary' : 'btn-outline-secondary'}",
                               form: { data: { turbo_confirm: "#{name.inspect} will never be proposed as a subject again. Continue?" } } %>
               </div>
             </div>
             <div class="form-text mt-2">
               A passport needs all three levels — a partial one is not a weaker anchor, it is no anchor.
+              A proposal is inference; accepting it is your judgement, recorded under your name.
             </div>
           <% end %>
         </div>

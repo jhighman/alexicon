@@ -30,6 +30,9 @@ class Assertion < ApplicationRecord
   belongs_to :object, polymorphic: true, optional: true
 
   belongs_to :supersedes, class_name: "Assertion", optional: true
+
+  # The call this inference came from, when a model produced it.
+  belongs_to :llm_invocation, optional: true
   has_many :superseded_by, class_name: "Assertion", foreign_key: :supersedes_id,
                            dependent: :nullify, inverse_of: :supersedes
 
@@ -167,9 +170,9 @@ class Assertion < ApplicationRecord
   #
   # Agency is preserved: a person may dispose of the flag and proceed. What
   # they may not do is reason past it silently.
-  # A judgement about a STEP between claims is where reasoning about what the
-  # names refer to actually happens, so that is what the lock guards. Note it
-  # cannot be a list of acts: a governance verdict is recorded as `assert`, the
+  #
+  # The guard is a STEP between claims, which is where reasoning about what the
+  # names refer to actually happens. Note it cannot be a list of acts: a governance verdict is recorded as `assert`, the
   # same act used for a dozen harmless things, and `resolve` -- the act that
   # grounds a name -- would deadlock, blocked by the very flags it clears.
   def execution_must_not_be_locked

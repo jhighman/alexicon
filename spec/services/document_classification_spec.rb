@@ -15,14 +15,18 @@ RSpec.describe DocumentClassification do
   def claim(text) = document.claims.create!(position: document.claims.count + 1, text: text)
 
   # A classifier double: `outcomes` is consumed one per claim. nil means abstain.
+  # Batch-shaped, like the real one -- it is handed a run of claims and returns
+  # { claim => assertion-or-nil }.
   def classifier_returning(*outcomes)
     queue = outcomes.dup
     category = ontological
     referent = classifier_referent
     Class.new do
-      define_method(:initialize) { |claim| @claim = claim }
+      define_method(:initialize) { |claims, **| @claims = Array(claims) }
       define_method(:classify!) do
-        queue.shift ? @claim.classify!(category, asserter: referent, confidence: 0.9) : nil
+        @claims.each_with_object({}) do |claim, out|
+          out[claim] = queue.shift ? claim.classify!(category, asserter: referent, confidence: 0.9) : nil
+        end
       end
     end
   end

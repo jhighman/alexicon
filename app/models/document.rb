@@ -43,6 +43,9 @@ class Document < ApplicationRecord
 
   def blocking_mentions = mentions.blocking
 
+  # Distinct names, not occurrences: the unit a person is actually asked about.
+  def unresolved_name_count = open_stops.filter_map { it.subject.try(:text) }.uniq.size
+
   # The most recent classification run, derived from its own record.
   def last_classification_run
     assertions.standing.chronological.reverse_each.find { it.claim["run"] == "classification" }

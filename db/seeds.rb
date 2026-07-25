@@ -126,6 +126,21 @@ Referent.find_or_initialize_by(key: "claim-classifier").update!(
   notes: "Proposes claim categories. Its output is inference, never finding."
 )
 
+# The Identity Proposer reads a whole document and suggests what its unfamiliar
+# names refer to. It is deliberately NOT the Identity Sentinel: the Sentinel
+# refuses to resolve without ground, and an actor that both proposed the ground
+# and accepted it would be the conflation Chapter 6 forbids.
+#
+# Its output is a proposal a person accepts or corrects. Nothing it says lifts
+# a STOP on its own -- it exists so a reviewer confirms rather than types.
+Referent.find_or_initialize_by(key: "identity-proposer").update!(
+  name: "Identity Proposer",
+  subject: "System",
+  role: "Proposer",
+  primitive: "system",
+  notes: "Proposes what a name refers to. Its output is inference awaiting a person, never a resolution."
+)
+
 # --- Cross-cutting policies --------------------------------------------------
 anti_discrimination = Policy.find_or_initialize_by(key: "anti-discrimination")
 anti_discrimination.update!(

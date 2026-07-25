@@ -21,9 +21,11 @@ RSpec.describe "classification progress" do
     category = observation
     referent = classifier_referent
     Class.new do
-      define_method(:initialize) { |claim| @claim = claim }
+      define_method(:initialize) { |claims, **| @claims = Array(claims) }
       define_method(:classify!) do
-        queue.shift ? @claim.classify!(category, asserter: referent, confidence: 0.9) : nil
+        @claims.each_with_object({}) do |claim, out|
+          out[claim] = queue.shift ? claim.classify!(category, asserter: referent, confidence: 0.9) : nil
+        end
       end
     end
   end

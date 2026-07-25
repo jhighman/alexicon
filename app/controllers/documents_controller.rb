@@ -58,6 +58,18 @@ class DocumentsController < ApplicationController
                         "Refresh in a moment."
   end
 
+  # Asks the model what the unfamiliar names refer to. It proposes; a person
+  # still accepts. Nothing here lifts a STOP.
+  def propose_identities
+    document = Document.find(params[:id])
+    authorize document, :classify?
+
+    ProposeIdentitiesJob.perform_later(document)
+    redirect_to document,
+                notice: "Asking about #{helpers.pluralize(document.unresolved_name_count, 'name')}. " \
+                        "You will still be the one to accept."
+  end
+
   def govern
     document = Document.find(params[:id])
     authorize document, :govern?

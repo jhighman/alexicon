@@ -34,6 +34,14 @@ class Mention < ApplicationRecord
 
   def flags = assertions.flags.standing.chronological
 
+  # What the Identity Proposer suggested this name refers to, if it has been
+  # asked. A proposal is inference awaiting a person: it does not resolve the
+  # mention, and #status ignores it entirely.
+  def identity_proposal
+    assertions.acting("assert").standing.chronological
+              .reverse_each.find { it.claim["proposal"].present? }
+  end
+
   def resolutions = assertions.acting("resolve").standing.chronological
 
   # A person's resolution wins over a system's, without erasing it.

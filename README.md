@@ -64,7 +64,25 @@ rather than silently resolving them.
 
 **Model registry** — a model may not influence any judgement until an admin
 certifies it. Every call is recorded: model, tokens, cost, latency, outcome,
-linked to the judgement it produced.
+linked to the judgements it produced.
+
+**Where the model is asked, and what it is asked for.** The extractor is a
+regex, so it cannot tell "Michael Polanyi" from "Fortunately" — that difference
+is world knowledge. That gap used to be filled by a person, one form at a time,
+while the model was busy sorting single sentences into four buckets and
+returning 1.0 confidence on all of them. The hard work was going to the human
+and the easy work to the model.
+
+So the Identity Proposer reads a whole document and proposes what each
+unfamiliar name refers to — or that it is not a name at all, or that it cannot
+tell. It sits behind the same fence as the classifier: it *proposes*, its
+output is an attributable inference, it may abstain, and it is deliberately not
+the Identity Sentinel that would accept it. **Nothing it says lifts a STOP.** A
+person accepts or corrects, and that acceptance is recorded under their name.
+
+Classification is batched with surrounding context for the same reason. One
+sentence per call threw away the argument it sat in — which is why confidence
+was uniformly 1.0 and the abstention floor was decorative.
 
 Providers, models and routing are administered in the browser. Anthropic,
 OpenAI and Gemini each have an adapter; the classifier speaks only the adapter

@@ -21,10 +21,11 @@ class DocumentClassification
   # on_progress is called after each claim with the claim and its outcome
   # (:classified, :abstained or :skipped). It is for reporting only -- raising
   # from it must not be able to derail a run, so it is guarded at the call site.
-  def initialize(document, classifier: ClaimClassifier, on_progress: nil)
+  def initialize(document, classifier: ClaimClassifier, on_progress: nil, framework: nil)
     @document = document
     @classifier = classifier
     @on_progress = on_progress
+    @framework = framework
   end
 
   # Deliberately does NOT require the document to be executable. Typing a
@@ -35,18 +36,29 @@ class DocumentClassification
   def call
     classified = abstained = skipped = 0
 
-    document.claims.each_with_index do |claim, index|
-      # Never reclassify. A standing classification is answered by a person or
-      # superseded deliberately, not overwritten by a second pass.
-      if claim.category
-        skipped += 1
-        report(claim, :skipped, index)
-        next
-      end
+    ordered = document.claims.to_a
+    index = -1
 
-      outcome = classifier.new(claim).classify! ? :classified : :abstained
-      outcome == :classified ? classified += 1 : abstained += 1
-      report(claim, outcome, index)
+    # Never reclassify. A standing classification is answered by a person or
+    # superseded deliberately, not overwritten by a second pass.
+    already, pending = ordered.partition(&:category)
+    already.each { skipped += 1 }
+
+    ordered.each_with_index do |claim, position|
+      next unless claim.category
+
+      report(claim, :skipped, position)
+    end
+
+    pending.each_slice(ClaimClassifier::BATCH_SIZE) do |batch|
+      results = classifier.new(batch, framework: framework,
+                                      context: preceding(ordered, batch.first)).classify!
+
+      batch.each do |claim|
+        outcome = results[claim] ? :classified : :abstained
+        outcome == :classified ? classified += 1 : abstained += 1
+        report(claim, outcome, index += 1)
+      end
     end
 
     record_run(classified, abstained, skipped)
@@ -55,7 +67,14 @@ class DocumentClassification
 
   private
 
-  attr_reader :document, :classifier, :on_progress
+  attr_reader :document, :classifier, :on_progress, :framework
+
+  # The claims immediately before a batch, so the model can tell what a pronoun
+  # or a "therefore" is pointing back at.
+  def preceding(ordered, first)
+    start = ordered.index(first).to_i
+    ordered[[ start - ClaimClassifier::CONTEXT_CLAIMS, 0 ].max...start].to_a
+  end
 
   # Telling someone what is happening must never change what happens. A broken
   # subscriber, a dropped socket, a view that raises -- none of that is grounds

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_011334) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -20,6 +20,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
     t.bigint "asserter_id", null: false
     t.jsonb "claim", default: {}, null: false
     t.datetime "created_at", null: false
+    t.bigint "llm_invocation_id"
     t.bigint "object_id"
     t.string "object_type"
     t.text "provenance"
@@ -31,6 +32,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
     t.datetime "valid_until"
     t.index ["act"], name: "index_assertions_on_act"
     t.index ["asserter_id"], name: "index_assertions_on_asserter_id"
+    t.index ["llm_invocation_id"], name: "index_assertions_on_llm_invocation_id"
     t.index ["object_type", "object_id"], name: "index_assertions_on_object"
     t.index ["subject_type", "subject_id", "asserted_at"], name: "idx_on_subject_type_subject_id_asserted_at_f9911a1d7d"
     t.index ["subject_type", "subject_id"], name: "index_assertions_on_subject"
@@ -185,7 +187,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
   create_table "llm_invocations", force: :cascade do |t|
     t.string "action_type"
     t.bigint "agent_id", null: false
-    t.bigint "assertion_id"
     t.decimal "cost_usd", precision: 12, scale: 6, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.text "error_message"
@@ -198,7 +199,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
     t.integer "total_tokens", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["agent_id"], name: "index_llm_invocations_on_agent_id"
-    t.index ["assertion_id"], name: "index_llm_invocations_on_assertion_id"
     t.index ["created_at"], name: "index_llm_invocations_on_created_at"
     t.index ["llm_assignment_id"], name: "index_llm_invocations_on_llm_assignment_id"
     t.index ["llm_model_id"], name: "index_llm_invocations_on_llm_model_id"
@@ -338,6 +338,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
   end
 
   add_foreign_key "assertions", "assertions", column: "supersedes_id"
+  add_foreign_key "assertions", "llm_invocations"
   add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "claim_categories", "frameworks"
   add_foreign_key "claims", "documents"
@@ -352,7 +353,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
   add_foreign_key "ignored_forms", "referents", column: "decided_by_id"
   add_foreign_key "llm_assignments", "llm_models"
   add_foreign_key "llm_assignments", "referents", column: "created_by_id"
-  add_foreign_key "llm_invocations", "assertions"
   add_foreign_key "llm_invocations", "llm_assignments"
   add_foreign_key "llm_invocations", "llm_models"
   add_foreign_key "llm_invocations", "referents", column: "agent_id"

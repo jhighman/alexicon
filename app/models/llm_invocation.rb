@@ -18,8 +18,10 @@ class LlmInvocation < ApplicationRecord
   belongs_to :llm_model
   belongs_to :llm_assignment, optional: true
   belongs_to :agent, class_name: "Referent"
-  # The assertion this call produced. Absent when the model abstained or failed.
-  belongs_to :assertion, optional: true
+  # The judgements this call produced. Empty when the model abstained or failed,
+  # and more than one when a batch was sent -- a call that classified twelve
+  # claims is answerable for all twelve.
+  has_many :assertions, dependent: :nullify
 
   validates :status, inclusion: { in: STATUSES }
   validates :input_tokens, :output_tokens, :total_tokens,

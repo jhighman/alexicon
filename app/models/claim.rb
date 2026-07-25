@@ -28,12 +28,15 @@ class Claim < ApplicationRecord
   def category = classification&.object
 
   # Records a classification as an accountable assertion.
-  def classify!(category, asserter:, confidence: nil, rationale: nil, supersedes: nil)
+  # `invocation` links the judgement to the call that produced it. One call can
+  # now carry a batch, so the link lives here rather than on the invocation.
+  def classify!(category, asserter:, confidence: nil, rationale: nil, supersedes: nil,
+                invocation: nil)
     payload = {}
     payload["confidence"] = confidence if confidence
     payload["rationale"] = rationale if rationale
 
     assertions.create!(asserter: asserter, act: "classify", object: category,
-                       claim: payload, supersedes: supersedes)
+                       claim: payload, supersedes: supersedes, llm_invocation: invocation)
   end
 end

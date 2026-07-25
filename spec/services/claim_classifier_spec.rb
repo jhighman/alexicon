@@ -170,4 +170,68 @@ RSpec.describe ClaimClassifier do
       end
     end
   end
+
+  describe "batching" do
+    let(:second) { document.claims.create!(position: 2, text: "I saw it happen.") }
+
+    def batch_client(rows)
+      completion = LlmClients::Completion.new(
+        text: { classifications: rows }.to_json, input_tokens: 900, output_tokens: 200
+      )
+      Class.new { define_method(:complete) { |**| completion } }.new
+    end
+
+    it "classifies every claim in the batch from one call" do
+      rows = [ { number: 1, category: "ontological", confidence: 0.9, rationale: "a" },
+               { number: 2, category: "observation", confidence: 0.9, rationale: "b" } ]
+
+      expect {
+        described_class.new([ claim, second ], client: batch_client(rows), framework: framework).classify!
+      }.to change { LlmInvocation.count }.by(1)
+
+      expect(claim.reload.category.key).to eq "ontological"
+      expect(second.reload.category.key).to eq "observation"
+    end
+
+    # One call, several judgements: the audit link has to carry all of them or
+    # it is quietly false.
+    it "links every judgement to the call that produced it" do
+      rows = [ { number: 1, category: "ontological", confidence: 0.9, rationale: "a" },
+               { number: 2, category: "observation", confidence: 0.9, rationale: "b" } ]
+
+      described_class.new([ claim, second ], client: batch_client(rows), framework: framework).classify!
+
+      invocation = LlmInvocation.order(:created_at).last
+      expect(invocation.assertions.count).to eq 2
+      expect(claim.classification.llm_invocation).to eq invocation
+    end
+
+    it "abstains for a claim the model skipped rather than guessing" do
+      rows = [ { number: 1, category: "ontological", confidence: 0.9, rationale: "a" } ]
+
+      results = described_class.new([ claim, second ], client: batch_client(rows),
+                                                      framework: framework).classify!
+
+      expect(results[claim]).to be_present
+      expect(results[second]).to be_nil
+      expect(second.reload.category).to be_nil
+    end
+
+    it "ignores an answer numbered outside the batch" do
+      rows = [ { number: 99, category: "ontological", confidence: 0.9, rationale: "invented" } ]
+
+      described_class.new([ claim ], client: batch_client(rows), framework: framework).classify!
+
+      expect(claim.reload.category).to be_nil
+    end
+
+    it "sends the preceding claims as context, and does not classify them" do
+      classifier = described_class.new([ second ], framework: framework, context: [ claim ])
+      prompt = classifier.send(:user_prompt)
+
+      expect(prompt).to include "CONTEXT"
+      expect(prompt).to include claim.text
+      expect(prompt).to match(/TO CLASSIFY\n1\. #{Regexp.escape(second.text)}/)
+    end
+  end
 end
