@@ -1,0 +1,59 @@
+<%#
+  Every number here is counted from the claims themselves, not tracked
+  alongside them. A progress bar that keeps its own tally can disagree with the
+  record it describes; this one cannot.
+
+  `status` is the exception, because "a job is running" genuinely is not
+  derivable from the claims — a document sitting at 7 of 10 looks identical
+  whether a run is in flight or died an hour ago. So it is carried by the
+  broadcast, and the page falls back to reporting only what it can count.
+%>
+<% total = document.claims.count %>
+<% done = document.classified_claims_count %>
+<% remaining = total - done %>
+<% pct = total.zero? ? 0 : (done * 100.0 / total).round %>
+
+<div id="classification-progress">
+  <% if status == "running" %>
+    <div class="d-flex justify-content-between align-items-baseline mb-1">
+      <span class="small fw-semibold">
+        Classifying — <%= done %> of <%= total %>
+      </span>
+      <span class="small text-body-secondary"><%= pct %>%</span>
+    </div>
+    <div class="progress" style="height: .5rem;" role="progressbar"
+         aria-valuenow="<%= pct %>" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar progress-bar-striped progress-bar-animated"
+           style="width: <%= pct %>%;"></div>
+    </div>
+    <% if current.present? %>
+      <div class="small text-body-secondary mt-1 text-truncate">
+        <%= outcome_verb(outcome) %>: <span class="fst-italic"><%= truncate(current, length: 90) %></span>
+      </div>
+    <% end %>
+
+  <% elsif status == "failed" %>
+    <div class="small">
+      <span class="fw-semibold text-danger">Classification stopped.</span>
+      <%= error %>
+    </div>
+    <div class="small text-body-secondary">
+      <%= pluralize(done, "claim") %> of <%= total %> were classified before it stopped, and those stand.
+    </div>
+
+  <% else %>
+    <div class="small text-body-secondary">
+      <% if (run = document.last_classification_run) %>
+        Last classified by <%= run.asserter.name %>:
+        <strong><%= run.claim["classified"] %></strong> classified,
+        <strong><%= run.claim["abstained"] %></strong> abstained.
+        <% if remaining.positive? %>
+          <%= pluralize(remaining, "claim") %> still unclassified —
+          the classifier declined rather than guess.
+        <% end %>
+      <% else %>
+        Nothing has been classified yet, so no step can be judged.
+      <% end %>
+    </div>
+  <% end %>
+</div>

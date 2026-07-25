@@ -18,9 +18,13 @@ class DocumentClassification
 
   def self.call(document, **) = new(document, **).call
 
-  def initialize(document, classifier: ClaimClassifier)
+  # on_progress is called after each claim with the claim and its outcome
+  # (:classified, :abstained or :skipped). It is for reporting only -- raising
+  # from it must not be able to derail a run, so it is guarded at the call site.
+  def initialize(document, classifier: ClaimClassifier, on_progress: nil)
     @document = document
     @classifier = classifier
+    @on_progress = on_progress
   end
 
   def call
@@ -28,15 +32,18 @@ class DocumentClassification
 
     classified = abstained = skipped = 0
 
-    document.claims.each do |claim|
+    document.claims.each_with_index do |claim, index|
       # Never reclassify. A standing classification is answered by a person or
       # superseded deliberately, not overwritten by a second pass.
       if claim.category
         skipped += 1
+        report(claim, :skipped, index)
         next
       end
 
-      classifier.new(claim).classify! ? classified += 1 : abstained += 1
+      outcome = classifier.new(claim).classify! ? :classified : :abstained
+      outcome == :classified ? classified += 1 : abstained += 1
+      report(claim, outcome, index)
     end
 
     record_run(classified, abstained, skipped)
@@ -45,7 +52,18 @@ class DocumentClassification
 
   private
 
-  attr_reader :document, :classifier
+  attr_reader :document, :classifier, :on_progress
+
+  # Telling someone what is happening must never change what happens. A broken
+  # subscriber, a dropped socket, a view that raises -- none of that is grounds
+  # for abandoning classifications already made.
+  def report(claim, outcome, index)
+    return if on_progress.nil?
+
+    on_progress.call(claim: claim, outcome: outcome, index: index)
+  rescue StandardError => e
+    Rails.logger.warn("classification progress report failed: #{e.class}: #{e.message}")
+  end
 
   def record_run(classified, abstained, skipped)
     Assertion.create!(

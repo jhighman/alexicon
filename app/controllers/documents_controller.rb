@@ -50,7 +50,7 @@ class DocumentsController < ApplicationController
 
     ClassifyDocumentJob.perform_later(document)
     redirect_to document,
-                notice: "Classifying #{helpers.pluralize(document.unclassified_claims.count, 'claim')}. " \
+                notice: "Classifying #{helpers.pluralize(document.unclassified_claims_count, 'claim')}. " \
                         "Refresh in a moment."
   end
 

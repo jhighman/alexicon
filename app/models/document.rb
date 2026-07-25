@@ -50,7 +50,22 @@ class Document < ApplicationRecord
 
   def classified? = last_classification_run.present?
 
+  # Loads every claim and derives each category in turn, so it is honest and
+  # slow: on a large document it is thousands of queries. Use it when the claims
+  # themselves are wanted; use the counts below when only the tally is.
   def unclassified_claims = claims.reject(&:category)
+
+  # The same question answered in one query, for anything asked repeatedly --
+  # a progress report that costs more than the work it reports on is not a
+  # progress report. A claim counts as classified when a standing `classify`
+  # assertion names it, which is precisely when Claim#category is present.
+  def classified_claims_count
+    Assertion.where(subject_type: "Claim", subject_id: claims.select(:id))
+             .acting("classify").standing
+             .distinct.count(:subject_id)
+  end
+
+  def unclassified_claims_count = claims.count - classified_claims_count
 
   # The lock has to bite, or it is only a question that downstream code may
   # decline to ask. Reasoning layers call this before proceeding.

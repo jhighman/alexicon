@@ -41,6 +41,13 @@ module ReviewHelper
     end
   end
 
+  # An abstention is not a failed classification; it is the classifier declining
+  # to guess. The live report should not blur the two.
+  def outcome_verb(outcome)
+    { "classified" => "Classified", "abstained" => "Abstained on",
+      "skipped" => "Already classified" }.fetch(outcome.to_s, "Reading")
+  end
+
   def document_state(document)
     if document.open_stops.any?
       [ "Locked", "danger", "Identity was never established for #{document.blocking_mentions.count} name(s). " \
