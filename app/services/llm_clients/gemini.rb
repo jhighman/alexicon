@@ -8,14 +8,19 @@ module LlmClients
     def self.credential_env = "GEMINI_API_KEY"
 
     def complete(system:, user:, schema:, max_tokens:)
+      config = { maxOutputTokens: max_tokens }
+      # A nil schema means prose was asked for. Demanding JSON anyway would put
+      # the adapter's assumption in front of what the caller wanted -- and the
+      # value probes need a natural answer, not a structured one.
+      if schema
+        config[:responseMimeType] = "application/json"
+        config[:responseSchema] = gemini_schema(schema)
+      end
+
       payload = post_json(endpoint, {
         systemInstruction: { parts: [ { text: system } ] },
         contents: [ { role: "user", parts: [ { text: user } ] } ],
-        generationConfig: {
-          maxOutputTokens: max_tokens,
-          responseMimeType: "application/json",
-          responseSchema: gemini_schema(schema)
-        }
+        generationConfig: config
       })
 
       usage = payload["usageMetadata"] || {}

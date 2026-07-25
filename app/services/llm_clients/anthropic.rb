@@ -4,13 +4,15 @@ module LlmClients
     def self.credential_env = "ANTHROPIC_API_KEY"
 
     def complete(system:, user:, schema:, max_tokens:)
-      response = client.messages.create(
-        model: model.model_identifier,
-        max_tokens: max_tokens,
-        system: system,
-        messages: [ { role: "user", content: user } ],
-        output_config: { format: { type: "json_schema", schema: schema }, effort: "medium" }
-      )
+      params = { model: model.model_identifier, max_tokens: max_tokens, system: system,
+                 messages: [ { role: "user", content: user } ] }
+      # A nil schema means prose was asked for; see LlmClients::Gemini.
+      if schema
+        params[:output_config] = { format: { type: "json_schema", schema: schema },
+                                   effort: "medium" }
+      end
+
+      response = client.messages.create(**params)
 
       block = Array(response.content).find { it.type.to_s == "text" }
       Completion.new(text: block&.text.to_s,

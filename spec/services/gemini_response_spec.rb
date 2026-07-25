@@ -59,4 +59,29 @@ RSpec.describe "a cut-off response" do
     expect(JSON.generate(cleaned)).not_to include "additionalProperties"
     expect(cleaned.dig(:properties, :rows, :items, :propertyOrdering)).to eq [ "a" ]
   end
+
+  # The value probes ask for a natural answer. Forcing JSON anyway would put the
+  # adapter's assumption in front of what the caller asked for.
+  describe "when no schema is given" do
+    before { allow(adapter).to receive(:api_key).and_return("test-key") }
+
+    it "does not demand JSON" do
+      sent = nil
+      allow(adapter).to receive(:post_json) { |_url, body| sent = body; payload("STOP") }
+
+      adapter.complete(system: "s", user: "u", schema: nil, max_tokens: 100)
+
+      expect(sent[:generationConfig]).not_to have_key :responseMimeType
+      expect(sent[:generationConfig]).not_to have_key :responseSchema
+    end
+
+    it "still demands JSON when a schema is given" do
+      sent = nil
+      allow(adapter).to receive(:post_json) { |_url, body| sent = body; payload("STOP") }
+
+      adapter.complete(system: "s", user: "u", schema: { type: "object" }, max_tokens: 100)
+
+      expect(sent[:generationConfig][:responseMimeType]).to eq "application/json"
+    end
+  end
 end

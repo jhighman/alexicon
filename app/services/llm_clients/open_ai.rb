@@ -10,15 +10,17 @@ module LlmClients
     def self.credential_env = "OPENAI_API_KEY"
 
     def complete(system:, user:, schema:, max_tokens:)
-      payload = post_json(ENDPOINT, {
-        model: model.model_identifier,
-        max_completion_tokens: max_tokens,
-        messages: [ { role: "system", content: system }, { role: "user", content: user } ],
-        response_format: {
-          type: "json_schema",
-          json_schema: { name: "classification", strict: true, schema: schema }
-        }
-      }, headers: { "authorization" => "Bearer #{api_key}" })
+      body = { model: model.model_identifier, max_completion_tokens: max_tokens,
+               messages: [ { role: "system", content: system },
+                           { role: "user", content: user } ] }
+      # A nil schema means prose was asked for; see LlmClients::Gemini.
+      if schema
+        body[:response_format] = { type: "json_schema",
+                                   json_schema: { name: "classification", strict: true,
+                                                  schema: schema } }
+      end
+
+      payload = post_json(ENDPOINT, body, headers: { "authorization" => "Bearer #{api_key}" })
 
       usage = payload["usage"] || {}
       Completion.new(text: payload.dig("choices", 0, "message", "content").to_s,
