@@ -1,0 +1,94 @@
+require "rails_helper"
+
+# The reading view shows the document that was written. Its one hard obligation
+# is not to alter it: no rewriting, no summarising, and no quietly dropping the
+# parts the segmenter did not claim.
+RSpec.describe DocumentReading do
+  let(:framework) { Framework.create!(key: "test-fw", name: "Test", version: "0", current: true) }
+  let(:body) do
+    "Part One\n\nThe wall fell. I saw it happen.\n\nTherefore God exists.\n"
+  end
+  let(:document) { Document.create!(body: body) }
+  let(:person) { Referent.create!(name: "Ana", subject: "Person", role: "Reviewer", primitive: "person") }
+  let!(:identity_sentinel) do
+    Referent.create!(key: "identity-sentinel", name: "Identity Sentinel", subject: "System",
+                     role: "Sentinel", primitive: "system")
+  end
+
+  let!(:categories) do
+    [ [ "observation", 1, 1 ], [ "interpretive", 2, 2 ], [ "ontological", 3, 3 ] ].map do |key, pos, rank|
+      ClaimCategory.create!(framework: framework, key: key, name: key.capitalize, position: pos,
+                            justification_rank: rank, definition: "…", confidence_source: "…")
+    end
+  end
+
+  before { DocumentIngest.call(document) }
+
+  # The whole point of not letting a model retell the document.
+  it "reassembles into exactly the text that was written" do
+    reading = described_class.for(document.reload)
+
+    expect(reading.segments.map(&:text).join).to eq body
+  end
+
+  it "keeps the blank runs between claims, which are the paragraph breaks" do
+    reading = described_class.for(document.reload)
+
+    expect(reading.segments.count { !it.claim? }).to be_positive
+    expect(reading.segments.map(&:text).join).to include "\n\n"
+  end
+
+  it "covers the body once, dropping nothing and duplicating nothing" do
+    reading = described_class.for(document.reload)
+
+    expect(reading.segments.sum { it.text.length }).to eq body.length
+  end
+
+  describe "the summary" do
+    it "counts what has been typed and what has not" do
+      document.reload.claims.first.classify!(categories.first, asserter: person, confidence: 1.0)
+
+      summary = described_class.for(document.reload).summary
+
+      expect(summary[:claims]).to eq document.claims.count
+      expect(summary[:classified]).to eq 1
+      expect(summary[:categories]).to include [ "Observation", 1 ]
+    end
+
+    # An empty finding column is reported as empty, not left to look like a
+    # clean bill of health.
+    it "reports that nothing has been judged when nothing has" do
+      summary = described_class.for(document.reload).summary
+
+      expect(summary[:steps_judged]).to eq 0
+      expect(summary[:unearned]).to eq 0
+    end
+  end
+
+  describe "findings" do
+    it "anchors an unearned step to the claim it lands on" do
+      doc = document.reload
+      from, to = doc.claims.first(2)
+      from.classify!(categories.first, asserter: person, confidence: 1.0)
+      to.classify!(categories.last, asserter: person, confidence: 1.0)
+      doc.open_stops.each { it.dispose!(as: "accepted", by: person) }
+
+      step = Transition.create!(source: from, target: to)
+      step.record_verdict!("unearned", asserter: person, rationale: "no justification offered")
+
+      reading = described_class.for(doc.reload)
+
+      expect(reading.findings_for(to).map(&:kind)).to include :unearned
+      expect(reading.findings_for(from)).to be_empty
+    end
+
+    it "anchors an open identity flag to the claim the name appears in" do
+      doc = document.reload
+      flagged = doc.mentions.first
+
+      reading = described_class.for(doc)
+
+      expect(reading.findings_for(flagged.claim).map(&:kind)).to include :flag
+    end
+  end
+end

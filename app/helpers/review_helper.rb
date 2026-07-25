@@ -48,6 +48,14 @@ module ReviewHelper
       "skipped" => "Already classified" }.fetch(outcome.to_s, "Reading")
   end
 
+  # Shading carries the claim's kind, not its worth. The categories differ in
+  # kind rather than rank, so no colour is "good" — red marks where a step was
+  # judged unearned, which is a finding about the move, not about the sentence.
+  def reading_tone(claim, findings)
+    tone = "tone-#{claim.category&.key || 'none'}"
+    findings.any?(&:unearned?) ? "#{tone} flagged" : tone
+  end
+
   def document_state(document)
     if document.open_stops.any?
       [ "Identity unresolved", "danger",

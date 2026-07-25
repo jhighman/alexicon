@@ -10,7 +10,10 @@
       <%= pluralize(@document.transitions.count, "step") %>
     </p>
   </div>
-  <span class="badge text-bg-<%= tone %> fs-6 flex-shrink-0"><%= label %></span>
+  <div class="d-flex align-items-center gap-2 flex-shrink-0">
+    <%= link_to "Read it", reading_document_path(@document), class: "btn btn-sm btn-primary" %>
+    <span class="badge text-bg-<%= tone %> fs-6"><%= label %></span>
+  </div>
 </div>
 
 <div class="alert alert-<%= tone %>" role="status"><%= explanation %></div>

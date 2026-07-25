@@ -1,0 +1,110 @@
+<% content_for :title, "Reading — #{@document.title.presence || 'Document'}" %>
+<% s = @reading.summary %>
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="h3 mb-1"><%= @document.title.presence || "Untitled" %></h1>
+    <p class="text-body-secondary small mb-0">
+      The text as written, with what the system found in the margin.
+      Nothing here was rewritten.
+    </p>
+  </div>
+  <%= link_to "Working view", document_path(@document), class: "btn btn-sm btn-outline-secondary flex-shrink-0" %>
+</div>
+
+<%# ---- What to look for, before reading ------------------------------------ %>
+<section class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Steps judged unearned</div>
+        <div class="fs-3 <%= s[:unearned].positive? ? "text-danger" : "" %>"><%= s[:unearned] %></div>
+        <div class="small text-body-secondary">
+          of <%= s[:steps_judged] %> judged, <%= s[:steps] %> in the text
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Claims typed</div>
+        <div class="fs-3"><%= s[:classified] %> <span class="fs-6 text-body-secondary">of <%= s[:claims] %></span></div>
+        <div class="small text-body-secondary">
+          <% if s[:categories].any? %>
+            <%= s[:categories].map { |name, n| "#{n} #{name.downcase}" }.join(" · ") %>
+          <% else %>
+            nothing classified yet
+          <% end %>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Names unanswered</div>
+        <div class="fs-3"><%= s[:open_names] %></div>
+        <div class="small text-body-secondary">
+          <%= s[:open_names].positive? ? "steps cannot be judged until these are answered" : "identity is settled" %>
+        </div>
+      </div>
+    </div>
+
+    <% if s[:steps_judged].zero? && s[:claims].positive? %>
+      <hr>
+      <p class="small text-body-secondary mb-0">
+        No step has been judged, so the column that matters is empty. What is
+        shown below is the text and its claim types — an intermediate state,
+        honestly labelled as one rather than dressed up as a finding.
+      </p>
+    <% end %>
+  </div>
+</section>
+
+<%# ---- The text ------------------------------------------------------------ %>
+<section class="card">
+  <div class="card-body reading">
+    <% @reading.segments.each do |segment| %>
+      <% if segment.claim? %>
+        <% claim = segment.claim %>
+        <% findings = @reading.findings_for(claim) %>
+        <span class="reading-claim <%= reading_tone(claim, findings) %>"
+              id="claim-<%= claim.position %>"
+              title="<%= claim.category&.name || 'unclassified' %><%= " — #{claim.classification.rationale}" if claim.classification&.rationale %>"><%= segment.text %></span><%
+          %><% if findings.any? %><span class="reading-marker" title="<%= findings.map(&:message).join(' · ') %>">▍</span><% end %>
+      <% else %>
+        <%= segment.text %>
+      <% end %>
+    <% end %>
+  </div>
+</section>
+
+<%# ---- Findings, in the order they arise ----------------------------------- %>
+<% flagged = @reading.segments.select { it.claim? && @reading.findings_for(it.claim).any? } %>
+<% if flagged.any? %>
+  <section class="mt-4">
+    <h2 class="h5">Where the reasoning outran its justification</h2>
+    <div class="list-group shadow-sm">
+      <% flagged.each do |segment| %>
+        <div class="list-group-item">
+          <a class="small text-body-secondary text-decoration-none" href="#claim-<%= segment.claim.position %>">
+            claim <%= segment.claim.position %>
+          </a>
+          <div class="fst-italic small">“<%= truncate(segment.claim.text, length: 160) %>”</div>
+          <% @reading.findings_for(segment.claim).each do |finding| %>
+            <div class="small <%= finding.unearned? ? "text-danger" : "text-warning-emphasis" %> mt-1">
+              <%= finding.message %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<div class="mt-4"><%= link_to "← All documents", documents_path, class: "link-secondary" %></div>
+
+<style>
+  .reading { font-size: 1.05rem; line-height: 1.8; white-space: pre-wrap; }
+  .reading-claim { border-bottom: 2px solid transparent; }
+  .reading-claim.tone-objective    { border-bottom-color: rgba(13, 110, 253, .45); }
+  .reading-claim.tone-observation  { border-bottom-color: rgba(13, 202, 240, .45); }
+  .reading-claim.tone-interpretive { border-bottom-color: rgba(255, 193, 7, .55); }
+  .reading-claim.tone-ontological  { border-bottom-color: rgba(220, 53, 69, .5); }
+  .reading-claim.tone-none         { border-bottom-color: transparent; }
+  .reading-claim.flagged           { background: rgba(220, 53, 69, .08); }
+  .reading-marker { color: #dc3545; font-weight: 700; }
+</style>

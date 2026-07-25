@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   resources :documents, only: %i[index new create show] do
     member do
+      get :reading
       post :classify
       post :propose_identities
       post :govern

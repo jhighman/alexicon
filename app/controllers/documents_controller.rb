@@ -62,6 +62,13 @@ class DocumentsController < ApplicationController
                         "Refresh in a moment."
   end
 
+  # The document as prose, with the judgements in the margin.
+  def reading
+    @document = Document.find(params[:id])
+    authorize @document, :show?
+    @reading = DocumentReading.for(@document)
+  end
+
   # Asks the model what the unfamiliar names refer to. It proposes; a person
   # still accepts. Nothing here lifts a STOP.
   def propose_identities
