@@ -15,6 +15,7 @@ The recursive question the system exists to answer:
 
 | Document | What it covers |
 |---|---|
+| [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you |
 | [`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md) | A note to the co-author about how this came to be published |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How it is built — pipeline, record model, where the locks bite, diagrams |
 | [`docs/THESIS.md`](docs/THESIS.md) | The Sentinel Principle — ontology, the Assertion Principle, the Binding Problem |

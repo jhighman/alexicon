@@ -351,8 +351,60 @@ Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, ea
 
 ## 7. Open Issues
 
-1. **The anti-discrimination protocol has no home in the seven domains.** It touches Identity, Reflection, and Governance and sits in none. Either 2.0 needs an eighth domain, or this is a cross-cutting policy constraining all seven. It is the framework's most concrete and most ethically load-bearing component, so leaving it unplaced is not viable.
-2. **Are the seven domains a dependency stack or peers?** `mindmap.html` renders them as a numbered ascent, which asserts the former. Unconfirmed.
+1. ~~**The anti-discrimination protocol has no home in the seven domains.**~~
+   **Resolved 25 Jul 2026 — cross-cutting policy, not an eighth domain.**
+   Proposed independently by Alexandra Krížová (*"it cannot be constrained to an
+   8th domain; it must operate as a cross-cutting policy that alters the
+   gravitational pull of the entire system"*) and already built that way, as
+   [ADR 3](decisions/0003-anti-discrimination-is-a-policy-not-a-domain.md) — a
+   `Policy` scoped through `DomainPolicy` to Identity, Reflection and Governance.
+   Two routes to the same structure is the best evidence available that it is
+   the right one.
+
+   **Open, and now specified enough to build:** *gravitational inversion* — when
+   an anomaly is detected, the audit runs **backward** over the claims the
+   flagged step rested on. Governance currently judges each transition
+   independently and never propagates; this gives Klein's ripple (Station 5) a
+   trigger condition rather than a general instruction to evaluate the graph.
+
+   **Open, and in tension with a decision already taken:** *functional
+   separation* — a sealed module disconnecting from the computational load.
+   Everything downstream here is **derived, never stored**, so a sealed verdict
+   could disagree with the assertions it summarises. The cost is real (deriving
+   one document's unclassified count took 6.8 seconds and 1,836 queries before
+   it was replaced with a counting query), so the tension is genuine. The
+   resolution is likely caching rather than sealing.
+2. **Are the seven domains a dependency stack or peers?** `mindmap.html` renders them as a numbered ascent, which asserts the former.
+
+   **Answered 25 Jul 2026 — neither.** Alexandra Krížová: a bendable non-linear
+   network rather than a rigid stack or isolated peers. The implementation
+   already agrees by accident: domains carry `position` for presentation, but
+   nothing enforces an ascent and the sentinels are independent. On this reading
+   the numbered ascent in `mindmap.html` is the thing that is wrong, not the
+   domains.
+
+   **Proposed, and held back from any schema until tested:** the *1D collapse* —
+   folding the timeline to connect Identity directly to Action when "high
+   justification is present", bypassing intermediate layers.
+
+   The objection, recorded so the test has something to settle: a shortcut from
+   identity to action licensed by predictive convergence is **treating a
+   prediction as operational truth**, which the framework's own Three Key
+   Principles names as a policy decision that must not be smuggled in. And *"when
+   high justification is present"* carries the load — if the system judges the
+   justification sufficient, the evaluator is ruling on its own transformation,
+   which Chapter 6 forbids and `GovernanceSentinel` raises `NotIndependent` to
+   prevent.
+
+   The steelman is worth keeping: an argument that is obviously sound should not
+   cost the same scrutiny as one that is not. Its honest form is **cheap to
+   clear, never skipped** — the Sentinel still evaluates every transition, but a
+   transition whose endpoints share a category with adequate justification
+   clears at low cost. Skip the cost, never the check.
+
+   **Testable either way**, which is why it is recorded rather than argued: does
+   folding produce different verdicts than not folding? A run with and without,
+   compared against [BASELINE.md](BASELINE.md), settles it.
 3. **Do the four categories survive into 2.0?** Objective / Observation / Interpretive / Ontological are the spine of the manuscript and of CONOPS §4, and appear nowhere in the 2.0 map.
 4. **Equitable Baseline Scoring vs. Average Ceiling Metric — circular definition.** Sources state the containment relation in both directions:
    - *"Equitable Baseline Scoring replaces this with the Average Ceiling Metric"* → the protocol applies the metric.
