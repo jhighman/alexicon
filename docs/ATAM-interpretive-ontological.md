@@ -174,7 +174,7 @@ to the definitions, and no remedy can be evaluated.
 
 ## 6. Recommendations
 
-**Status 25 Jul 2026 — 1 and 3 done, 4 and 5 running, 2 outstanding.**
+**Status 25 Jul 2026 — 1, 3, 4 and 5 done. 2 outstanding, and it is the one that matters.**
 
 
 | | Action | Addresses | Cost |
@@ -182,8 +182,14 @@ to the definitions, and no remedy can be evaluated.
 | **1 ✅** | **Done.** `CategoryPromotion` weights every ordered pair as seeded data. `interpretive → ontological` = 2, `objective → interpretive` = 1, lateral and downward moves = 0. `RetroactiveAudit` reads the weight instead of the rank delta. **R1 closed: 6 of 6 caught, up from 0 of 6, with findings rising only 7 → 13.** | S1, R1 | seed change |
 | **2** | **Independently type 40 claims**, stratified by category, and compare. | Theme 2, R3 | ~1 hour, human |
 | **3 ✅** | **Done, and neither option taken.** The floor is a *policy*, not a tuning parameter — setting it from this model's distribution would make it a description of one provider, and the registry can route elsewhere tomorrow. Removing it would leave nothing when a model that does emit varied confidence arrives. What was wrong was the silence: `ClaimClassifier.floor_effectiveness` now reports what the floor has actually rejected, so `0 of 242 — inert; lowest confidence seen was 0.8` is visible rather than assumed. | R2 | small |
-| **4** | **Measure the context effect on independence** — shuffle batch order, re-classify, compare. Quantifies T1. | T1 | ~26 calls |
-| **5** | Re-run reproducibility restricted to interpretive and ontological claims, at higher n. | R3 | ~10 calls |
+| **4 ✅** | **Done. T1 quantified: 87.9% in document order, 76.0% shuffled.** Batching helps because the context is *relevant*, not merely present — so a claim's category does depend on what precedes it, and the cost to judging a claim by what it does alone is about 12 points. | T1 | ~26 calls |
+| **5 ✅** | **Done, and R3 confirmed with a clean split.** interpretive + ontological reproduce at **84.5%**; objective + observation at **93.8%**. The framework's central distinction is 9 points less reproducible than its periphery. | R3 | ~26 calls |
+
+Recommendation 2 is now the only one left, and the others have made it more
+urgent rather than less: 4 and 5 both sharpen the question without touching it.
+The 9-point gap in 5 is either a model that cannot hold the distinction or a
+distinction that is not sharp enough to hold, and no further measurement of the
+system against itself can tell those apart.
 
 Recommendation 2 is the precondition for the rest. Without ground truth, every
 other number measures consistency and none measures correctness — and the

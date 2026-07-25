@@ -136,6 +136,56 @@ single one.
 
 ---
 
+## 5. Context has to be *relevant* — 88% → 76%
+
+Recommendation 4 from the [ATAM](ATAM-interpretive-ontological.md). Batching
+raised agreement to 88%, but that could mean two things: the model does better
+with *any* surrounding text, or specifically with the text that actually
+precedes the claim.
+
+The same 306 claims were shuffled and re-classified, so each batch carried four
+**random** claims as context instead of the four true predecessors.
+
+| | |
+|---|---|
+| Document order | **87.9%** |
+| Shuffled order | **76.0%** |
+
+Twelve points. The benefit comes from relevant context, not from company.
+
+This is worth knowing because it is a **cost**, not only a gain. A claim's
+category depends partly on what precedes it — so the framework's own principle,
+that a claim is judged by what it *does* rather than by its neighbours, is
+partially traded away for stability. That trade is now measured rather than
+suspected.
+
+**What this cannot tell you.** One shuffle, one random seed. It establishes the
+direction and rough size, not a distribution.
+
+## 6. The central distinction is the least reproducible — 84.5% vs 93.8%
+
+Recommendation 5. A third reading of all 306 claims, in document order, split by
+which categories were recorded the first time.
+
+| Claims recorded as | Agreement |
+|---|---|
+| objective + observation | **93.8%** (120 of 128) |
+| **interpretive + ontological** | **84.5%** (82 of 97) |
+
+**Nine points.** The framework's periphery reproduces well; the distinction the
+Sentinel exists to police does not.
+
+This confirms ATAM risk R3 with a cleaner split than the original 88% figure,
+and it sharpens the open question rather than answering it: **is this a model
+limitation, or are the two categories genuinely hard to tell apart?** Nothing
+measured here can say. The categories carry one-line definitions and nobody has
+independently typed a sample, so the difference between "the classifier is
+unreliable" and "this boundary is hard" remains undetermined.
+
+That is the measurement worth taking next, and it is not a software task.
+
+---
+
 ## Comparing a later reading
 
 `Baseline.compare(from: "v1", to: "v2")` will **refuse** to call two figures
@@ -155,4 +205,6 @@ cannot be told apart from a changed instrument.
 - **Any model but this one.** The OpenAI adapter has never been called.
 - **The governance verdicts.** 43 steps were judged unearned on the essay, at a
   rate that held across a re-segmentation. That stability has not been measured
-  the way the four above have.
+  the way the six above have.
+- **Whether any of it is correct.** Six figures, all of them the system agreeing
+  with itself.
