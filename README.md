@@ -15,6 +15,7 @@ The recursive question the system exists to answer:
 
 | Document | What it covers |
 |---|---|
+| [`docs/ATAM-interpretive-ontological.md`](docs/ATAM-interpretive-ontological.md) | Architecture tradeoff analysis of the framework's central boundary |
 | [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you |
 | [`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md) | A note to the co-author about how this came to be published |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How it is built — pipeline, record model, where the locks bite, diagrams |
