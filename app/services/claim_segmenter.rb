@@ -36,16 +36,13 @@ class ClaimSegmenter
 
     segments = []
     cursor = 0
-    offset = 0
 
-    while offset < text.length && (match = TERMINATOR.match(text, offset))
-      finish = match.end(0)
-      if boundary?(match, finish)
-        segment = build(cursor, finish)
-        segments << segment if segment
-        cursor = finish
-      end
-      offset = finish
+    (terminator_cuts + line_cuts).uniq.sort.each do |finish|
+      next if finish <= cursor
+
+      segment = build(cursor, finish)
+      segments << segment if segment
+      cursor = finish
     end
 
     tail = build(cursor, text.length)
@@ -56,6 +53,51 @@ class ClaimSegmenter
   private
 
   attr_reader :text
+
+  def terminator_cuts
+    cuts = []
+    offset = 0
+
+    while offset < text.length && (match = TERMINATOR.match(text, offset))
+      finish = match.end(0)
+      cuts << finish if boundary?(match, finish)
+      offset = finish
+    end
+
+    cuts
+  end
+
+  # A heading has no full stop, so on terminators alone it merged into the
+  # sentence beneath it: "Three Key Principles\nTrust is the discipline of..."
+  # arrived as one claim doing two things at once, which is precisely the
+  # condition the classifier is told to abstain on.
+  #
+  # A line break is structure that is present in the text, not something read
+  # into it, so using it needs no interpretation. The one case it must not
+  # break is hard-wrapped prose, where a break falls mid-sentence -- and that
+  # case announces itself, because the next line resumes in lower case.
+  def line_cuts
+    cuts = []
+    offset = 0
+
+    while (match = /\n[ \t]*/.match(text, offset))
+      cuts << match.end(0) if line_boundary?(match)
+      offset = match.end(0)
+      break if offset >= text.length
+    end
+
+    cuts
+  end
+
+  def line_boundary?(match)
+    rest = text[match.end(0)..]
+    return false if rest.nil? || rest.strip.empty?
+
+    # A blank line is a break between blocks whatever follows it.
+    return true if match[0].count("\n") > 1
+
+    !rest.match?(/\A[a-z]/)
+  end
 
   # A terminator ends a claim when what follows looks like a new sentence and
   # what precedes it is not an abbreviation or a decimal.

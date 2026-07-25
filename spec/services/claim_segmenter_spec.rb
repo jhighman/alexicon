@@ -73,4 +73,49 @@ RSpec.describe ClaimSegmenter do
       expect(body).to eq original
     end
   end
+
+  # A heading carries no full stop, so on terminators alone it merged into the
+  # sentence beneath it and the claim did two things at once -- the exact
+  # condition the classifier is told to abstain on.
+  describe "line breaks" do
+    it "does not weld a heading to the sentence under it" do
+      segments = described_class.new("Three Key Principles\nTrust is a discipline.").call
+
+      expect(segments.map(&:text)).to eq [ "Three Key Principles", "Trust is a discipline." ]
+    end
+
+    it "treats a blank line as a break whatever follows" do
+      segments = described_class.new("Philosophical commitment\n\nThose should never be merged.").call
+
+      expect(segments.map(&:text)).to eq [ "Philosophical commitment", "Those should never be merged." ]
+    end
+
+    # The one case a line break must not split: hard-wrapped prose, where the
+    # break falls mid-sentence. It announces itself by resuming in lower case.
+    it "keeps a hard-wrapped sentence together" do
+      segments = described_class.new("He said the thing\nthat mattered most to him.").call
+
+      expect(segments.map(&:text)).to eq [ "He said the thing\nthat mattered most to him." ]
+    end
+
+    it "keeps a colon-introduced list together" do
+      text = "It can be heard as:\nthe self at war with itself,\nor humanity turned against itself."
+
+      expect(described_class.new(text).call.size).to eq 1
+    end
+
+    it "keeps offsets exact so every claim still points at its own span" do
+      text = "A Heading\nThe first claim. The second claim.\n\nAnother heading"
+      segments = described_class.new(text).call
+
+      expect(segments.size).to eq 4
+      segments.each { expect(text[it.char_start...it.char_end]).to eq it.text }
+    end
+
+    it "does not split on a trailing newline at the end of the text" do
+      segments = described_class.new("Only one claim here.\n").call
+
+      expect(segments.map(&:text)).to eq [ "Only one claim here." ]
+    end
+  end
 end
