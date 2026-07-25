@@ -15,6 +15,7 @@ The recursive question the system exists to answer:
 
 | Document | What it covers |
 |---|---|
+| [`docs/REPRODUCIBILITY-REQUIREMENT.md`](docs/REPRODUCIBILITY-REQUIREMENT.md) | Which uses actually need high reproducibility, and which do not |
 | [`docs/ATAM-interpretive-ontological.md`](docs/ATAM-interpretive-ontological.md) | Architecture tradeoff analysis of the framework's central boundary |
 | [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you |
 | [`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md) | A note to the co-author about how this came to be published |
