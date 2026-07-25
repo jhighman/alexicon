@@ -80,8 +80,14 @@ class MentionsController < ApplicationController
 
   def new_referent(mention, attrs)
     Referent.create!(name: mention.text, subject: attrs[:subject].presence,
-                     role: attrs[:role].presence, primitive: "person")
+                     role: attrs[:role].presence, primitive: primitive_for(attrs[:subject]))
   end
+
+  # `primitive` decides whether a judgement by this referent reads as a person's
+  # decision or a system's inference. Everything grounded here was hardcoded
+  # "person", which filed Tampa and the Holy Spirit as people who could in
+  # principle author findings. Only a Person is a person.
+  def primitive_for(subject) = subject.to_s.strip.casecmp?("person") ? "person" : "entity"
 
   # A judgement about a name applies wherever that name appears. Scoped to the
   # exact surface form, since that is what was actually judged.
