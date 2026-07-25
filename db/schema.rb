@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_300002) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_000631) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -179,6 +179,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_300002) do
     t.index ["active"], name: "index_llm_assignments_on_active"
     t.index ["created_by_id"], name: "index_llm_assignments_on_created_by_id"
     t.index ["llm_model_id"], name: "index_llm_assignments_on_llm_model_id"
+    t.check_constraint "action_type::text <> ''::text", name: "llm_assignments_action_type_not_empty"
   end
 
   create_table "llm_invocations", force: :cascade do |t|

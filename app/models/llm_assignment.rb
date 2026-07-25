@@ -17,6 +17,12 @@ class LlmAssignment < ApplicationRecord
   validates :priority, numericality: { only_integer: true }
   validate  :model_must_be_certified
 
+  # "Any act" is NULL, never "". A form's blank option submits an empty string,
+  # and an empty string here reads as a rule scoped to an act called "" --
+  # which matches nothing, silently, while the row still says "any act".
+  normalizes :action_type, with: -> { it.presence }
+  normalizes :agent_pattern, with: -> { it&.strip }
+
   scope :active, -> { where(active: true) }
   scope :with_assignable_model, -> { joins(:llm_model).merge(LlmModel.assignable) }
 
@@ -30,7 +36,9 @@ class LlmAssignment < ApplicationRecord
     File.fnmatch(agent_pattern, agent_key, File::FNM_PATHNAME)
   end
 
-  def matches_action?(action) = action_type.nil? || action_type == action
+  # Blank, not just nil: normalisation covers new rows, but a rule read from an
+  # older row must not silently match nothing.
+  def matches_action?(action) = action_type.blank? || action_type == action
 
   def specificity
     score = 0
@@ -39,7 +47,7 @@ class LlmAssignment < ApplicationRecord
     score
   end
 
-  def scope_description = "#{agent_pattern} / #{action_type || 'any action'}"
+  def scope_description = "#{agent_pattern} / #{action_type.presence || 'any action'}"
 
   # A rule can be perfectly well-formed and still route nowhere, because the
   # model beneath it was revoked or its provider switched off. That state is

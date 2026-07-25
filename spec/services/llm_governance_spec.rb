@@ -83,6 +83,34 @@ RSpec.describe "LLM governance" do
       expect(assignment.matches?(agent_key: "claim-classifier", action_type: "classify")).to be false
     end
 
+    # A form's blank option submits "", and "" is not nil. Left alone it reads
+    # as a rule scoped to an act named "" -- displayed as "any action", matching
+    # no action at all. The rule looked right and routed nothing.
+    it "treats a blank action as any action, not as an action named nothing" do
+      m = model
+      m.certify!(person)
+      rule = LlmAssignment.create!(llm_model: m, agent_pattern: "claim-classifier",
+                                   action_type: "")
+
+      expect(rule.action_type).to be_nil
+      expect(rule.matches_action?("classify")).to be true
+      expect(rule.scope_description).to include "any action"
+      expect(rule.specificity).to eq 1
+    end
+
+    # Normalisation and the CHECK constraint together mean a blank cannot reach
+    # the column any more, so this exercises the matcher directly rather than
+    # staging a row it can no longer be given. Belt and braces: the matcher is
+    # the last thing standing if either of the other two is ever relaxed.
+    it "matches any action if a blank one somehow reaches the matcher" do
+      m = model
+      m.certify!(person)
+      rule = LlmAssignment.create!(llm_model: m, agent_pattern: "claim-classifier")
+      allow(rule).to receive(:action_type).and_return("")
+
+      expect(rule.matches?(agent_key: "claim-classifier", action_type: "classify")).to be true
+    end
+
     it "scores an exact caller and a named action as more specific" do
       m = model
       m.certify!(person)
