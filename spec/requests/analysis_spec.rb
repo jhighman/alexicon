@@ -127,8 +127,24 @@ RSpec.describe "running an analysis", type: :request do
 
       get document_path(document)
 
-      expect(response.body).to include "Last classified by Claim Classifier"
+      expect(response.body).to include "Last run by Claim Classifier"
       expect(response.body).to include "the classifier declined rather than guess"
+    end
+
+    # A pass that classified nothing because everything already had a category
+    # is not the same as a pass that classified nothing because it failed.
+    it "distinguishes a no-op re-run from a run that classified nothing" do
+      document = clean_document
+      category = ClaimCategory.find_by!(key: "observation")
+      classifier = Referent.find_by!(key: "claim-classifier")
+      document.claims.each { it.classify!(category, asserter: classifier) }
+      Assertion.create!(asserter: classifier, subject: document, act: "assert",
+                        claim: { "run" => "classification", "classified" => 0,
+                                 "abstained" => 0, "skipped" => document.claims.count })
+
+      get document_path(document)
+
+      expect(response.body).to include "left alone as already classified"
     end
   end
 end

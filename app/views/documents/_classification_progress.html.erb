@@ -44,9 +44,10 @@
   <% else %>
     <div class="small text-body-secondary">
       <% if (run = document.last_classification_run) %>
-        Last classified by <%= run.asserter.name %>:
+        Last run by <%= run.asserter.name %>:
         <strong><%= run.claim["classified"] %></strong> classified,
-        <strong><%= run.claim["abstained"] %></strong> abstained.
+        <strong><%= run.claim["abstained"] %></strong> abstained<% if run.claim["skipped"].to_i.positive? %>,
+        <strong><%= run.claim["skipped"] %></strong> left alone as already classified<% end %>.
         <% if remaining.positive? %>
           <%= pluralize(remaining, "claim") %> still unclassified —
           the classifier declined rather than guess.
