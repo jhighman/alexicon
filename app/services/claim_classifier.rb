@@ -158,8 +158,15 @@ class ClaimClassifier
     )
   end
 
+  # The invocation record should say what kind of failure it was, because the
+  # kinds call for different responses: throttling means slow down, a rejected
+  # request means fix the request.
   def status_for(error)
-    error.class.name.include?("Timeout") ? "timeout" : "error"
+    case error
+    when LlmClients::RateLimited then "rate_limited"
+    when LlmClients::ConnectionFailed then "timeout"
+    else error.class.name.include?("Timeout") ? "timeout" : "error"
+    end
   end
 
   # The model is told what the categories mean, that they differ in kind rather

@@ -40,13 +40,42 @@ module LlmClients
       request = Net::HTTP::Post.new(uri, { "content-type" => "application/json" }.merge(headers))
       request.body = JSON.generate(body)
 
-      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 120) do |http|
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true,
+                                 open_timeout: 15, read_timeout: 120) do |http|
         http.request(request)
       end
 
-      raise CallFailed, "#{response.code}: #{response.body.to_s.truncate(300)}" unless response.is_a?(Net::HTTPSuccess)
+      raise_for_status(response) unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
+    rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNRESET, Errno::ECONNREFUSED,
+           EOFError, SocketError, IOError => e
+      raise ConnectionFailed, "#{e.class}: #{e.message}"
+    end
+
+    # HTTP already distinguishes "later" from "no". Adapters that speak raw HTTP
+    # get that distinction for free; the only thing to avoid is throwing it away.
+    def raise_for_status(response)
+      detail = "#{response.code}: #{response.body.to_s.truncate(300)}"
+      after = retry_after_seconds(response)
+
+      case response.code.to_i
+      when 429 then raise RateLimited.new(detail, retry_after: after)
+      when 500..599 then raise ServerError.new(detail, retry_after: after)
+      else raise RequestRejected, detail
+      end
+    end
+
+    # Retry-After is either seconds or an HTTP date.
+    def retry_after_seconds(response)
+      raw = response["retry-after"]
+      return nil if raw.blank?
+      return raw.to_i if raw.match?(/\A\d+\z/)
+
+      seconds = (Time.httpdate(raw) - Time.current).ceil
+      seconds.positive? ? seconds : nil
+    rescue ArgumentError
+      nil
     end
   end
 end

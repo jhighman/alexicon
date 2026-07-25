@@ -9,7 +9,11 @@
 # A failed call is recorded too. An architecture that only logs its successes
 # cannot tell "the model was never asked" from "the model was asked and broke".
 class LlmInvocation < ApplicationRecord
-  STATUSES = %w[success error timeout].freeze
+  # `rate_limited` is kept apart from `error`: being throttled says something
+  # about how hard this application is pushing a provider, not about whether
+  # the model can do the work. Collapsing the two hides a capacity problem
+  # inside a correctness one.
+  STATUSES = %w[success error timeout rate_limited].freeze
 
   belongs_to :llm_model
   belongs_to :llm_assignment, optional: true
@@ -26,7 +30,7 @@ class LlmInvocation < ApplicationRecord
 
   scope :recent, -> { order(created_at: :desc) }
   scope :successful, -> { where(status: "success") }
-  scope :failed, -> { where(status: %w[error timeout]) }
+  scope :failed, -> { where(status: STATUSES - %w[success]) }
   scope :by_agent, ->(agent) { where(agent: agent) }
   scope :in_range, ->(from, to) { where(created_at: from..to) }
 

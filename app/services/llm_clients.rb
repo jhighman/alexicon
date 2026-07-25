@@ -8,7 +8,32 @@ module LlmClients
   Completion = Data.define(:text, :input_tokens, :output_tokens)
 
   class MissingCredentials < StandardError; end
+
+  # A call failed. Every adapter reports failure in these terms rather than in
+  # its vendor's, because the decision that depends on them -- retry, or stop --
+  # is the same whoever was on the other end. A caller that had to know which
+  # SDK raised would be a caller that quietly only handles one provider, which
+  # is the bug this taxonomy exists to prevent.
   class CallFailed < StandardError; end
+
+  # Worth trying again: the request was fine, the moment was not.
+  class Retryable < CallFailed
+    # Seconds the provider asked us to wait, when it said.
+    attr_reader :retry_after
+
+    def initialize(message = nil, retry_after: nil)
+      super(message)
+      @retry_after = retry_after
+    end
+  end
+
+  class RateLimited < Retryable; end
+  class ServerError < Retryable; end
+  class ConnectionFailed < Retryable; end
+
+  # Not worth trying again: a bad request, a rejected key, a refused model.
+  # Retrying these burns quota to arrive at the same answer.
+  class RequestRejected < CallFailed; end
 
   ADAPTERS = {
     "anthropic" => "LlmClients::Anthropic",

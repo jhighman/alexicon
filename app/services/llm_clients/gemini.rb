@@ -2,8 +2,8 @@ module LlmClients
   # Raw HTTP against generateContent. Structured output via
   # responseMimeType + responseSchema.
   #
-  # NOT EXERCISED AGAINST THE LIVE API -- there is no Gemini key on this
-  # machine. Treat the first real call as the test.
+  # Exercised against the live API on 25 Jul 2026: five classifications, all
+  # successful. The schema translation below is the part that had to be right.
   class Gemini < Base
     def self.credential_env = "GEMINI_API_KEY"
 

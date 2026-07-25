@@ -3,6 +3,8 @@ require "rails_helper"
 # A run that stops must say so. The worst outcome is a progress bar that
 # animates forever because the failure path forgot to speak.
 RSpec.describe ClassifyDocumentJob do
+  include ActiveJob::TestHelper
+
   before { seed_quietly }
 
   let(:document) { Document.create!(body: "The wall fell.") }
@@ -54,5 +56,48 @@ RSpec.describe ClassifyDocumentJob do
     expect { described_class.perform_now(document) }.to raise_error(IOError)
 
     expect(broadcasts.last).to eq "failed"
+  end
+
+  # The rule this replaced named Anthropic's SDK, so a rate limit from any
+  # other provider was not retried at all -- it stopped the run.
+  describe "rate limiting, whichever provider does it" do
+    [ LlmClients::RateLimited, LlmClients::ServerError, LlmClients::ConnectionFailed ]
+      .each do |error_class|
+      it "retries a #{error_class.name.demodulize} instead of stopping" do
+        allow(DocumentClassification).to receive(:call).and_raise(error_class, "429")
+
+        expect { described_class.perform_now(document) }
+          .to have_enqueued_job(described_class)
+      end
+    end
+
+    it "says it is waiting, not that it stopped" do
+      allow(DocumentClassification).to receive(:call)
+        .and_raise(LlmClients::RateLimited.new("429", retry_after: 30))
+
+      described_class.perform_now(document)
+
+      expect(broadcasts.last).to eq "retrying"
+    end
+
+    it "does not retry a rejected request, which would burn quota for the same answer" do
+      allow(DocumentClassification).to receive(:call)
+        .and_raise(LlmClients::RequestRejected, "400 bad schema")
+
+      expect { described_class.perform_now(document) }
+        .to raise_error(LlmClients::RequestRejected)
+      expect(broadcasts.last).to eq "failed"
+    end
+
+    it "says it gave up once the attempts are used up" do
+      perform_enqueued_jobs do
+        allow(DocumentClassification).to receive(:call).and_raise(LlmClients::RateLimited, "429")
+
+        expect { described_class.perform_later(document) }
+          .to raise_error(LlmClients::RateLimited)
+      end
+
+      expect(broadcasts.last).to eq "failed"
+    end
   end
 end

@@ -120,10 +120,22 @@ With no key in either place, `ClaimClassifier` raises `MissingCredentials`
 naming both places to look, rather than failing obscurely. Everything else —
 ingest, identity resolution, governance — runs without a key at all.
 
-The Anthropic adapter is the only one that has been exercised against a live
-API. The OpenAI and Gemini adapters are written against the published request
-formats and have not been called; certification is where a person puts their
-name to "this works", and nobody has done so for those two.
+Adapters report failure in one taxonomy rather than their vendor's, because
+the decision that depends on it is the same either way:
+
+| Failure | Retried |
+|---|---|
+| `RateLimited` (429), `ServerError` (5xx), `ConnectionFailed` | yes, five attempts, backing off |
+| `RequestRejected` (4xx), missing credentials, no routed model | no — retrying reaches the same answer |
+
+A retry re-runs the whole document, which is cheap: a claim with a standing
+classification is skipped, so it resumes rather than repeating calls already
+paid for.
+
+The Gemini and Anthropic adapters have both been exercised against their live
+APIs. The OpenAI adapter is written against the published request format and
+has not been called; certification is where a person puts their name to "this
+works", and nobody has done so for it.
 
 `config/database.yml` reads `PGHOST` and `PGPORT`, defaulting to
 `localhost:5433`. On a standard PostgreSQL install you will want:

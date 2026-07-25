@@ -32,6 +32,17 @@
       </div>
     <% end %>
 
+  <% elsif status == "retrying" %>
+    <div class="d-flex justify-content-between align-items-baseline mb-1">
+      <span class="small fw-semibold text-warning-emphasis">Paused — <%= done %> of <%= total %></span>
+      <span class="small text-body-secondary"><%= pct %>%</span>
+    </div>
+    <div class="progress" style="height: .5rem;" role="progressbar"
+         aria-valuenow="<%= pct %>" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar bg-warning" style="width: <%= pct %>%;"></div>
+    </div>
+    <div class="small text-body-secondary mt-1"><%= error %></div>
+
   <% elsif status == "failed" %>
     <div class="small">
       <span class="fw-semibold text-danger">Classification stopped.</span>
