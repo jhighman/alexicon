@@ -46,6 +46,18 @@
       </div>
     </div>
 
+    <% floor = s[:confidence_floor] %>
+    <% if floor.inert? %>
+      <hr>
+      <p class="small text-body-secondary mb-0">
+        <span class="text-warning-emphasis">The confidence floor rejected nothing here.</span>
+        <%= floor %>. It is a policy about what this system will act on, not a
+        description of one model — but on this document it filtered no
+        classification, so the refusals you see are the classifier declining,
+        not the floor catching anything.
+      </p>
+    <% end %>
+
     <% if s[:steps_judged].zero? && s[:claims].positive? %>
       <hr>
       <p class="small text-body-secondary mb-0">

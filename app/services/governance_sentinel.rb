@@ -53,6 +53,8 @@ class GovernanceSentinel
 
     return unjudged("either claim is unclassified") unless both_classified?
     return record("earned", "no category change; nothing was promoted") unless category_change?
+    # Before any verdict about the move: does the framework say what it costs?
+    return unjudged(unweighted_reason) unless weighted?
     return record("earned", lateral_reason) unless promotion?
     return record("earned", "the promotion is supported by evidence presented with it") if evidence_presented?
 
@@ -73,13 +75,27 @@ class GovernanceSentinel
 
   def category_change? = from_category != to_category
 
-  # A promotion is a move to a category carrying a greater justification
-  # burden -- not merely a different one.
-  def promotion?
-    from_rank = from_category.justification_rank
-    to_rank   = to_category.justification_rank
-    from_rank.present? && to_rank.present? && to_rank > from_rank
+  # A promotion is a move that costs something -- not merely a different kind.
+  #
+  # Reads CategoryPromotion rather than justification_rank so that what a move
+  # costs has ONE source. The two encodings agreed on every ordered pair when
+  # this changed, so no verdict moved; what changes is that editing a weight now
+  # reaches the verdict as well as the audit, instead of the two drifting.
+  #
+  # Still a binary question. The magnitude is available and deliberately unused:
+  # requiring more evidence for a heavier promotion would be a policy change
+  # nobody has asked for, and it would move every verdict the baseline measured.
+  def promotion? = promotion_weight.positive?
+
+  # nil means the framework has not said what this move costs, which is not the
+  # same as saying it costs nothing. Treating the absence as zero would judge
+  # every step of an unweighted framework "earned" — silently permissive, in the
+  # one place this system is supposed to refuse rather than guess.
+  def promotion_weight
+    @promotion_weight ||= CategoryPromotion.weight_for(from: from_category, to: to_category)
   end
+
+  def weighted? = !promotion_weight.nil?
 
   # Evidence attached to the classification that asserted the higher category.
   # "Additional justification" has to be something the record can show.
@@ -97,6 +113,11 @@ class GovernanceSentinel
     raise NotIndependent,
           "the Governance Sentinel classified one of these claims and cannot also " \
           "rule that the classification earned its promotion"
+  end
+
+  def unweighted_reason
+    "the framework does not say what #{from_category.name} → #{to_category.name} costs, " \
+      "so whether it was earned cannot be ruled on"
   end
 
   def lateral_reason

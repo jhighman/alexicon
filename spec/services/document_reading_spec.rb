@@ -102,4 +102,39 @@ RSpec.describe DocumentReading do
       expect(reading.findings_for(flagged.claim).map(&:kind)).to include :flag
     end
   end
+
+  # A guard nobody has measured is a guard nobody should rely on. On the real
+  # document the floor rejected 0 of 242, which reads as a working filter unless
+  # it is stated.
+  describe "the confidence floor" do
+    it "reports what the floor actually rejected" do
+      doc = document.reload
+      doc.claims.substantive.first.classify!(categories.first, asserter: person, confidence: 0.9)
+
+      floor = described_class.for(doc.reload).summary[:confidence_floor]
+
+      expect(floor.proposals).to eq 1
+      expect(floor.rejected).to eq 0
+      expect(floor).to be_inert
+    end
+
+    it "is not inert when the floor has rejected something" do
+      doc = document.reload
+      doc.claims.substantive.first.classify!(categories.first, asserter: person, confidence: 0.5)
+
+      floor = described_class.for(doc.reload).summary[:confidence_floor]
+
+      expect(floor.rejected).to eq 1
+      expect(floor).not_to be_inert
+      expect(floor.rate).to eq 1.0
+    end
+
+    it "says so when nothing has been classified at all" do
+      floor = described_class.for(document.reload).summary[:confidence_floor]
+
+      expect(floor.proposals).to eq 0
+      expect(floor).not_to be_inert
+      expect(floor.to_s).to eq "no classifications recorded"
+    end
+  end
 end

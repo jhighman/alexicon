@@ -44,7 +44,11 @@ class DocumentReading
       unearned: unearned_steps.size,
       steps_judged: transitions.count { it.verdict != "undetermined" },
       steps: transitions.size,
-      open_names: document.unresolved_name_count
+      open_names: document.unresolved_name_count,
+      # A guard nobody has measured is a guard nobody should rely on. Reported
+      # beside the counts so an inert floor is visible to a reader rather than
+      # only to whoever opens a console.
+      confidence_floor: ClaimClassifier.floor_effectiveness(document: document)
     }
   end
 

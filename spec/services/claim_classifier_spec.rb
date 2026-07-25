@@ -137,6 +137,11 @@ RSpec.describe ClaimClassifier do
                                                        rationale: "…" }),
                           framework: framework).classify!
 
+      # What a move costs is framework data; without it the Sentinel refuses to
+      # rule rather than judging it earned.
+      CategoryPromotion.create!(framework: framework, weight: 3,
+                                from_category: ClaimCategory.find_by!(framework: framework, key: "observation"),
+                                to_category: ClaimCategory.find_by!(framework: framework, key: "ontological"))
       transition = Transition.create!(source: other, target: claim)
 
       expect { GovernanceSentinel.review!(transition) }.not_to raise_error

@@ -23,6 +23,27 @@ RSpec.describe GovernanceSentinel do
   let(:interpretive) { category("interpretive", 3, 2) }
   let(:ontological)  { category("ontological", 4, 3) }
 
+  # What a move costs is framework data. Without it the Sentinel refuses to rule
+  # rather than judging every step earned — so a spec that builds its own
+  # framework has to weight it, exactly as the seeds do.
+  def weigh(from, to, weight)
+    CategoryPromotion.find_or_initialize_by(framework: framework, from_category: from,
+                                            to_category: to).update!(weight: weight)
+  end
+
+  before do
+    weigh(objective, observation, 0)
+    weigh(observation, objective, 0)
+    weigh(objective, interpretive, 1)
+    weigh(observation, interpretive, 1)
+    weigh(interpretive, ontological, 2)
+    weigh(objective, ontological, 3)
+    weigh(observation, ontological, 3)
+    [ [ interpretive, objective ], [ interpretive, observation ],
+      [ ontological, objective ], [ ontological, observation ],
+      [ ontological, interpretive ] ].each { weigh(it.first, it.last, 0) }
+  end
+
   def claim(text) = document.claims.create!(position: document.claims.count + 1, text: text)
 
   def transition_between(from_category, to_category, asserter: classifier)
