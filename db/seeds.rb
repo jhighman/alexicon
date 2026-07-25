@@ -154,6 +154,20 @@ Referent.find_or_initialize_by(key: "situational-sentinel").update!(
   notes: "Guards action polarity. Flags where surface grammar and intent are known to come apart."
 )
 
+# Alexandra Krížová's gravitational inversion: when a step is judged unearned,
+# the pull reverses and the claims underneath are audited. A separate referent
+# from the Governance Sentinel that ruled on those steps -- this asks a
+# different question about the pattern of its verdicts, and an actor reviewing
+# its own rulings would be the conflation Chapter 6 forbids.
+Referent.find_or_initialize_by(key: "retroactive-audit").update!(
+  name: "Retroactive Audit",
+  subject: "System",
+  role: "Auditor",
+  primitive: "system",
+  notes: "Reads standing verdicts and points at the claims their pattern implicates. " \
+         "Never re-judges a step, never re-classifies a claim, never calls a model."
+)
+
 # A measurement OF the system needs a home like any other claim. Findings about
 # a model are recorded as assertions about that model, by this referent, so a
 # later measurement can supersede an earlier one rather than overwrite it.

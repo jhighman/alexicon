@@ -84,7 +84,16 @@ class DocumentReading
         )
       end
 
-      document.flags.select(&:open?).each do |flag|
+      # Audit findings look back at where an argument left its ground, so they
+      # belong beside the claim they name rather than beside the step.
+      document.flags.select(&:open?).select { it.claim["audit"].present? }.each do |flag|
+        claim = anchor_claim_for(flag)
+        next if claim.nil?
+
+        map[claim.id] << Finding.new(kind: :audit, subject: flag, message: flag.message)
+      end
+
+      document.flags.select(&:open?).reject { it.claim["audit"].present? }.each do |flag|
         claim = anchor_claim_for(flag)
         next if claim.nil?
 

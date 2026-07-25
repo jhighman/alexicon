@@ -361,11 +361,21 @@ Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, ea
    Two routes to the same structure is the best evidence available that it is
    the right one.
 
-   **Open, and now specified enough to build:** *gravitational inversion* — when
-   an anomaly is detected, the audit runs **backward** over the claims the
-   flagged step rested on. Governance currently judges each transition
-   independently and never propagates; this gives Klein's ripple (Station 5) a
-   trigger condition rather than a general instruction to evaluate the graph.
+   **Built 25 Jul 2026:** *gravitational inversion*. When a step is judged
+   unearned the pull reverses onto the claims underneath it, because a verdict
+   on one step is local — it says the move was not earned, not where the
+   argument left its ground. `RetroactiveAudit` reads standing verdicts and
+   names three patterns: a step skipping more than one justification rank, a run
+   of consecutive unearned steps (flagging where the run *starts*), and a claim
+   reached unearned then used as ground for another.
+
+   It re-judges nothing, re-classifies nothing and calls no model — every signal
+   is computable from what is already recorded, so a finding can be checked by
+   hand. A concern, never a STOP.
+
+   On Alec's essay it produced 7 findings from 43 unearned steps, and the first
+   was `"There is a God, and I know it for a fact"` — the manuscript's own
+   worked example, found without being told it mattered.
 
    **Open, and in tension with a decision already taken:** *functional
    separation* — a sealed module disconnecting from the computational load.
