@@ -27,23 +27,58 @@ RSpec.describe RetroactiveAudit do
     t
   end
 
-  describe "a step that skips a justification rank" do
-    it "flags the claim it lands on" do
-      a = claim("I saw a wall collapsing.", "observation")   # rank 1
-      b = claim("There is a God.", "ontological")            # rank 3
+  describe "a step that costs more than an ordinary promotion" do
+    # The transition the framework is named for. Under justification_rank this
+    # measured as +1, the same as an ordinary promotion, and the audit could not
+    # see it: 0 of 6 caught on the real document.
+    it "flags interpretive becoming ontological" do
+      a = claim("The wall represented fear.", "interpretive")
+      b = claim("There is a God.", "ontological")
       step(a, b, "unearned")
 
       finding = described_class.findings_for(document.reload).sole
 
       expect(finding.kind).to eq :rank_skip
       expect(finding.claim).to eq b
-      expect(finding.message).to include "2 justification ranks above"
+      expect(finding.message).to include "weights at 2"
     end
 
-    it "says nothing about a single-rank promotion" do
-      a = claim("I saw it.", "observation")      # 1
-      b = claim("It meant fear.", "interpretive") # 2
+    it "flags the claim it lands on" do
+      a = claim("I saw a wall collapsing.", "observation")
+      b = claim("There is a God.", "ontological")
       step(a, b, "unearned")
+
+      finding = described_class.findings_for(document.reload).sole
+
+      expect(finding.kind).to eq :rank_skip
+      expect(finding.claim).to eq b
+      expect(finding.message).to include "weights at 3"
+    end
+
+    # It must still not fire on an ordinary promotion, or it is not a signal.
+    it "says nothing about an ordinary promotion" do
+      a = claim("I saw it.", "observation")
+      b = claim("It meant fear.", "interpretive")
+      step(a, b, "unearned")
+
+      expect(described_class.findings_for(document.reload)).to be_empty
+    end
+
+    it "says nothing about a lateral move between equally warranted kinds" do
+      a = claim("Ketamine blocks NMDA receptors.", "objective")
+      b = claim("I saw it work.", "observation")
+      step(a, b, "unearned")
+
+      expect(described_class.findings_for(document.reload)).to be_empty
+    end
+
+    # "No rule for this pair" is not "this pair is free".
+    it "leaves an unweighted pair alone rather than treating it as free" do
+      a = claim("The wall represented fear.", "interpretive")
+      b = claim("There is a God.", "ontological")
+      step(a, b, "unearned")
+      CategoryPromotion.find_by!(from_category: category("interpretive"),
+                                 to_category: category("ontological")).destroy!
 
       expect(described_class.findings_for(document.reload)).to be_empty
     end

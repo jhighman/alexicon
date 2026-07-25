@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_25_115526) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_230524) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,6 +55,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_115526) do
     t.index ["subject_type", "subject_id", "asserted_at"], name: "idx_on_subject_type_subject_id_asserted_at_f9911a1d7d"
     t.index ["subject_type", "subject_id"], name: "index_assertions_on_subject"
     t.index ["supersedes_id"], name: "index_assertions_on_supersedes_id"
+  end
+
+  create_table "category_promotions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "framework_id", null: false
+    t.bigint "from_category_id", null: false
+    t.text "rationale"
+    t.bigint "to_category_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "weight", default: 0, null: false
+    t.index ["framework_id", "from_category_id", "to_category_id"], name: "index_category_promotions_on_pair", unique: true
+    t.index ["framework_id"], name: "index_category_promotions_on_framework_id"
+    t.index ["from_category_id"], name: "index_category_promotions_on_from_category_id"
+    t.index ["to_category_id"], name: "index_category_promotions_on_to_category_id"
   end
 
   create_table "claim_categories", force: :cascade do |t|
@@ -388,6 +402,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_115526) do
   add_foreign_key "assertions", "assertions", column: "supersedes_id"
   add_foreign_key "assertions", "llm_invocations"
   add_foreign_key "assertions", "referents", column: "asserter_id"
+  add_foreign_key "category_promotions", "claim_categories", column: "from_category_id"
+  add_foreign_key "category_promotions", "claim_categories", column: "to_category_id"
+  add_foreign_key "category_promotions", "frameworks"
   add_foreign_key "claim_categories", "frameworks"
   add_foreign_key "claims", "documents"
   add_foreign_key "delegations", "referents", column: "granted_by_id"

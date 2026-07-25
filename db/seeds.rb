@@ -39,6 +39,35 @@ fw.update!(
   )
 end
 
+# --- What a promotion costs ---------------------------------------------------
+# justification_rank gives three values to four categories, so
+# "objective -> interpretive" and "interpretive -> ontological" both measure as
+# +1. They are not the same move. Weighting the ORDERED PAIR lets the audit see
+# the transition the framework is named for without firing on every step.
+#
+# 0 is a lateral move or a retreat to firmer ground -- not a promotion.
+[
+  [ "objective", "observation", 0, "Different in kind, equal in warrant. Neither outranks the other." ],
+  [ "observation", "objective", 0, "As above, in the other direction." ],
+  [ "objective", "interpretive", 1, "Meaning assigned to an established fact." ],
+  [ "observation", "interpretive", 1, "Meaning assigned to what was experienced." ],
+  [ "interpretive", "ontological", 2,
+    "The move this framework exists to police: meaning becoming a claim about " \
+    "what exists. Weighted above an ordinary promotion because it is one." ],
+  [ "objective", "ontological", 3, "Fact straight to existence claim, with nothing between." ],
+  [ "observation", "ontological", 3, "Experience straight to existence claim — the manuscript's own example." ],
+  [ "interpretive", "objective", 0, "A retreat to firmer ground demands nothing." ],
+  [ "interpretive", "observation", 0, "As above." ],
+  [ "ontological", "objective", 0, "As above." ],
+  [ "ontological", "observation", 0, "As above." ],
+  [ "ontological", "interpretive", 0, "As above." ]
+].each do |from_key, to_key, weight, rationale|
+  from = ClaimCategory.find_by!(framework: fw, key: from_key)
+  to = ClaimCategory.find_by!(framework: fw, key: to_key)
+  CategoryPromotion.find_or_initialize_by(framework: fw, from_category: from, to_category: to)
+                   .update!(weight: weight, rationale: rationale)
+end
+
 # --- The epistemic flow ------------------------------------------------------
 # The 2.0 sequence. Other framework rows may carry different ladders; at least
 # four non-identical variants exist across sources.

@@ -23,11 +23,18 @@
 class RetroactiveAudit
   AUDITOR = "retroactive-audit".freeze
 
-  # A jump of more than one justification rank in a single step. objective and
-  # observation share rank 1, interpretive is 2, ontological is 3 — so
-  # observation straight to ontological skips a rank, which is the manuscript's
-  # own example: "I saw a wall collapsing" to "there is a God".
-  MAX_RANK_STEP = 1
+  # A promotion costing more than an ordinary one.
+  #
+  # This read justification_rank until an ATAM found it could not see the
+  # transition the framework is named for: three ranks over four categories made
+  # "objective -> interpretive" and "interpretive -> ontological" both +1, so a
+  # threshold that caught the second fired on most of the document. Of six
+  # interpretive -> ontological steps in Alec's essay, all judged unearned, the
+  # rank signal flagged none.
+  #
+  # CategoryPromotion weights the ordered pair instead, so the threshold can sit
+  # above an ordinary promotion and below the one that matters.
+  MAX_PROMOTION = 1
 
   # Two consecutive unearned steps is already a run: the argument did not
   # recover between them.
@@ -79,20 +86,24 @@ class RetroactiveAudit
 
   def unearned = @unearned ||= steps.select(&:unearned?)
 
-  # A step that promotes a claim more than one rank at once. The claim it lands
-  # on is asserting more than any single move can carry, so either an
-  # intermediate claim is missing or one of the endpoints is mistyped.
+  # A step whose promotion costs more than an ordinary one. The claim it lands
+  # on is asserting more than a single move can carry, so either an intermediate
+  # claim is missing or one of the endpoints is mistyped.
+  #
+  # An unweighted pair is left alone rather than treated as free: "the framework
+  # says nothing about this move" is not "this move costs nothing".
   def rank_skips
     unearned.filter_map do |step|
-      from = step.from_claim.category&.justification_rank
-      to = step.to_claim.category&.justification_rank
-      next if from.nil? || to.nil? || (to - from) <= MAX_RANK_STEP
+      weight = CategoryPromotion.weight_for(from: step.from_claim.category,
+                                            to: step.to_claim.category)
+      next if weight.nil? || weight <= MAX_PROMOTION
 
       Finding.new(
         kind: :rank_skip, claim: step.to_claim, steps: [ step ],
-        message: "This claim is #{to - from} justification ranks above the one before it, " \
-                 "in a single step that was judged unearned. Either a claim is missing " \
-                 "between them, or one of the two is typed wrongly."
+        message: "This step promotes #{step.from_claim.category.key} to " \
+                 "#{step.to_claim.category.key}, which the framework weights at #{weight} — " \
+                 "more than an ordinary promotion — and it was judged unearned. Either a " \
+                 "claim is missing between them, or one of the two is typed wrongly."
       )
     end
   end

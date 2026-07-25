@@ -174,11 +174,14 @@ to the definitions, and no remedy can be evaluated.
 
 ## 6. Recommendations
 
+**Status 25 Jul 2026 — 1 and 3 done, 4 and 5 running, 2 outstanding.**
+
+
 | | Action | Addresses | Cost |
 |---|---|---|---|
-| **1** | **Separate the rank scale from the promotion signal.** Add an explicit `promotion_weight` per ordered pair rather than inferring distance from a 3-point scale. `interpretive → ontological` weighs more than `objective → interpretive` even though both are +1. | S1, R1 | seed change |
+| **1 ✅** | **Done.** `CategoryPromotion` weights every ordered pair as seeded data. `interpretive → ontological` = 2, `objective → interpretive` = 1, lateral and downward moves = 0. `RetroactiveAudit` reads the weight instead of the rank delta. **R1 closed: 6 of 6 caught, up from 0 of 6, with findings rising only 7 → 13.** | S1, R1 | seed change |
 | **2** | **Independently type 40 claims**, stratified by category, and compare. | Theme 2, R3 | ~1 hour, human |
-| **3** | **Retire or re-derive the confidence floor.** It has rejected nothing in 242 classifications. Either remove A7 as dead machinery or set it from an observed distribution. | R2 | small |
+| **3 ✅** | **Done, and neither option taken.** The floor is a *policy*, not a tuning parameter — setting it from this model's distribution would make it a description of one provider, and the registry can route elsewhere tomorrow. Removing it would leave nothing when a model that does emit varied confidence arrives. What was wrong was the silence: `ClaimClassifier.floor_effectiveness` now reports what the floor has actually rejected, so `0 of 242 — inert; lowest confidence seen was 0.8` is visible rather than assumed. | R2 | small |
 | **4** | **Measure the context effect on independence** — shuffle batch order, re-classify, compare. Quantifies T1. | T1 | ~26 calls |
 | **5** | Re-run reproducibility restricted to interpretive and ontological claims, at higher n. | R3 | ~10 calls |
 

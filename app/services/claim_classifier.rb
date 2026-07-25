@@ -26,6 +26,19 @@ class ClaimClassifier
   EFFORT = "medium".freeze
 
   # Below this, the proposal is discarded rather than recorded.
+  #
+  # MEASURED INERT on the model currently routed here: zero of 242 proposals
+  # fell below it, mean confidence 0.94-0.99 by category, 171 of them at exactly
+  # 1.0. It has never rejected anything.
+  #
+  # Kept rather than removed, because it is a POLICY and not a tuning parameter.
+  # Setting it from this model's distribution would make it a description of one
+  # provider rather than a statement about what this system will act on, and the
+  # registry can route to a model that does emit varied confidence tomorrow.
+  #
+  # What was wrong was the silence: a floor that never fires reads as a working
+  # guard. `floor_effectiveness` reports what it has actually done, so the
+  # assurance it appears to give can be checked rather than assumed.
   DEFAULT_CONFIDENCE_FLOOR = 0.75
 
   ABSTAIN = "uncertain".freeze
@@ -49,6 +62,34 @@ class ClaimClassifier
   CONTEXT_CLAIMS = 4
 
   def self.classify!(claim, asserter: nil, **) = new(claim, **).classify!(asserter: asserter)
+
+  # What the confidence floor has actually rejected.
+  #
+  # A guard nobody has measured is a guard nobody should rely on. If `rejected`
+  # is zero over a large `proposals`, the floor is not filtering — the refusal
+  # doing the work is the model's own abstention, and any claim that weak
+  # proposals are being caught is false.
+  FloorEffect = Data.define(:proposals, :rejected, :floor, :min_confidence) do
+    def inert? = proposals.positive? && rejected.zero?
+    def rate = proposals.zero? ? nil : (rejected.to_f / proposals).round(4)
+
+    def to_s
+      return "no classifications recorded" if proposals.zero?
+
+      "#{rejected} of #{proposals} rejected by a floor of #{floor}" \
+        "#{inert? ? " — inert; lowest confidence seen was #{min_confidence}" : ''}"
+    end
+  end
+
+  def self.floor_effectiveness(document: nil, floor: DEFAULT_CONFIDENCE_FLOOR)
+    scope = Assertion.acting("classify").standing
+    scope = scope.where(subject: document.claims) if document
+
+    confidences = scope.filter_map(&:confidence)
+    FloorEffect.new(proposals: confidences.size,
+                    rejected: confidences.count { it < floor },
+                    floor: floor, min_confidence: confidences.min)
+  end
 
   Readiness = Data.define(:model, :problem) do
     def ready? = problem.nil?
