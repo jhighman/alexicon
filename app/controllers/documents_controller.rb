@@ -32,7 +32,13 @@ class DocumentsController < ApplicationController
     authorize @document
     @claims = @document.claims.includes(:mentions)
     @transitions = @document.transitions.includes(:source, :target)
-    @open_flags = @document.flags.includes(:asserter, :subject).select(&:open?)
+    open_flags = @document.flags.includes(:asserter, :subject).select(&:open?)
+
+    # One question per name, not per occurrence. An essay naming Polanyi three
+    # times raised three identical STOPs; answering the name answers all of them.
+    identity, @open_flags = open_flags.partition { it.subject.is_a?(Mention) }
+    @identity_groups = identity.group_by { it.subject.text }
+                               .sort_by { |name, flags| [ -flags.size, name ] }
     @history = Assertion.where(id: @document.flags.select(:id))
                         .or(Assertion.where(subject_type: "Claim", subject_id: @claims.select(:id)))
                         .includes(:asserter, :subject)
@@ -42,8 +48,6 @@ class DocumentsController < ApplicationController
   def classify
     document = Document.find(params[:id])
     authorize document, :classify?
-
-    return redirect_back_to(document, alert: LOCKED) unless document.executable?
 
     readiness = ClaimClassifier.readiness
     return redirect_back_to(document, alert: "Cannot classify: #{readiness.problem}.") unless readiness.ready?

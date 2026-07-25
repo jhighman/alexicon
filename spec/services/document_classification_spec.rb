@@ -75,16 +75,19 @@ RSpec.describe DocumentClassification do
     expect(c.classifications.count).to eq 1
   end
 
-  # Identity precedes reasoning — checked once up front so the failure is
-  # legible rather than arriving 40 claims in.
-  it "refuses to run while identity is unresolved" do
+  # Typing a statement does not predicate anything of the names inside it, so
+  # an unresolved name is not grounds for refusing to read the document. What
+  # stays blocked is judging the steps between its claims.
+  it "runs while identity is unresolved" do
     Referent.create!(key: "identity-sentinel", name: "Identity Sentinel", subject: "System",
                      role: "Sentinel", primitive: "system")
     c = claim("Pugsley left.")
     IdentitySentinel.verify!(c.mentions.create!(text: "Pugsley"))
 
-    expect { described_class.call(document, classifier: classifier_returning(true)) }
-      .to raise_error(Document::ExecutionLocked)
-    expect(document.classified?).to be false
+    result = described_class.call(document, classifier: classifier_returning(true))
+
+    expect(result.classified).to eq 1
+    expect(document.open_stops).to be_present
+    expect { document.require_executable! }.to raise_error(Document::ExecutionLocked)
   end
 end

@@ -38,10 +38,24 @@ detection criteria:
 | `out_of_distribution` | No match in memory |
 | `unanchored` | Cognitive Passport (`Name → Subject → Role`) could not be assigned |
 
-On any of these the Sentinel locks execution and escalates to a person. The
-lock is enforced, not advisory — a claim in a locked document cannot be
-classified at all, by a model or by a human. Disposing of the flag lifts it;
-what is not possible is reasoning past it silently.
+On any of these the Sentinel escalates to a person, and the lock is enforced
+rather than advisory. What it locks is **predication** — judging that a step
+between claims was earned — not description. Classifying asks what *kind* of
+statement something is, and that does not depend on who a name inside it refers
+to: "Polanyi said we can know more than we can tell" is an objective claim
+whichever Polanyi it is.
+
+That distinction is load-bearing rather than academic. Gating classification on
+resolution meant one essay citing unfamiliar authors produced 204 blocking
+questions and could not be read at all — and names like "God" would never
+resolve, because that is a contested ontological question, not missing data.
+
+Identity accumulates in the graph, not in the document. Writing does not
+introduce the people it names, and requiring it to would require prose to be
+self-contained in a way it never is. So a name is asked about **once**, however
+often it appears and in whichever document, and the answer applies wherever the
+name occurs. Disposing of the flag lifts it; what is not possible is reasoning
+past it silently.
 
 **Framework as data.** Domains, claim categories, and flow stages are seeded
 rows scoped to a framework version, not constants. A terminology register

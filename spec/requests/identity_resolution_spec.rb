@@ -15,6 +15,46 @@ RSpec.describe "answering an identity STOP", type: :request do
   end
 
 
+  # A judgement about a name applies wherever that name appears. Answering the
+  # same question once per occurrence is the same answer typed again, and on a
+  # real essay it meant 204 questions for 144 distinct names.
+  describe "answering once, for every occurrence" do
+    it "resolves every mention of a name that is grounded" do
+      document = ingest("Polanyi wrote it. Polanyi meant it. Polanyi was right.")
+      expect(document.open_stops.count).to eq 3
+
+      post ground_mention_path(document.mentions.first),
+           params: { referent: { subject: "Person", role: "Philosopher" } }
+
+      document.reload
+      expect(document.mentions.map(&:status).uniq).to eq [ "resolved" ]
+      expect(document.open_stops).to be_empty
+      expect(document).to be_executable
+    end
+
+    it "clears every mention of a form marked not a subject" do
+      document = ingest("Every day is like this. Every night too. Every time.")
+      expect(document.open_stops.count).to be >= 2
+
+      post ignore_mention_path(document.mentions.first)
+
+      expect(document.reload.open_stops).to be_empty
+      expect(IgnoredForm.ignores?("Every")).to be true
+    end
+
+    # The graph, not just the document on screen: the referent it creates is
+    # global, so leaving other documents flagged would contradict it.
+    it "reaches occurrences in other documents too" do
+      first = ingest("Polanyi wrote it.")
+      second = ingest("Polanyi was right.")
+
+      post ground_mention_path(first.mentions.sole),
+           params: { referent: { subject: "Person", role: "Philosopher" } }
+
+      expect(second.reload.open_stops).to be_empty
+    end
+  end
+
   describe "grounding a name" do
     it "creates the referent, resolves the mention and lifts the lock" do
       document = ingest("Alec wrote about it.")

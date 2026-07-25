@@ -68,7 +68,8 @@ class Document < ApplicationRecord
   def unclassified_claims_count = claims.count - classified_claims_count
 
   # The lock has to bite, or it is only a question that downstream code may
-  # decline to ask. Reasoning layers call this before proceeding.
+  # decline to ask. Layers that reason ABOUT what the names refer to call this
+  # before proceeding; classification deliberately does not.
   def require_executable!
     return if executable?
 

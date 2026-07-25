@@ -60,8 +60,12 @@ class DocumentIngest
     end
   end
 
+  # Gathered once for the whole document rather than rebuilt per claim: the
+  # evidence is about the document, and a claim cannot see it alone.
+  def casing = @casing ||= CasingEvidence.for(document)
+
   def extract_from(claim)
-    MentionExtractor.new(claim).call.map do |candidate|
+    MentionExtractor.new(claim, casing: casing).call.map do |candidate|
       claim.mentions.create!(
         text: candidate.text,
         char_start: candidate.char_start,

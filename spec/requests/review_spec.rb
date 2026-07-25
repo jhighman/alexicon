@@ -26,7 +26,7 @@ RSpec.describe "the review surface", type: :request do
       get documents_path
 
       expect(response.body).to include "A note"
-      expect(response.body).to include "Locked"
+      expect(response.body).to include "Identity unresolved"
     end
   end
 
@@ -50,13 +50,17 @@ RSpec.describe "the review surface", type: :request do
   end
 
   describe "showing a document" do
-    it "surfaces the flags waiting on a person" do
-      document = ingest("Pugsley left the house.")
+    # One question per name, not per occurrence. The same essay previously
+    # raised 204 separate STOPs for 144 distinct names.
+    it "asks about each unresolved name once, however often it appears" do
+      document = ingest("Pugsley left the house. Pugsley returned. Pugsley left again.")
 
       get document_path(document)
 
-      expect(response.body).to include "Waiting on you"
-      expect(response.body).to include "Identity not established"
+      expect(response.body).to include "Names with no established reference"
+      expect(response.body).to include "Pugsley"
+      expect(response.body).to include "3 occurrences"
+      expect(document.open_stops.count).to eq 3
     end
 
     # The language of the interface has to carry the same discipline as the model.

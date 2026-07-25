@@ -23,10 +23,15 @@ class MentionsController < ApplicationController
 
     # Re-verify: the resolution supersedes the STOP, so exactly one judgement
     # stands and the derived status follows.
-    IdentitySentinel.verify!(mention)
+    #
+    # Every occurrence of the name, not just the one clicked. "Polanyi" appearing
+    # three times is one identity question, and answering it three times is the
+    # same answer typed twice more.
+    resolved = same_name_as(mention).each { IdentitySentinel.verify!(it) }
 
     redirect_back fallback_location: root_path,
-                  notice: "#{referent.passport} — #{mention.reload.status}."
+                  notice: "#{referent.passport} — #{mention.reload.status} " \
+                          "(#{helpers.pluralize(resolved.size, 'occurrence')})."
   rescue ActiveRecord::RecordInvalid => e
     redirect_back fallback_location: root_path, alert: e.message
   end
@@ -41,10 +46,21 @@ class MentionsController < ApplicationController
     end
 
     # The flag is set aside rather than deleted -- the record of why this was
-    # ever blocked stays intact.
-    mention.flags.each { it.dispose!(as: "rejected", by: current_reviewer) }
+    # ever blocked stays intact. Every occurrence, because IgnoredForm is about
+    # the form: leaving the other six "Every" mentions blocking would contradict
+    # the judgement just recorded.
+    ignored = same_name_as(mention).each do |sibling|
+      sibling.flags.select(&:open?).each { it.dispose!(as: "rejected", by: current_reviewer) }
+    end
 
     redirect_back fallback_location: root_path,
-                  notice: "#{mention.text.inspect} will not be proposed as a subject again."
+                  notice: "#{mention.text.inspect} will not be proposed as a subject again " \
+                          "(#{helpers.pluralize(ignored.size, 'occurrence')} cleared)."
   end
+
+  private
+
+  # A judgement about a name applies wherever that name appears. Scoped to the
+  # exact surface form, since that is what was actually judged.
+  def same_name_as(mention) = Mention.where(text: mention.text).to_a
 end

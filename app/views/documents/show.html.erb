@@ -26,8 +26,7 @@
     <div class="d-flex gap-2 flex-shrink-0">
       <% if current_user.can_review? %>
         <%= button_to "Classify claims", classify_document_path(@document),
-                      class: "btn btn-sm btn-primary",
-                      disabled: !@document.executable? %>
+                      class: "btn btn-sm btn-primary" %>
         <%= button_to "Judge the steps", govern_document_path(@document),
                       class: "btn btn-sm btn-outline-primary",
                       disabled: !@document.executable? || !@document.classified? %>
@@ -35,6 +34,64 @@
     </div>
   </div>
 </section>
+
+<%# ---- Identity questions, one per name ------------------------------------ %>
+<% if @identity_groups.any? %>
+  <section class="mb-4">
+    <h2 class="h5">Names with no established reference</h2>
+    <p class="text-body-secondary small" style="max-width: 46rem;">
+      A flag never says a claim is false. A name here is not a name that is
+      wrong — it is one this system has never been introduced to, and it is
+      asked once however often the name appears.
+    </p>
+    <p class="text-body-secondary small" style="max-width: 46rem;">
+      Claims are still classified meanwhile: typing a statement does not
+      predicate anything of the names inside it. What waits on these answers is
+      judging the steps between claims, which does reason about what they refer to.
+    </p>
+
+    <% @identity_groups.each do |name, flags| %>
+      <div class="card mb-2 border-danger">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-baseline gap-3">
+            <div>
+              <code class="fs-6"><%= name %></code>
+              <span class="badge text-bg-light border ms-1"><%= pluralize(flags.size, "occurrence") %></span>
+            </div>
+            <span class="small text-body-secondary"><%= flags.first.message %></span>
+          </div>
+
+          <% if current_user.can_review? %>
+            <% mention = flags.first.subject %>
+            <div class="row g-2 align-items-end mt-2">
+              <%= form_with url: ground_mention_path(mention), class: "col d-flex gap-2 align-items-end" do %>
+                <div>
+                  <label class="form-label small mb-1" for="subject-<%= mention.id %>">subject</label>
+                  <input class="form-control form-control-sm" id="subject-<%= mention.id %>"
+                         name="referent[subject]" placeholder="e.g. Person" required>
+                </div>
+                <div>
+                  <label class="form-label small mb-1" for="role-<%= mention.id %>">role</label>
+                  <input class="form-control form-control-sm" id="role-<%= mention.id %>"
+                         name="referent[role]" placeholder="e.g. Philosopher" required>
+                </div>
+                <button class="btn btn-sm btn-primary" type="submit">Ground it</button>
+              <% end %>
+              <div class="col-auto">
+                <%= button_to "Not a subject", ignore_mention_path(mention),
+                              class: "btn btn-sm btn-outline-secondary",
+                              form: { data: { turbo_confirm: "#{name.inspect} will never be proposed as a subject again. Continue?" } } %>
+              </div>
+            </div>
+            <div class="form-text mt-2">
+              A passport needs all three levels — a partial one is not a weaker anchor, it is no anchor.
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </section>
+<% end %>
 
 <%# ---- Flags waiting on a person ------------------------------------------- %>
 <% if @open_flags.any? %>
@@ -71,39 +128,6 @@
             </div>
           </div>
 
-          <%# An identity STOP can be answered properly rather than dismissed:
-              say what the name refers to, or say it is not a subject at all. %>
-          <% if flag.subject.is_a?(Mention) && current_user.can_review? %>
-            <hr class="my-3">
-            <div class="row g-2 align-items-end">
-              <div class="col-auto">
-                <span class="small text-body-secondary">
-                  <code><%= flag.subject.text %></code> is a
-                </span>
-              </div>
-              <%= form_with url: ground_mention_path(flag.subject), class: "col d-flex gap-2 align-items-end" do %>
-                <div>
-                  <label class="form-label small mb-1" for="subject-<%= flag.subject.id %>">subject</label>
-                  <input class="form-control form-control-sm" id="subject-<%= flag.subject.id %>"
-                         name="referent[subject]" placeholder="e.g. Family" required>
-                </div>
-                <div>
-                  <label class="form-label small mb-1" for="role-<%= flag.subject.id %>">role</label>
-                  <input class="form-control form-control-sm" id="role-<%= flag.subject.id %>"
-                         name="referent[role]" placeholder="e.g. Friend" required>
-                </div>
-                <button class="btn btn-sm btn-primary" type="submit">Ground it</button>
-              <% end %>
-              <div class="col-auto">
-                <%= button_to "Not a subject", ignore_mention_path(flag.subject),
-                              class: "btn btn-sm btn-outline-secondary",
-                              form: { data: { turbo_confirm: "#{flag.subject.text.inspect} will never be proposed as a subject again. Continue?" } } %>
-              </div>
-            </div>
-            <div class="form-text mt-2">
-              A passport needs all three levels — a partial one is not a weaker anchor, it is no anchor.
-            </div>
-          <% end %>
         </div>
       </div>
     <% end %>

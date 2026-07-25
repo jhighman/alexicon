@@ -24,7 +24,11 @@
 class MentionExtractor
   Candidate = Data.define(:text, :char_start, :char_end)
 
-  CAPITALISED = /\b[A-Z][\p{Alpha}'’-]+(?:\s+[A-Z][\p{Alpha}'’-]+)*/
+  # Spaces and tabs only. With \s+ this crossed line breaks, so a heading ran
+  # into the sentence beneath it and arrived as one name: "Michael Polanyi\nOne"
+  # was extracted instead of "Michael Polanyi", which meant the real referent
+  # could never match. A name does not span a line break.
+  CAPITALISED = /\b[A-Z][\p{Alpha}'’-]+(?:[ \t]+[A-Z][\p{Alpha}'’-]+)*/
 
   # An all-capital token's case is explained by acronym convention, not by
   # proper-nounhood, so it is not evidence on its own. "NMDA" in "NMDA
@@ -43,10 +47,13 @@ class MentionExtractor
     not no yes maybe perhaps suppose consider notice
   ].freeze
 
-  def initialize(claim)
+  # `casing` is shared across a document's claims when ingesting, so the
+  # evidence is gathered once rather than per claim.
+  def initialize(claim, casing: nil)
     @claim = claim
     @text = claim.text.to_s
     @origin = claim.char_start || 0
+    @casing = casing || CasingEvidence.for(claim.document)
   end
 
   def call
@@ -58,7 +65,7 @@ class MentionExtractor
 
   private
 
-  attr_reader :claim, :text, :origin
+  attr_reader :claim, :text, :origin, :casing
 
   # Surface forms already in the graph, matched case-insensitively anywhere in
   # the claim -- a known referent should be recognised even in lower case.
@@ -75,21 +82,38 @@ class MentionExtractor
     matches_for(CAPITALISED)
       .filter_map { trim_leading_stopwords(it) }
       .reject { it.text.match?(ACRONYM) }
+      .reject { casing.explained_by_position?(it.text) }
   end
 
   def trim_leading_stopwords(candidate)
     words = []
     candidate.text.scan(/\S+/) { words << [ Regexp.last_match[0], Regexp.last_match.begin(0) ] }
 
-    first = words.index { |word, _| !STOPWORDS.include?(word.downcase) }
+    first = words.index { |word, _| !stopword?(word) }
     return nil if first.nil?
-    return candidate if first.zero?
+    return trim_possessive(candidate) if first.zero?
 
     offset = words[first].last
     remainder = candidate.text[offset..]
-    Candidate.new(text: remainder,
-                  char_start: candidate.char_start + offset,
-                  char_end: candidate.char_start + offset + remainder.length)
+    trim_possessive(Candidate.new(text: remainder,
+                                  char_start: candidate.char_start + offset,
+                                  char_end: candidate.char_start + offset + remainder.length))
+  end
+
+  # A contraction is its pronoun wearing a suffix: "I'm" is "I", which is
+  # already a stopword. Without this every sentence opening with "I've" or
+  # "He's" proposed a subject.
+  def stopword?(word) = STOPWORDS.include?(word.downcase.split(/['’]/).first.to_s)
+
+  # "Alec's essay" mentions Alec. Left alone, the possessive is a third surface
+  # form alongside "Alec" and "Alec’s", so one person becomes three identity
+  # questions and none of them matches the referent already in the graph.
+  def trim_possessive(candidate)
+    stripped = candidate.text.sub(/['’]s\z/, "").sub(/['’]\z/, "")
+    return candidate if stripped == candidate.text || stripped.empty?
+
+    Candidate.new(text: stripped, char_start: candidate.char_start,
+                  char_end: candidate.char_start + stripped.length)
   end
 
   def matches_for(pattern)

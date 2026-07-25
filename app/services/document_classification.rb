@@ -27,9 +27,12 @@ class DocumentClassification
     @on_progress = on_progress
   end
 
+  # Deliberately does NOT require the document to be executable. Typing a
+  # statement does not predicate anything of the names inside it, and demanding
+  # every name resolve first meant a document citing an unfamiliar author could
+  # not be read at all. Identity still gates governance, which does reason about
+  # what the names refer to.
   def call
-    document.require_executable!
-
     classified = abstained = skipped = 0
 
     document.claims.each_with_index do |claim, index|

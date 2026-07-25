@@ -50,8 +50,10 @@ module ReviewHelper
 
   def document_state(document)
     if document.open_stops.any?
-      [ "Locked", "danger", "Identity was never established for #{document.blocking_mentions.count} name(s). " \
-                            "Nothing can be classified until someone answers." ]
+      [ "Identity unresolved", "danger",
+        "#{document.blocking_mentions.count} name(s) have no established reference. Claims can still " \
+        "be classified — typing a statement does not predicate anything of the names inside it — but " \
+        "no step between claims can be judged until someone answers." ]
     elsif document.flags.select(&:open?).any?
       [ "Open concerns", "warning", "Nothing is blocked, but some steps are flagged as outrunning their justification." ]
     else

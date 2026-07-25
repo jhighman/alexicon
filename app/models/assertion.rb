@@ -149,19 +149,36 @@ class Assertion < ApplicationRecord
     errors.add(:claim, "confidence must be between 0 and 1")
   end
 
-  # Identity verification precedes reasoning. Nothing may be predicated of an
-  # ungrounded subject, so a claim in a document with open identity STOPs
-  # cannot be classified at all.
+  # Identity verification precedes reasoning about an entity. Nothing may be
+  # PREDICATED of an ungrounded subject.
+  #
+  # This once read "...so a claim in a document with open identity STOPs cannot
+  # be classified at all", and that "so" was a leap. Classifying asks what KIND
+  # of statement something is, which does not depend on who a name inside it
+  # refers to: "Polanyi said we can know more than we can tell" is an objective
+  # claim whichever Polanyi it is, and "Therefore God exists" is ontological
+  # whether or not "God" will ever carry a Cognitive Passport. Gating
+  # classification on resolution made ordinary prose unreadable -- one essay
+  # produced 204 blocking questions and could not be typed at all.
+  #
+  # So the lock sits where the framework actually puts it: on judgements that
+  # reason ABOUT the entity. Governance ruling that a step was earned is such a
+  # judgement; deciding a sentence is an observation is not.
   #
   # Agency is preserved: a person may dispose of the flag and proceed. What
   # they may not do is reason past it silently.
+  # A judgement about a STEP between claims is where reasoning about what the
+  # names refer to actually happens, so that is what the lock guards. Note it
+  # cannot be a list of acts: a governance verdict is recorded as `assert`, the
+  # same act used for a dozen harmless things, and `resolve` -- the act that
+  # grounds a name -- would deadlock, blocked by the very flags it clears.
   def execution_must_not_be_locked
-    return unless act == "classify"
+    return unless subject.is_a?(Relationship)
 
     document = subject.try(:document)
     return if document.blank? || document.executable?
 
     errors.add(:base, "execution is locked: unresolved identity in this document must be " \
-                      "cleared before a claim may be classified")
+                      "cleared before a judgement may be made about what it refers to")
   end
 end

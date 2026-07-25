@@ -37,13 +37,16 @@ RSpec.describe "running an analysis", type: :request do
   end
 
   describe "classifying" do
-    it "refuses while identity is unresolved, and says why" do
+    # A document full of names nobody has grounded is still readable. The old
+    # behaviour refused, which made an essay citing unfamiliar authors
+    # impossible to classify at all.
+    it "proceeds while identity is unresolved" do
+      arm_classifier
       document = ingest("Pugsley left.")
 
-      post classify_document_path(document)
-
-      expect(flash[:alert]).to match(/Identity has to be established first/)
-      expect(ClassifyDocumentJob).to have_been_enqueued.exactly(0).times
+      expect(document.open_stops).to be_present
+      expect { post classify_document_path(document) }
+        .to have_enqueued_job(ClassifyDocumentJob).with(document)
     end
 
     it "refuses when no model is certified, rather than failing in the background" do
