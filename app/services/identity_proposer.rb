@@ -21,11 +21,14 @@
 #   * Every call is RECORDED, like any other.
 class IdentityProposer
   ACTION = "resolve".freeze
-  MAX_TOKENS = 4096
+  # Generous, because a thinking model charges its thinking against this budget
+  # and the visible answer is what is left.
+  MAX_TOKENS = 16_384
 
   # Names are proposed in batches so one refusal cannot cost a whole document,
-  # and so a long list does not run into the output limit.
-  BATCH_SIZE = 40
+  # and so a long list does not run into the output limit. Forty was too many:
+  # the answer was truncated mid-object every time.
+  BATCH_SIZE = 15
 
   Proposal = Data.define(:name, :kind, :subject, :role, :confidence, :rationale) do
     def subject? = kind == "subject"

@@ -35,6 +35,11 @@ module LlmClients
   # Retrying these burns quota to arrive at the same answer.
   class RequestRejected < CallFailed; end
 
+  # The answer was cut off at the token limit. Not retryable as-is -- the same
+  # request will be cut off in the same place -- and emphatically not something
+  # to parse anyway: half a JSON document reads as an empty one.
+  class ResponseTruncated < CallFailed; end
+
   ADAPTERS = {
     "anthropic" => "LlmClients::Anthropic",
     "openai" => "LlmClients::OpenAI",
