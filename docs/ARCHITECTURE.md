@@ -316,6 +316,35 @@ composition rather than a new branch in every policy.
 
 ---
 
+## Measuring the system itself
+
+Three findings about a model once existed only in a conversation and in
+invocation rows that recorded that a call happened without recording what it
+showed. A system insisting every judgement be attributable had no home for a
+judgement about itself.
+
+A measurement is therefore an assertion about the `LlmModel`, made by the
+`baseline-recorder`, superseded by a better measurement rather than overwritten.
+Stored with it: the sample, the conditions, the code revision, and the caveats.
+A rate on its own cannot be compared to anything — the next reading would differ
+and nobody could say whether the model changed, the code changed, or the
+question did.
+
+`Baseline.compare` refuses to call two readings comparable when their conditions
+differ, and reports a criterion measured once but not twice rather than dropping
+it: a measurement that was not repeated is not a measurement that agreed.
+
+**v1**, Gemini 2.5 Pro, 25 July 2026:
+
+| Criterion | Result |
+|---|---|
+| Polarity invariance | 12 of 14 checkable, **86%** |
+| Classification reproducibility, batched | 203 of 231, **88%** |
+| Context effect | 65% single-claim vs 88% batched |
+| Order stability, value priority | 4 probes, all unanimous |
+
+---
+
 ## Reading
 
 The review surface shows the working memory of the analysis: identity cards,

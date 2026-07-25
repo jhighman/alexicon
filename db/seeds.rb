@@ -154,6 +154,18 @@ Referent.find_or_initialize_by(key: "situational-sentinel").update!(
   notes: "Guards action polarity. Flags where surface grammar and intent are known to come apart."
 )
 
+# A measurement OF the system needs a home like any other claim. Findings about
+# a model are recorded as assertions about that model, by this referent, so a
+# later measurement can supersede an earlier one rather than overwrite it.
+Referent.find_or_initialize_by(key: "baseline-recorder").update!(
+  name: "Baseline Recorder",
+  subject: "System",
+  role: "Instrument",
+  primitive: "system",
+  notes: "Records checkable properties of models: the rate, the sample, the conditions, " \
+         "and the code revision that produced them."
+)
+
 # --- Value probes ------------------------------------------------------------
 # Scenarios in which two commitments collide. No probe carries an expected
 # answer: one that did would test compliance, and compliance and priority are
