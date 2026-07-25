@@ -84,4 +84,34 @@ RSpec.describe "a cut-off response" do
       expect(sent[:generationConfig][:responseMimeType]).to eq "application/json"
     end
   end
+
+  # Every other adapter treats max_tokens as the size of the ANSWER. Without a
+  # floor here the same number means different things depending on which
+  # provider a governed decision happened to route to.
+  describe "thinking headroom" do
+    before { allow(adapter).to receive(:api_key).and_return("test-key") }
+
+    def sent_config(max_tokens)
+      sent = nil
+      allow(adapter).to receive(:post_json) { |_url, body| sent = body; payload("STOP") }
+      adapter.complete(system: "s", user: "u", schema: nil, max_tokens: max_tokens)
+      sent[:generationConfig]
+    end
+
+    it "asks for the answer the caller wanted plus room to think" do
+      expect(sent_config(1024)[:maxOutputTokens])
+        .to eq 1024 + LlmClients::Gemini::THINKING_HEADROOM
+    end
+
+    it "covers the thinking actually observed in the failures that prompted it" do
+      # ~950 on a two-line prompt, ~1,500 on a scenario, ~3,800 on a document.
+      expect(LlmClients::Gemini::THINKING_HEADROOM).to be >= 3_830
+    end
+
+    # A floor, not a guarantee.
+    it "still refuses a truncated answer, and names the headroom it allowed" do
+      expect { adapter.send(:check_finished, payload("MAX_TOKENS"), payload("MAX_TOKENS")["usageMetadata"]) }
+        .to raise_error(LlmClients::ResponseTruncated, /of headroom allowed/)
+    end
+  end
 end

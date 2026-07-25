@@ -7,8 +7,23 @@ module LlmClients
   class Gemini < Base
     def self.credential_env = "GEMINI_API_KEY"
 
+    # This model thinks before it writes, and the thinking is charged against
+    # maxOutputTokens. Every other adapter treats `max_tokens` as the size of
+    # the ANSWER, so without this the same number means different things
+    # depending on which provider a governed decision happened to route to --
+    # and the caller would have to know which providers think, which is exactly
+    # what the adapter layer exists to hide.
+    #
+    # Observed thinking: ~950 on a two-line prompt, ~1,500 on a short scenario,
+    # ~3,800 on a whole document. Three separate services were sized wrong
+    # before this existed, each discovered by a run failing.
+    #
+    # It is a floor, not a guarantee. The finishReason check still fires if the
+    # thinking outgrows even this, and says so.
+    THINKING_HEADROOM = 4_096
+
     def complete(system:, user:, schema:, max_tokens:)
-      config = { maxOutputTokens: max_tokens }
+      config = { maxOutputTokens: max_tokens + THINKING_HEADROOM }
       # A nil schema means prose was asked for. Demanding JSON anyway would put
       # the adapter's assumption in front of what the caller wanted -- and the
       # value probes need a natural answer, not a structured one.
@@ -49,8 +64,9 @@ module LlmClients
         thoughts = usage["thoughtsTokenCount"].to_i
         raise ResponseTruncated,
               "the answer was cut off at the token limit " \
-              "(#{usage['candidatesTokenCount'].to_i} written, #{thoughts} spent thinking). " \
-              "Ask for fewer items per call, or raise the limit."
+              "(#{usage['candidatesTokenCount'].to_i} written, #{thoughts} spent thinking, " \
+              "#{THINKING_HEADROOM} of headroom allowed). Ask for fewer items per call, " \
+              "or raise THINKING_HEADROOM."
       end
 
       raise RequestRejected, "the provider stopped early: #{reason}"

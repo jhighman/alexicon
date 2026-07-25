@@ -21,9 +21,9 @@
 #   * Every call is RECORDED, like any other.
 class IdentityProposer
   ACTION = "resolve".freeze
-  # Generous, because a thinking model charges its thinking against this budget
-  # and the visible answer is what is left.
-  MAX_TOKENS = 16_384
+  # The size of the answer: fifteen proposals with rationales. Room for a
+  # thinking model to think is added by the adapter.
+  MAX_TOKENS = 4096
 
   # Names are proposed in batches so one refusal cannot cost a whole document,
   # and so a long list does not run into the output limit. Forty was too many:

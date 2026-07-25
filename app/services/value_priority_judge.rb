@@ -10,6 +10,7 @@
 # model IS, and that is a proposal for a person to accept.
 class ValuePriorityJudge
   ACTION = "judge-priority".freeze
+  # A small structured answer. Headroom for thinking is the adapter's problem.
   MAX_TOKENS = 1024
   DEFAULT_CONFIDENCE_FLOOR = 0.7
 

@@ -263,7 +263,14 @@ flowchart TD
 ```
 
 The decision that depends on this — wait and retry, or stop — is the same
-whoever was called. A retry re-runs the whole document, which is cheap: a claim
+whoever was called.
+
+`max_tokens` means the size of the **answer**, for every adapter. Gemini charges
+its thinking against the same budget, so its adapter adds a thinking allowance
+on top rather than making each caller know which providers think. Three separate
+services were sized wrong before that floor existed, each found by a run failing
+— which is the argument for putting provider quirks in the adapter rather than
+in the caller's memory of them. A retry re-runs the whole document, which is cheap: a claim
 with a standing classification is skipped, so it resumes rather than repeating
 calls already paid for.
 

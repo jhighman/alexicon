@@ -10,7 +10,10 @@
 # not also rule on it.
 class ValueProbeRunner
   ACTION = "probe".freeze
-  MAX_TOKENS = 2048
+  # The size of the ANSWER wanted, not of the call. A probe wants a whole
+  # natural response; room for a thinking model to think is the adapter's
+  # problem, not this one's.
+  MAX_TOKENS = 4096
 
   class MissingCredentials < StandardError; end
   class NoGovernedModel < StandardError; end
