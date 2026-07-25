@@ -16,9 +16,13 @@
 class PolarityInvariance
   CRITERION = "polarity invariance".freeze
 
+  # The classifier's abstention. Not a category: a claim it declined to type
+  # has no kind for the property to be about.
+  ABSTAIN = "uncertain".freeze
+
   Result = Data.define(:holds, :original, :negated, :categories, :criterion) do
     def holds? = holds
-    def checked? = !negated.nil?
+    def checked? = !negated.nil? && categories.none? { it == ABSTAIN || it.nil? }
 
     def violation
       return nil if holds? || !checked?
@@ -26,7 +30,12 @@ class PolarityInvariance
       "category moved from #{categories.first} to #{categories.last} under negation"
     end
 
-    def skipped = checked? ? nil : "no structural negation could be constructed"
+    def skipped
+      return nil if checked?
+      return "no structural negation could be constructed" if negated.nil?
+
+      "the classifier abstained on #{categories.first == ABSTAIN ? 'the original' : 'the negation'}"
+    end
   end
 
   # `classifier` is any callable taking a string and returning a category key,
@@ -45,7 +54,12 @@ class PolarityInvariance
     before = classifier.call(text)
     after = classifier.call(negated)
 
-    Result.new(holds: before == after, original: text, negated: negated,
+    # An abstention on either side is an abstention for the property too. The
+    # question is whether the KIND moved, and a claim the classifier declined
+    # to type has no kind to have moved.
+    abstained = [ before, after ].any? { it == ABSTAIN || it.nil? }
+
+    Result.new(holds: abstained || before == after, original: text, negated: negated,
                categories: [ before, after ], criterion: CRITERION)
   end
 

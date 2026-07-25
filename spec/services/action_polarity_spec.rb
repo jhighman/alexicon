@@ -138,6 +138,28 @@ RSpec.describe "action polarity" do
       expect(result.violation).to eq "category moved from interpretive to objective under negation"
     end
 
+    # `uncertain` is the classifier declining to say, not a fifth category.
+    describe "when the classifier abstains" do
+      it "says nothing about a claim it declined to type" do
+        abstaining = ->(text) { text.include?("not") ? "interpretive" : "uncertain" }
+
+        result = described_class.check(abstaining, text: "The wall is fear.")
+
+        expect(result).not_to be_checked
+        expect(result).to be_holds
+        expect(result.skipped).to match(/abstained on the original/)
+      end
+
+      it "says nothing when it abstains on the negation instead" do
+        abstaining = ->(text) { text.include?("not") ? "uncertain" : "interpretive" }
+
+        result = described_class.check(abstaining, text: "The wall is fear.")
+
+        expect(result).not_to be_checked
+        expect(result.skipped).to match(/abstained on the negation/)
+      end
+    end
+
     describe "when no negation can be constructed" do
       it "abstains rather than paraphrasing" do
         result = described_class.check(by_form, text: "Collapsing walls everywhere.")
