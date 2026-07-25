@@ -15,6 +15,7 @@ The recursive question the system exists to answer:
 
 | Document | What it covers |
 |---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How it is built — pipeline, record model, where the locks bite, diagrams |
 | [`docs/THESIS.md`](docs/THESIS.md) | The Sentinel Principle — ontology, the Assertion Principle, the Binding Problem |
 | [`docs/CONOPS.md`](docs/CONOPS.md) | Concept of operations: scenarios, functional requirements, non-goals |
 | [`docs/THEORY.md`](docs/THEORY.md) | Psychoanalytic and epistemological grounding; terminology register |
