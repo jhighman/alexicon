@@ -52,6 +52,8 @@ module ReviewHelper
   # kind rather than rank, so no colour is "good" — red marks where a step was
   # judged unearned, which is a finding about the move, not about the sentence.
   def reading_tone(claim, findings)
+    return "tone-structure" if claim.structural?
+
     tone = "tone-#{claim.category&.key || 'none'}"
     findings.any?(&:unearned?) ? "#{tone} flagged" : tone
   end

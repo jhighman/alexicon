@@ -13,10 +13,18 @@
 # Offsets are document-relative and the source text is never modified, so every
 # claim remains traceable to the exact span it came from.
 class ClaimSegmenter
-  Segment = Data.define(:text, :char_start, :char_end)
+  Segment = Data.define(:text, :char_start, :char_end, :structural) do
+    def structural? = structural
+  end
 
-  # A terminator may be followed by closing quotes or brackets.
-  TERMINATOR = /[.!?]+["'”’)\]]*/
+  # A terminator may be followed by closing quotes or brackets. An ellipsis
+  # ends a sentence too -- without it, "…where it gets interesting…" read as an
+  # unterminated line and was mistaken for a heading.
+  TERMINATOR = /[.!?…]+["'”’)\]]*/
+
+  # A heading is short, sits on its own line, and does not end in punctuation
+  # that closes a sentence.
+  HEADING_MAX = 60
 
   # Trailing-period forms that do not end a sentence.
   ABBREVIATIONS = %w[
@@ -138,6 +146,44 @@ class ClaimSegmenter
     return nil if stripped.empty?
 
     start = from + raw.index(stripped)
-    Segment.new(text: stripped, char_start: start, char_end: start + stripped.length)
+    Segment.new(text: stripped, char_start: start, char_end: start + stripped.length,
+                structural: heading?(stripped, start))
   end
+
+  # Deliberately narrow, and it stays narrow.
+  #
+  # The obvious rule -- "short, alone on its line, no full stop" -- swallowed
+  # 49 of this document's 306 claims, including the framework's own category
+  # definitions, because a table had been flattened into bare lines before it
+  # ever arrived. Marking real content as structure hides it from every later
+  # judgement, which is a silent loss and worse than leaving a heading in.
+  #
+  # So the rule also requires ISOLATION: neither neighbouring line may be
+  # heading-shaped. A run of short unterminated lines is a table or a list, and
+  # this refuses to guess about those.
+  def heading?(candidate, start)
+    return false unless heading_shaped?(candidate)
+    return false unless own_line?(candidate, start)
+
+    [ line_before(start), line_after(start + candidate.length) ]
+      .compact.none? { heading_shaped?(it) }
+  end
+
+  def heading_shaped?(line)
+    stripped = line.to_s.strip
+    return false if stripped.empty? || stripped.length > HEADING_MAX
+
+    !stripped.match?(/[.!?…:,;]["'”’)\]]*\z/)
+  end
+
+  def own_line?(candidate, start)
+    before = start.zero? || text[0...start].end_with?("\n")
+    finish = start + candidate.length
+    after = finish >= text.length || text[finish..].start_with?("\n")
+    before && after
+  end
+
+  def line_before(start) = text[0...start].to_s.lines.map(&:chomp).reverse.find(&:present?)
+
+  def line_after(finish) = text[finish..].to_s.lines.map(&:chomp).find(&:present?)
 end

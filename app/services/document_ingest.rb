@@ -55,7 +55,8 @@ class DocumentIngest
         position: index + 1,
         text: segment.text,
         char_start: segment.char_start,
-        char_end: segment.char_end
+        char_end: segment.char_end,
+        structural: segment.structural?
       )
     end
   end
@@ -77,7 +78,13 @@ class DocumentIngest
   # Adjacency only. Real arguments branch, and a transition may be created
   # between any two claims later; this is the default reading order, not a
   # claim about the argument's structure.
+  #
+  # A step is an inferential move from one claim to the next. A heading is where
+  # an argument restarts, so the chain breaks there rather than drawing a step
+  # across it -- and no step is drawn to or from the heading itself.
   def connect(claims)
-    claims.each_cons(2).map { |from, to| Transition.create!(source: from, target: to) }
+    claims.chunk_while { |_, b| !b.structural? }
+          .flat_map { |run| run.reject(&:structural?).each_cons(2).to_a }
+          .map { |from, to| Transition.create!(source: from, target: to) }
   end
 end

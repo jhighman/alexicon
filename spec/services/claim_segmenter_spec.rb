@@ -118,4 +118,50 @@ RSpec.describe ClaimSegmenter do
       expect(segments.map(&:text)).to eq [ "Only one claim here." ]
     end
   end
+
+  # A heading is part of the document but is not a claim about anything.
+  describe "structure" do
+    it "marks an isolated heading as structure" do
+      segments = described_class.new("The Sentinel\n\nTrust is a discipline. It is not a feeling.").call
+
+      expect(segments.first.text).to eq "The Sentinel"
+      expect(segments.first).to be_structural
+      expect(segments.drop(1).none?(&:structural?)).to be true
+    end
+
+    # The obvious rule swallowed 49 of one document's 306 claims, including the
+    # framework's own category definitions, because a table had been flattened
+    # into bare lines before it arrived. Isolation is what keeps it narrow.
+    it "refuses to guess about a run of short unterminated lines" do
+      table = "Category\nWhat it is\nSource of confidence\nObjective\nPublicly checkable facts"
+
+      expect(described_class.new(table).call.none?(&:structural?)).to be true
+    end
+
+    it "does not mark a short sentence that ends properly" do
+      segments = described_class.new("It fell.\n\nI saw it happen.").call
+
+      expect(segments.none?(&:structural?)).to be true
+    end
+
+    it "does not mark a line that ends in a colon, which introduces what follows" do
+      segments = described_class.new("Polanyi reverses it:\n\nCommitment then understanding.").call
+
+      expect(segments.first).not_to be_structural
+    end
+
+    # Without the ellipsis as a terminator this read as an unterminated line and
+    # was mistaken for a heading.
+    it "treats an ellipsis as ending a sentence" do
+      segments = described_class.new("But here is where it gets interesting…\n\nThe wall fell.").call
+
+      expect(segments.first).not_to be_structural
+    end
+
+    it "does not mark prose that merely lacks a full stop mid-paragraph" do
+      segments = described_class.new("The wall fell. And then\nit was over.").call
+
+      expect(segments.none?(&:structural?)).to be true
+    end
+  end
 end

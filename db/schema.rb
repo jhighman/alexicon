@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_25_093402) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_25_103004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -77,10 +77,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_093402) do
     t.datetime "created_at", null: false
     t.bigint "document_id", null: false
     t.integer "position", null: false
+    t.boolean "structural", default: false, null: false
     t.text "text", null: false
     t.datetime "updated_at", null: false
     t.index ["document_id", "position"], name: "index_claims_on_document_id_and_position", unique: true
     t.index ["document_id"], name: "index_claims_on_document_id"
+    t.index ["structural"], name: "index_claims_on_structural"
   end
 
   create_table "delegations", force: :cascade do |t|

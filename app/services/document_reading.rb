@@ -35,10 +35,12 @@ class DocumentReading
 
   # What the reader should know before starting, so they know where to look.
   def summary
+    substantive = claims.reject(&:structural?)
     {
-      claims: claims.size,
-      classified: claims.count(&:category),
-      categories: claims.filter_map { it.category&.name }.tally.sort_by { -it.last },
+      claims: substantive.size,
+      structural: claims.count(&:structural?),
+      classified: substantive.count(&:category),
+      categories: substantive.filter_map { it.category&.name }.tally.sort_by { -it.last },
       unearned: unearned_steps.size,
       steps_judged: transitions.count { it.verdict != "undetermined" },
       steps: transitions.size,

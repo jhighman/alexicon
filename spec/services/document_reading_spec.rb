@@ -46,13 +46,24 @@ RSpec.describe DocumentReading do
 
   describe "the summary" do
     it "counts what has been typed and what has not" do
-      document.reload.claims.first.classify!(categories.first, asserter: person, confidence: 1.0)
+      doc = document.reload
+      first_claim = doc.claims.substantive.first
+      first_claim.classify!(categories.first, asserter: person, confidence: 1.0)
 
-      summary = described_class.for(document.reload).summary
+      summary = described_class.for(doc.reload).summary
 
-      expect(summary[:claims]).to eq document.claims.count
+      expect(summary[:claims]).to eq doc.claims.substantive.count
       expect(summary[:classified]).to eq 1
       expect(summary[:categories]).to include [ "Observation", 1 ]
+    end
+
+    # A heading is in the document but is not a claim, so counting it among the
+    # unclassified would report work outstanding that nobody should do.
+    it "counts headings apart from claims" do
+      summary = described_class.for(document.reload).summary
+
+      expect(summary[:structural]).to be_positive
+      expect(summary[:claims]).to eq document.claims.count - summary[:structural]
     end
 
     # An empty finding column is reported as empty, not left to look like a

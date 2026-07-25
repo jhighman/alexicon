@@ -36,7 +36,9 @@ class DocumentClassification
   def call
     classified = abstained = skipped = 0
 
-    ordered = document.claims.to_a
+    # Headings are part of the document but are not claims about anything, so
+    # nothing asks them what kind of claim they are.
+    ordered = document.claims.reject(&:structural?)
     index = -1
 
     # Never reclassify. A standing classification is answered by a person or

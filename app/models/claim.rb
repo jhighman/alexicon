@@ -1,6 +1,10 @@
 # One individually classifiable statement within a document.
 class Claim < ApplicationRecord
   belongs_to :document
+
+  # Part of the document, but not a claim about anything: a heading, a section
+  # marker. Kept in the record and still rendered — marking is not hiding.
+  scope :substantive, -> { where(structural: false) }
   has_many :mentions, dependent: :destroy
 
   # Classifications are assertions about this claim. NOT dependent: :destroy --
