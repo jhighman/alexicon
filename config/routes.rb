@@ -10,6 +10,38 @@ Rails.application.routes.draw do
     end
   end
 
+  # The programmatic surface. A token acts as its Referent, so whatever calls
+  # this attributes its judgements to itself.
+  namespace :api do
+    namespace :v1 do
+      resources :documents, only: %i[index show create] do
+        member do
+          post :classify
+          post :propose_identities
+          post :govern
+        end
+        resources :mentions, only: :index
+        resources :flags, only: :index
+      end
+
+      resources :mentions, only: [] do
+        member do
+          post :ground
+          post :ignore
+        end
+      end
+
+      resources :flags, only: :update
+
+      resources :llm_models, only: :index do
+        member do
+          post :certify
+          post :revoke
+        end
+      end
+    end
+  end
+
   # Sign-in. Authorisation lives in policies; the session establishes who is
   # acting, and their Referent is what judgements attribute to.
   resource :session, only: %i[new create destroy]

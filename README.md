@@ -132,6 +132,38 @@ audit trail.
 | `auditor` | read + the model registry and every invocation |
 | `admin` | everything, including certifying and revoking models |
 
+## Driving it programmatically
+
+Every act a person can perform has a REST endpoint, and the CLI and any agent
+use the same one. A token belongs to a **Referent**, not to a user session, so
+whatever calls the API attributes its judgements to itself — an agent can never
+leave a record saying a person decided.
+
+```sh
+bin/rails "alexicon:token[avery,laptop]"                  # a person's token
+bin/rails "alexicon:agent[review-agent,Review Agent]"      # an agent, and its token
+```
+
+Two gates, and both must pass. The **policy** is the same Pundit policy the
+browser uses — there is no second authorisation path. The **delegation** applies
+to judgements only: a person's token passes it by being the person the gate was
+asking for; an agent's needs a standing decision, granted per act by a named
+person, that this class of judgement may be made with nobody present.
+
+Nothing is delegated by default, so a fresh agent may read every question and
+answer none of them:
+
+```
+POST /api/v1/mentions/12/ground
+{ "error": "not_delegated",
+  "detail": "Review Agent may not ground mention without a person.",
+  "act": "ground_mention", "acting_as": "review-agent" }
+```
+
+That is the difference between delegating judgement and bypassing it. The person
+does not stop deciding; they decide once, about a class of judgement, instead of
+repeatedly about instances.
+
 ## Setup
 
 Requires Ruby 3.4.8 and PostgreSQL 16+.

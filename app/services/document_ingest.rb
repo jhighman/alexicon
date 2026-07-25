@@ -35,7 +35,10 @@ class DocumentIngest
     raise AlreadyIngested, "document #{document.id} already has claims" if document.claims.exists?
 
     claims = segment
-    mentions = claims.flat_map { extract_from(it) }
+    # Not from headings. A heading is not a claim about anything, so nothing in
+    # it is being predicated of a name — and an identity STOP raised by a
+    # section title would block governance over a word nobody asserted with.
+    mentions = claims.reject(&:structural?).flat_map { extract_from(it) }
     transitions = connect(claims)
 
     # Verification runs after the graph exists, so a Sentinel judgement always
