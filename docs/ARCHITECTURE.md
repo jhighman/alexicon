@@ -46,6 +46,20 @@ flowchart TD
     style IP fill:#e2e3e5,stroke:#6c757d
 ```
 
+**Structure is not a claim.** A heading, a table row, a rule — part of the
+document, but not an assertion about anything. These are marked rather than
+dropped, so the text stays in the record and still renders; what changes is that
+nothing asks them what kind of claim they are, and no step is drawn through
+them, because a heading is where an argument restarts rather than a move within
+one.
+
+Where the text is markdown, this is decided with certainty: a row is a table row
+because a delimiter row says the block is a table. Where it is plain prose, a
+deliberately timid heuristic applies — an *isolated* short unterminated line,
+never a run of them. The timidity is earned: the obvious rule swallowed 49 of
+one document's 306 claims, including the framework's own category definitions,
+because a table had been flattened into bare newlines before it ever arrived.
+
 Two things to notice. The **rule-based** stages are deliberately not
 model-backed — segmentation and extraction decide what counts as a claim and
 what counts as a name, and every later judgement inherits those decisions

@@ -37,6 +37,7 @@ class ClaimSegmenter
 
   def initialize(text)
     @text = text.to_s
+    @markdown = MarkdownStructure.for(@text)
   end
 
   def call
@@ -45,7 +46,12 @@ class ClaimSegmenter
     segments = []
     cursor = 0
 
-    (terminator_cuts + line_cuts).uniq.sort.each do |finish|
+    # Markdown block edges are cuts too: a claim must never run from a heading
+    # into the paragraph beneath it, or across a table row.
+    cuts = terminator_cuts + line_cuts
+    cuts += markdown.boundaries if markdown.markdown?
+
+    cuts.uniq.sort.each do |finish|
       next if finish <= cursor
 
       segment = build(cursor, finish)
@@ -60,7 +66,7 @@ class ClaimSegmenter
 
   private
 
-  attr_reader :text
+  attr_reader :text, :markdown
 
   def terminator_cuts
     cuts = []
@@ -161,7 +167,15 @@ class ClaimSegmenter
   # So the rule also requires ISOLATION: neither neighbouring line may be
   # heading-shaped. A run of short unterminated lines is a table or a list, and
   # this refuses to guess about those.
+  # Where markdown speaks it decides, with certainty and without geometry: a row
+  # is a table row because a delimiter row said so, not because it is short.
+  #
+  # Where it says nothing, the heuristic still runs. Making markdown
+  # all-or-nothing would mean one stray horizontal rule silently switched
+  # heading detection off for the rest of a mostly-plain document.
   def heading?(candidate, start)
+    return true if markdown.structural?(start, start + candidate.length)
+
     return false unless heading_shaped?(candidate)
     return false unless own_line?(candidate, start)
 

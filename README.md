@@ -67,6 +67,12 @@ often it appears and in whichever document, and the answer applies wherever the
 name occurs. Disposing of the flag lifts it; what is not possible is reasoning
 past it silently.
 
+**Markdown is understood at ingest.** Headings, tables, fenced code and rules
+are kept as structure rather than offered as claims, so a table of definitions
+is never asked what kind of assertion it is and no reasoning step is drawn from
+one of its rows. Plain prose still works; a narrow heuristic covers headings
+where no markup exists.
+
 **Framework as data.** Domains, claim categories, and flow stages are seeded
 rows scoped to a framework version, not constants. A terminology register
 tracks names that have drifted, and records contested ones as `disputed`
