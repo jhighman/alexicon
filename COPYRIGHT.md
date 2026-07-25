@@ -29,8 +29,14 @@ For permission, contact the copyright holder.
 
 **© 2026 Jeff Highman & Alexandra Křížová.**
 
-Applies to the `docs/` directory: `THESIS.md`, `THEORY.md`, `CONOPS.md`,
-`mindmap.html`, and `decisions/`.
+Applies to the co-authored framework documentation: `docs/THESIS.md`,
+`docs/THEORY.md`, `docs/CONOPS.md`, `docs/mindmap.html`, and the framework
+decisions `docs/decisions/0001`–`0009`.
+
+It does **not** apply to `docs/ARCHITECTURE.md` or `docs/decisions/0010`
+onward. Those describe the implementation rather than the framework, are
+authored by Jeff Highman alone, and are covered by the source-code terms above.
+Attributing them to both authors would credit work one of them did not do.
 
 Licensed under the Creative Commons
 **Attribution-NonCommercial-NoDerivatives 4.0 International** licence.
