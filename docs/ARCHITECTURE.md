@@ -177,6 +177,41 @@ it was there.
 
 ---
 
+## Action polarity — what a claim does, and whether that can be read
+
+The G3/G7 Matrix reads verbs as forces applied between nodes rather than as
+grammatical decoration. The difficulty is Freud's: a surface negation can carry
+the very intent it appears to deny. *"Nechceš kávu?"* — *"Don't you want
+coffee?"* — is an offer in Slovak and is read as refusal through an
+English-shaped frame.
+
+So `ClaimPolarity` reads **surface** polarity only, deterministically, and says
+so. Its useful output is not the reading but the constructions where the reading
+cannot be trusted — a negative question, a double negative, a negated modal.
+`SituationalSentinel` raises a **concern** on those, never a STOP: an unreadable
+direction does not make a document ungroundable the way an unresolved name does,
+because nothing is yet predicating a direction of anything.
+
+Litotes is a recorded miss. *"It is not uncommon"* reads as denied and means
+roughly the opposite, and no structural rule separates `uncommon` from
+`understood`, `universe` or `information`. Detecting it needs a lexicon of
+negative-prefixed words — world knowledge, which is what this layer exists not
+to guess at. The gap is documented and pinned by a spec rather than papered over.
+
+The enforceable claim is narrow, in the manner of gap invariance:
+
+> **Polarity invariance.** Negating a claim does not change what KIND of claim
+> it is. *"The wall represented fear"* is interpretive; so is *"The wall did not
+> represent fear."*
+
+A classifier whose category moves under negation is reading what a claim says
+rather than what it does. `PolarityInvariance` checks it by construction — two
+classifications, no opinion — and abstains where a negation cannot be built
+structurally, because a paraphrase would put the checker's own rewrite
+underneath the result.
+
+---
+
 ## The model is fenced
 
 Which model answers is a governed decision, not a constant. An uncertified model

@@ -141,6 +141,19 @@ Referent.find_or_initialize_by(key: "identity-proposer").update!(
   notes: "Proposes what a name refers to. Its output is inference awaiting a person, never a resolution."
 )
 
+# Column D of the G3/G7 Matrix has its own guard, named for the manuscript's
+# Freud mapping. It does not decide what a claim means; it says when the claim's
+# grammar cannot be trusted to say what it means -- a negative question, a double
+# negative, a negated modal. A concern, never a STOP: an unreadable direction
+# does not make a document ungroundable the way an unresolved name does.
+Referent.find_or_initialize_by(key: "situational-sentinel").update!(
+  name: "Situational Sentinel",
+  subject: "System",
+  role: "Sentinel",
+  primitive: "system",
+  notes: "Guards action polarity. Flags where surface grammar and intent are known to come apart."
+)
+
 # --- Value probes ------------------------------------------------------------
 # Scenarios in which two commitments collide. No probe carries an expected
 # answer: one that did would test compliance, and compliance and priority are
