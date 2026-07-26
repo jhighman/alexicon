@@ -9,7 +9,7 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 7 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`, `d95b3f1`, `9b8e462-dirty`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
+> **Taken across 8 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`, `d95b3f1`, `9b8e462-dirty`, `3aa169c`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
 > **How to read a number here.** None of these say the model is right. They
 > say whether it is *consistent*, which is a different and smaller claim. A
@@ -349,6 +349,47 @@ The reversal is the more interesting half. On narrative the second judge pushed 
 - Both samples are small — 40 and 37 claims — and drawn from one document.
 - Every caveat on the narrative measurement still applies: judge B read once against judge A's three, read its claims in one pass rather than through a 4-claim window, and is not a disinterested party.
 
+## 12. Finding-set churn (coverage-corrected) — 70.0% judging the same steps, 57.4% overall
+
+| | |
+|---|---|
+| rate | 70.0% |
+| in both | 35 |
+| only pass1 | 20 |
+| only pass2 | 6 |
+| jaccard raw | 57.4% |
+| claims compared | 306 |
+| claims typed alike | 258 |
+| claims typed pass1 | 272 |
+| claims typed pass2 | 251 |
+| steps judgeable pass1 | 249 |
+| steps judgeable pass2 | 213 |
+| zero reading claims pass1 | 30 |
+| zero reading claims pass2 | 51 |
+| jaccard where both could judge | 70.0% |
+| only pass1 undetermined in pass2 | 11 |
+| only pass1 judged earned in pass2 | 9 |
+| only pass2 judged earned in pass1 | 6 |
+
+Resolves the asymmetry the earlier three-reading comparison recorded and could not attribute: for every step flagged in one pass and not the other, what the other pass actually said.
+
+**Mostly coverage, and not entirely.** Of 20 steps flagged only in the first pass, the second could not judge 11 — it had abstained on an endpoint — but judged 9 of them *earned*, which is a real disagreement. Remove the coverage effect and the lopsided 20-against-6 becomes 9-against-6.
+
+So §9's number was answering two questions at once. **0.70** is how often two passes flag the same step when both can judge it; **0.574** mixes that with how often both could judge it at all.
+
+The unlooked-for finding is the second one. Coverage is itself unstable — the same classifier on the same document left 30 claims unread on one pass and 51 on the next, 10% against 17%. Everything measured so far assumed the abstention rate held.
+
+**Sample:** steps 305, claims 306, passes 2, document 20, readings per pass 3  
+**Conditions:** pass1 the recorded three-reading state, persisted — the SAME pass 1 the earlier churn figure used, pass2 three fresh readings held in memory, nothing written, majority strict — more than half, batch size 12, context claims 4, corrected over steps both passes could judge; a step one pass could not judge is a coverage difference, not a disagreement about the step  
+**Code:** `3aa169c`
+
+**What this cannot tell you.**
+- The asymmetry was MOSTLY coverage and not entirely. Of 20 steps flagged only in pass 1, pass 2 could not judge 11 at all — it had abstained on an endpoint — but it judged the other 9 EARNED, which is a real disagreement about the same step. All 6 flagged only in pass 2 were judged earned by pass 1. Strip the coverage effect and the asymmetry is 9 against 6, close to symmetric.
+- 0.70 is the honest figure for 'do two passes flag the same steps'. 0.574 answers a different question that mixes in 'do they cover the same steps'.
+- NEW and unmeasured before: coverage itself is unstable between passes. Pass 1 left 30 claims with no reading at all, pass 2 left 51 — 10% against 17% of the document, same classifier, same settings. Judgeable steps moved 249 to 213. Nothing had measured the variance in the abstention rate.
+- This is NOT an independent second estimate of churn. It compares a new pass against the SAME pass 1 the earlier figure used, so 0.60 and 0.574 share a reference and are correlated. Two passes compared against a common third are not two independent measurements.
+- Still one document, still a pair of passes.
+
 ---
 
 ## Comparing a later reading
@@ -364,7 +405,7 @@ number cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 11 figures. 9 of them are the system agreeing or disagreeing with itself; 2 compare it against a second judge, which is agreement between two readers and not evidence that either is right.
+- **Correctness.** 12 figures. 10 of them are the system agreeing or disagreeing with itself; 2 compare it against a second judge, which is agreement between two readers and not evidence that either is right.
   Nothing here compares the system's output to a *person's* judgement of the
   same text — which would be the most valuable next measurement, and is not a
   software task.

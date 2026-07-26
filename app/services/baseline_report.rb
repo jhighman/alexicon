@@ -100,7 +100,18 @@ class BaselineReport
       "The reversal is the more interesting half. On narrative the second judge pushed claims " \
       "*toward* observation; on argument it pushed them *toward* interpretive. Neither judge is " \
       "simply the more literal one — they disagree about where a **different boundary** sits in " \
-      "each genre. A single definition of observation is being asked to do two jobs."
+      "each genre. A single definition of observation is being asked to do two jobs.",
+    "finding-set churn (coverage-corrected)" =>
+      "**Mostly coverage, and not entirely.** Of 20 steps flagged only in the first pass, the " \
+      "second could not judge 11 — it had abstained on an endpoint — but judged 9 of them " \
+      "*earned*, which is a real disagreement. Remove the coverage effect and the lopsided " \
+      "20-against-6 becomes 9-against-6.\n\n" \
+      "So §9's number was answering two questions at once. **0.70** is how often two passes " \
+      "flag the same step when both can judge it; **0.574** mixes that with how often both " \
+      "could judge it at all.\n\n" \
+      "The unlooked-for finding is the second one. Coverage is itself unstable — the same " \
+      "classifier on the same document left 30 claims unread on one pass and 51 on the next, " \
+      "10% against 17%. Everything measured so far assumed the abstention rate held."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -126,6 +137,8 @@ class BaselineReport
       "%{agreed} of %{compared} claims typed alike",
     "inter-judge agreement (argumentative prose)" =>
       "%{rate} here against %{narrative_rate} on narrative",
+    "finding-set churn (coverage-corrected)" =>
+      "%{jaccard_where_both_could_judge} judging the same steps, %{jaccard_raw} overall",
     "finding-set churn (three-reading passes)" =>
       "%{in_both} of %{pass1} steps flagged again"
   }.freeze
