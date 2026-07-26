@@ -186,6 +186,41 @@ That is the measurement worth taking next, and it is not a software task.
 
 ---
 
+## 7. The same document, twice, flags different sentences — Jaccard 0.51
+
+The reproducibility figures above count claims typed the same way. This asks the
+question a reader actually cares about: **are the same steps flagged?**
+
+The essay was classified twice under identical conditions and the verdicts
+derived from each set of categories.
+
+| | |
+|---|---|
+| Unearned steps, run 1 | **43** |
+| Unearned steps, run 2 | **34** |
+| In both | 26 |
+| Only in run 1 | 17 |
+| Only in run 2 | 8 |
+| **Jaccard** | **0.51** |
+
+**The count moved 21%. The membership moved 49%.** A stable count is not a stable
+set, and almost nothing consumes the count.
+
+This is the most consequential figure here, and it contradicts an argument made
+earlier from the count alone — see
+[REPRODUCIBILITY-REQUIREMENT.md](REPRODUCIBILITY-REQUIREMENT.md), which was
+rewritten against it.
+
+Worth knowing where the instability is *not*: segmentation, mention extraction,
+identity resolution, governance-given-categories and the retroactive audit are
+all deterministic and produce identical output every run. **Classification is the
+sole source**, and everything downstream inherits it.
+
+**What this cannot tell you.** One pair of runs. It establishes that churn is
+large, not its distribution.
+
+---
+
 ## Comparing a later reading
 
 `Baseline.compare(from: "v1", to: "v2")` will **refuse** to call two figures
