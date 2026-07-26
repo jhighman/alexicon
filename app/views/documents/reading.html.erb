@@ -38,6 +38,21 @@
         </div>
       </div>
       <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Readings per claim</div>
+        <% r = s[:readings].reject { |n, _| n.zero? } %>
+        <div class="fs-3 <%= r.keys.all? { |n| n < 2 } ? "text-warning-emphasis" : "" %>">
+          <%= r.keys.min == r.keys.max ? r.keys.min : "#{r.keys.min}–#{r.keys.max}" %>
+        </div>
+        <div class="small text-body-secondary">
+          <% if r.keys.all? { |n| n < 2 } %>
+            a single reading is a sample, not a finding — the same document read
+            twice flags about half the same steps
+          <% else %>
+            <%= r.map { |n, c| "#{c} claims × #{n}" }.join(" · ") %>
+          <% end %>
+        </div>
+      </div>
+      <div class="col-md-4">
         <div class="text-body-secondary small text-uppercase">Names unanswered</div>
         <div class="fs-3"><%= s[:open_names] %></div>
         <div class="small text-body-secondary">
@@ -78,7 +93,7 @@
         <% findings = @reading.findings_for(claim) %>
         <span class="reading-claim <%= reading_tone(claim, findings) %>"
               id="claim-<%= claim.position %>"
-              title="<%= claim.category&.name || 'unclassified' %><%= " — #{claim.classification.rationale}" if claim.classification&.rationale %>"><%= segment.text %></span><%
+              title="<%= claim.category&.name || 'unclassified' %> · <%= claim.agreement %><%= " — #{claim.classification.rationale}" if claim.classification&.rationale %>"><%= segment.text %></span><%
           %><% if findings.any? %><span class="reading-marker" title="<%= findings.map(&:message).join(' · ') %>">▍</span><% end %>
       <% else %>
         <%= segment.text %>
@@ -102,6 +117,12 @@
           <% @reading.findings_for(segment.claim).each do |finding| %>
             <div class="small <%= finding.unearned? ? "text-danger" : "text-warning-emphasis" %> mt-1">
               <%= finding.message %>
+              <% if finding.agreement %>
+                <span class="badge <%= finding.single_reading? ? "text-bg-light border" : finding.settled? ? "text-bg-secondary" : "text-bg-warning" %> ms-1"
+                      title="<%= finding.single_reading? ? "One reading. Repeat classification to see whether this holds." : finding.settled? ? "The readings agreed." : "The readings did not reach a majority." %>">
+                  <%= finding.agreement %>
+                </span>
+              <% end %>
             </div>
           <% end %>
         </div>

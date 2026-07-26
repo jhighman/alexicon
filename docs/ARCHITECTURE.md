@@ -316,6 +316,31 @@ composition rather than a new branch in every policy.
 
 ---
 
+## One reading is a sample
+
+Re-running a whole document changed **half the steps it flagged** — Jaccard 0.51
+between two passes under identical conditions. So a single machine reading is
+not a finding, and the difference has to be visible rather than assumed.
+
+A claim's category is now what a **strict majority** of its readings say. A
+plurality does not decide: two of five is not agreement. Where the readings
+reach no majority the claim is left unclassified, which is what abstention
+already means here — better than reporting whichever reading happened to be last.
+
+A person's judgement is not a vote among the others. It settles the question.
+
+Readings are **additive**. Nothing is overwritten, each reading is its own
+assertion, and a document already carrying one reading run again at three buys
+two more. A decline counts as an asking, so a claim the classifier keeps
+refusing does not cost a call on every pass.
+
+Every finding carries how firmly it stands, **bounded by its least settled
+endpoint** — a step between a claim typed 3 of 3 and one typed 2 of 3 is only as
+settled as the second. A flag reading `1 of 1` and one reading `3 of 3` are
+different objects, and the interface used to render them identically.
+
+---
+
 ## Measuring the system itself
 
 Three findings about a model once existed only in a conversation and in

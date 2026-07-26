@@ -18,8 +18,14 @@ class DocumentReading
     def claim? = claim.present?
   end
 
-  Finding = Data.define(:kind, :message, :subject) do
+  Finding = Data.define(:kind, :message, :subject, :agreement) do
     def unearned? = kind == :unearned
+
+    # How firmly the finding stands, bounded by its weakest endpoint. A step
+    # between a claim typed 3 of 3 and one typed 2 of 3 is only as settled as
+    # the second, and showing the stronger number would overstate it.
+    def settled? = agreement.nil? || agreement.decided?
+    def single_reading? = agreement&.single?
   end
 
   def self.for(document) = new(document)
@@ -45,6 +51,9 @@ class DocumentReading
       steps_judged: transitions.count { it.verdict != "undetermined" },
       steps: transitions.size,
       open_names: document.unresolved_name_count,
+      # One reading is a sample. Saying how many were taken is the difference
+      # between a finding and a first impression.
+      readings: claims.reject(&:structural?).map { it.agreement.readings }.tally.sort.to_h,
       # A guard nobody has measured is a guard nobody should rely on. Reported
       # beside the counts so an inert floor is visible to a reader rather than
       # only to whoever opens a console.
@@ -83,6 +92,7 @@ class DocumentReading
         map[step.to_claim.id] << Finding.new(
           kind: :unearned,
           subject: step,
+          agreement: weaker_endpoint(step),
           message: "This step was judged unearned: #{step.from_claim&.category&.name.to_s.downcase} " \
                    "to #{step.to_claim.category&.name.to_s.downcase} without the justification that requires."
         )
@@ -94,18 +104,25 @@ class DocumentReading
         claim = anchor_claim_for(flag)
         next if claim.nil?
 
-        map[claim.id] << Finding.new(kind: :audit, subject: flag, message: flag.message)
+        map[claim.id] << Finding.new(kind: :audit, subject: flag, message: flag.message,
+                                     agreement: claim.agreement)
       end
 
       document.flags.select(&:open?).reject { it.claim["audit"].present? }.each do |flag|
         claim = anchor_claim_for(flag)
         next if claim.nil?
 
-        map[claim.id] << Finding.new(kind: :flag, subject: flag, message: flag.message)
+        map[claim.id] << Finding.new(kind: :flag, subject: flag, message: flag.message,
+                                     agreement: nil)
       end
 
       map
     end
+  end
+
+  # A finding about a step is only as settled as its least settled endpoint.
+  def weaker_endpoint(step)
+    [ step.from_claim&.agreement, step.to_claim&.agreement ].compact.min_by { it.rate || 0 }
   end
 
   def anchor_claim_for(flag)

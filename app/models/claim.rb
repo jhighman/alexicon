@@ -21,15 +21,73 @@ class Claim < ApplicationRecord
 
   def classifications = assertions.acting("classify").standing.chronological
 
+  # What repeated readings of this claim agreed on.
+  #
+  # A single reading was measured at 88% reproducible overall and 84.5% on the
+  # interpretive/ontological pair, and re-running a whole document changed half
+  # the steps it flagged. So one machine reading is a sample, not a finding, and
+  # `agreement` is what says which of the two you are looking at.
+  #
+  # No majority means no category. If three readings disagree three ways, the
+  # honest state is that the system does not know -- which is what abstention
+  # already means everywhere else here, and is better than reporting whichever
+  # reading happened to be last.
+  Agreement = Data.define(:category, :agreeing, :readings) do
+    def decided? = category.present?
+    def rate = readings.zero? ? nil : (agreeing.to_f / readings).round(3)
+    def single? = readings == 1
+    def unanimous? = decided? && agreeing == readings
+
+    # "2 of 3" says more than "67%", and "1 of 1" says what a rate would hide.
+    def to_s
+      return "no reading" if readings.zero?
+      return "#{readings} readings, no majority" unless decided?
+
+      "#{agreeing} of #{readings}"
+    end
+  end
+
   # The live classification. A person's judgement wins over a system's, but the
   # system's is retained rather than overwritten -- the framework's own axiom
   # applied to its own output.
   def classification
     candidates = classifications.includes(:asserter).to_a
-    candidates.select(&:human?).last || candidates.last
+    human = candidates.select(&:human?).last
+    return human if human
+
+    # Among machine readings, the one that agrees with the majority. Any of them
+    # will do as the representative: they name the same category.
+    decided = machine_agreement(candidates).category
+    decided && candidates.reverse.find { it.object == decided }
   end
 
   def category = classification&.object
+
+  # How firmly this claim is typed, and on how many readings.
+  def agreement
+    candidates = classifications.includes(:asserter).to_a
+    human = candidates.select(&:human?).last
+    # A person's judgement is not a vote among others; it settles the question.
+    return Agreement.new(category: human.object, agreeing: 1, readings: 1) if human
+
+    machine_agreement(candidates)
+  end
+
+  private
+
+  # Strict majority: more than half the readings must name the same category.
+  # A plurality would let 2 of 5 decide, which is not agreement.
+  def machine_agreement(candidates)
+    objects = candidates.reject(&:human?).filter_map(&:object)
+    return Agreement.new(category: nil, agreeing: 0, readings: 0) if objects.empty?
+
+    winner, count = objects.tally.max_by { it.last }
+    decided = count * 2 > objects.size
+
+    Agreement.new(category: decided ? winner : nil, agreeing: count, readings: objects.size)
+  end
+
+  public
 
   # Records a classification as an accountable assertion.
   # `invocation` links the judgement to the call that produced it. One call can
