@@ -34,6 +34,28 @@ RSpec.describe BaselineReport do
     expect(described_class.render(version: "test")).to include "**Correctness.** 3 figures"
   end
 
+  # The paragraph that said every figure was the system checking itself, and
+  # went on saying it after one arrived that was not.
+  describe "the closing note on correctness" do
+    it "says so when every figure is the system checking itself" do
+      record(criterion: "one")
+
+      expect(described_class.render(version: "test"))
+        .to include "All of them are the system agreeing or disagreeing with itself"
+    end
+
+    it "counts the ones that are not, rather than repeating the claim" do
+      record(criterion: "one")
+      record(criterion: "two", conditions: { judge_b: "another model" })
+
+      report = described_class.render(version: "test")
+
+      expect(report).to include "1 of them are the system agreeing or disagreeing with itself"
+      expect(report).to include "1 compares it against a second judge"
+      expect(report).not_to include "All of them"
+    end
+  end
+
   it "shows a nested figure rather than dropping it" do
     record(criterion: "moves", measured: { rate: 0.5, top_moves: { "a->b" => 4 } })
 

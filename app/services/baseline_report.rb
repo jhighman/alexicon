@@ -32,7 +32,11 @@ class BaselineReport
       "What does asking three times instead of once buy, and what does it cost?",
     "finding-set churn (three-reading passes)" =>
       "Does asking three times make the finding set reproduce? Two independent " \
-      "three-reading passes, compared set against set."
+      "three-reading passes, compared set against set.",
+    "inter-judge agreement (second model, blind)" =>
+      "A different model reads the same claims without seeing the first one's " \
+      "answers. Do two judges applying the same four definitions reach the same " \
+      "categories?"
   }.freeze
 
   # What each figure means, where the number alone would mislead. Editorial, and
@@ -78,7 +82,17 @@ class BaselineReport
     "finding-set churn (three-reading passes)" =>
       "**Not by much**: 0.51 to 0.60, for three times the cost, with 40% of flagged steps " \
       "still not reproducing. Agreement-gating helps at the margin and does not make the " \
-      "finding set stable — which settles a question §7 and §8 could each only leave open."
+      "finding set stable — which settles a question §7 and §8 could each only leave open.",
+    "inter-judge agreement (second model, blind)" =>
+      "**The gap that matters most in this file.** The classifier reproduces itself 87.9% of " \
+      "the time and agrees with a second judge 48.6% of the time. Consistency and agreement " \
+      "are not the same property, and every other figure here measures the first one.\n\n" \
+      "The disagreements are not scattered. Fifteen of eighteen are the classifier typing " \
+      "something other than *observation* where the second judge typed observation — is " \
+      "\"That is when Alec replied\" a publicly checkable fact or a first-person report? Both " \
+      "readings follow the definitions as written. That points at the **category boundaries** " \
+      "before it points at either judge, and it is the same species of finding as §6: the " \
+      "framework's distinctions are where its instability lives."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -100,6 +114,8 @@ class BaselineReport
     # not. The counts say the same thing without the unit inviting the mistake.
     "finding-set churn (unearned steps)" =>
       "%{in_both} of %{run1} steps flagged again",
+    "inter-judge agreement (second model, blind)" =>
+      "%{agreed} of %{compared} claims typed alike",
     "finding-set churn (three-reading passes)" =>
       "%{in_both} of %{pass1} steps flagged again"
   }.freeze
@@ -277,16 +293,31 @@ class BaselineReport
     MD
   end
 
+  # This paragraph asserted that every figure was the system checking itself,
+  # and stayed asserting it after a figure arrived that was not. So it counts
+  # rather than claims: a measurement naming a second judge in its conditions is
+  # one, and the sentence changes when the record does.
   def not_measured(measurements)
+    second_judge = measurements.count { it.conditions.key?("judge_b") }
+    alone = measurements.size - second_judge
+
     <<~MD.strip
       ## What is not measured
 
-      - **Correctness.** #{measurements.size} figures, every one of them the system
-        agreeing or disagreeing with itself. Nothing here compares its output to a
-        human judgement of the same text — which would be the most valuable next
-        measurement, and is not a software task.
+      - **Correctness.** #{measurements.size} figures. #{correctness_line(alone, second_judge)}
+        Nothing here compares the system's output to a *person's* judgement of the
+        same text — which would be the most valuable next measurement, and is not a
+        software task.
       - **Any model but this one.** The OpenAI adapter has never been called.
     MD
+  end
+
+  def correctness_line(alone, second_judge)
+    return "All of them are the system agreeing or disagreeing with itself." if second_judge.zero?
+
+    "#{alone} of them are the system agreeing or disagreeing with itself; " \
+      "#{second_judge} #{second_judge == 1 ? 'compares' : 'compare'} it against a second " \
+      "judge, which is agreement between two readers and not evidence that either is right."
   end
 
   def empty_report

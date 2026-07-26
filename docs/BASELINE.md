@@ -9,7 +9,7 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 5 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
+> **Taken across 6 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`, `d95b3f1`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
 > **How to read a number here.** None of these say the model is right. They
 > say whether it is *consistent*, which is a different and smaller claim. A
@@ -273,6 +273,44 @@ The comparison the single-reading churn figure could not make: like against like
 - The 253 of 306 agreement is over ALL claims, counting both-abstained as agreement and typed-against-abstained as disagreement. It is NOT comparable to the 87.9% under classification reproducibility (batched), which was 203 of 231 over claims typed in both runs. Reporting the two side by side would look like reliability fell when they measure different things.
 - The count moved 25% (55 -> 41), more than the 21% the single-reading pair moved. Repeated reading improved set stability and did not improve count stability.
 
+## 10. Inter-judge agreement (second model, blind) — 17 of 35 claims typed alike
+
+*A different model reads the same claims without seeing the first one's answers. Do two judges applying the same four definitions reach the same categories?*
+
+| | |
+|---|---|
+| rate | 48.6% |
+| moves — objective->observation | 6 |
+| moves — interpretive->observation | 9 |
+| moves — observation->interpretive | 3 |
+| agreed | 17 |
+| neither | 2 |
+| compared | 35 |
+| only judge b | 1 |
+| disagreements | 18 |
+| only classifier | 2 |
+| typed by judge b | 40 |
+| sure disagreements | 7 |
+
+The first measurement here in which the thing being checked is not also the thing doing the checking. Judge B typed 40 claims through the API without sight of judge A's categories; the readings are recorded and moved nothing.
+
+**The gap that matters most in this file.** The classifier reproduces itself 87.9% of the time and agrees with a second judge 48.6% of the time. Consistency and agreement are not the same property, and every other figure here measures the first one.
+
+The disagreements are not scattered. Fifteen of eighteen are the classifier typing something other than *observation* where the second judge typed observation — is "That is when Alec replied" a publicly checkable fact or a first-person report? Both readings follow the definitions as written. That points at the **category boundaries** before it points at either judge, and it is the same species of finding as §6: the framework's distinctions are where its instability lives.
+
+**Sample:** drawn first 40 substantive claims in document order — the narrative opening, claims 40, document 20  
+**Conditions:** judge a claim-classifier (gemini-2.5-pro), up to 3 readings, batches of 12 with 4 of context, judge b claude-opus-5, single reading, via POST /api/v1/documents/20/blind_reading, blindness enforced by BlindReading — judge B could not obtain judge A's readings, rate over claims both judges typed, delegation type_claim, granted to opus-second-reader by a person  
+**Code:** `d95b3f1`
+
+**What this cannot tell you.**
+- NOT correctness. Two judges agreeing tells you they agree. Neither is known to be right, and 48.6% does not mean the classifier is wrong 51.4% of the time.
+- The disagreements are systematic, not scattered: 15 of 18 are the classifier typing something other than observation where judge B typed observation. This is a dispute about where the observation boundary falls in first-person narrative — chiefly whether a reported action ('That is when Alec replied') is a checkable fact or a first-person report. It indicts the definitions at least as much as either judge.
+- Judge B read once; judge A read up to three times. A single reading was measured at 87.9% reproducible, so an unknown part of this gap is judge B's own variance, which was not measured.
+- Judge B is NOT an independent party. It wrote much of the classifier's prompt and the category definitions as the application renders them. That biases toward agreement, which makes a rate this low more striking rather than less.
+- The two judges did not read under the same conditions. Judge A saw a 4-claim rolling window; judge B read all 40 in one pass and so had more context. Context was measured to move classification 65% -> 87.9%, so this difference is material and uncontrolled.
+- The sample is the document's opening — first-person narrative setup throughout. Sections that argue rather than narrate may not behave this way.
+- 7 of the 18 disagreements were ones judge B marked itself sure about.
+
 ---
 
 ## Comparing a later reading
@@ -288,8 +326,8 @@ number cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 9 figures, every one of them the system
-  agreeing or disagreeing with itself. Nothing here compares its output to a
-  human judgement of the same text — which would be the most valuable next
-  measurement, and is not a software task.
+- **Correctness.** 10 figures. 9 of them are the system agreeing or disagreeing with itself; 1 compares it against a second judge, which is agreement between two readers and not evidence that either is right.
+  Nothing here compares the system's output to a *person's* judgement of the
+  same text — which would be the most valuable next measurement, and is not a
+  software task.
 - **Any model but this one.** The OpenAI adapter has never been called.
