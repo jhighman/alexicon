@@ -78,3 +78,16 @@ namespace :alexicon do
     puts "Acts: #{Delegation::ACTS.join(', ')}"
   end
 end
+
+namespace :alexicon do
+  desc "Re-render docs/BASELINE.md from the recorded measurements: rake 'alexicon:baseline[v1]'"
+  task :baseline, [ :version ] => :environment do |_t, args|
+    version = args[:version].presence || "v1"
+    report = BaselineReport.render(version: version)
+    path = Rails.root.join("docs/BASELINE.md")
+    File.write(path, report.end_with?("\n") ? report : "#{report}\n")
+
+    count = Baseline.for(version: version).size
+    puts "Wrote #{path.relative_path_from(Rails.root)} — #{count} measurement(s) in #{version}."
+  end
+end
