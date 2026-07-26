@@ -37,12 +37,17 @@ class Delegation < ApplicationRecord
     ignore_mention
     certify_model
     revoke_model
+    type_claim
   ].freeze
 
   # What the act costs if it is wrong. Certification is heaviest because it
   # decides which model may influence any judgement at all; disposing a flag is
   # next because it lifts a STOP.
   ACT_WEIGHT = {
+    # An agent's blind reading is recorded and moves nothing: it is excluded
+    # from the classifier's tally by construction, so the worst a wrong one does
+    # is put a bad second opinion in the comparison. The lightest act there is.
+    "type_claim" => 1,
     "ground_mention" => 1,
     "ignore_mention" => 1,
     "dispose_flag" => 2,

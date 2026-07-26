@@ -112,7 +112,7 @@ class BlindReading
 
   def record!(claim, category:, rationale: nil, unsure: false)
     claim.classify!(category, asserter: reader, rationale: rationale.presence,
-                    confidence: unsure ? UNSURE : SURE)
+                    confidence: unsure ? UNSURE : SURE, blind: true)
       .tap { reset }
   end
 
@@ -120,7 +120,7 @@ class BlindReading
   # from a claim nobody has reached yet — otherwise the queue never empties and
   # the abstention is invisible to the comparison.
   def abstain!(claim, rationale: nil)
-    claim.abstain!(asserter: reader, rationale: rationale.presence).tap { reset }
+    claim.abstain!(asserter: reader, rationale: rationale.presence, blind: true).tap { reset }
   end
 
   # Only over what this reader has answered. An unanswered claim contributes

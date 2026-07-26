@@ -29,6 +29,12 @@ Rails.application.routes.draw do
         end
         resources :mentions, only: :index
         resources :flags, only: :index
+
+        # The act the programmatic surface exists for: a review decision the
+        # application expects a person to make, made by an agent instead.
+        resource :blind_reading, only: %i[show create], controller: "blind_readings" do
+          get :comparison
+        end
       end
 
       resources :mentions, only: [] do

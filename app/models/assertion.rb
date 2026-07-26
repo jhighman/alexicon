@@ -83,6 +83,10 @@ class Assertion < ApplicationRecord
   def inferred? = asserter&.primitive == "system"
   def human? = asserter&.primitive == "person"
 
+  # Taken without sight of any other reading of the same subject. What makes a
+  # comparison between two judges worth anything.
+  def blind? = claim["blind"] == true
+
   def confidence = claim["confidence"]&.to_f
   def rationale  = claim["rationale"]
 

@@ -76,17 +76,37 @@ class Claim < ApplicationRecord
     machine_agreement(candidates)
   end
 
-  # What the MACHINE readings alone agreed on, ignoring any human judgement.
+  # What the classification pass concluded, ignoring every third-party reading.
   #
   # `agreement` prefers a person's reading, which is right everywhere except one
-  # place: when the person's reading is the thing being compared AGAINST. There,
-  # asking `agreement` returns the human's own answer and the comparison agrees
-  # with itself 100% of the time.
+  # place: when that person's reading is the thing being compared AGAINST. There,
+  # asking `agreement` returns their own answer and the comparison agrees with
+  # itself 100% of the time.
   #
+  # Blind readings are excluded. A second judge polled for comparison is not a
+  # further vote in the first judge's tally — see `agreement_by`.
+  def machine_agreement(candidates = classifications.includes(:asserter).to_a)
+    agreement_among(candidates.reject { it.human? || it.blind? })
+  end
+
+  # What ONE reader's repeated readings agreed on.
+  #
+  # Readings by different judges are never tallied together. "2 of 3" means the
+  # same judge asked three times; merging a second model's readings into the
+  # first model's majority would be two instruments reported as one measurement,
+  # which is the error this framework exists to catch, committed against itself.
+  # So a third party polled through the API is recorded and does not move
+  # `category`.
+  def agreement_by(referent, candidates = classifications.includes(:asserter).to_a)
+    agreement_among(candidates.select { it.asserter_id == referent&.id })
+  end
+
+  private
+
   # Strict majority: more than half the readings must name the same category.
   # A plurality would let 2 of 5 decide, which is not agreement.
-  def machine_agreement(candidates = classifications.includes(:asserter).to_a)
-    objects = candidates.reject(&:human?).filter_map(&:object)
+  def agreement_among(readings)
+    objects = readings.filter_map(&:object)
     return Agreement.new(category: nil, agreeing: 0, readings: 0) if objects.empty?
 
     winner, count = objects.tally.max_by { it.last }
@@ -95,14 +115,20 @@ class Claim < ApplicationRecord
     Agreement.new(category: decided ? winner : nil, agreeing: count, readings: objects.size)
   end
 
+  public
+
   # Records a classification as an accountable assertion.
   # `invocation` links the judgement to the call that produced it. One call can
   # now carry a batch, so the link lives here rather than on the invocation.
+  # `blind` marks a reading taken WITHOUT sight of any other — the independent
+  # second opinion the comparison is made of. It is recorded in full and does
+  # not join the classification tally.
   def classify!(category, asserter:, confidence: nil, rationale: nil, supersedes: nil,
-                invocation: nil)
+                invocation: nil, blind: false)
     payload = {}
     payload["confidence"] = confidence if confidence
     payload["rationale"] = rationale if rationale
+    payload["blind"] = true if blind
 
     assertions.create!(asserter: asserter, act: "classify", object: category,
                        claim: payload, supersedes: supersedes, llm_invocation: invocation)
@@ -112,9 +138,10 @@ class Claim < ApplicationRecord
   # declines, which leaves "not asked" and "asked and could not tell" looking
   # identical; when a person declines, the difference is the whole point, so it
   # is written down. It counts as a reading and not as a judgement.
-  def abstain!(asserter:, rationale: nil)
+  def abstain!(asserter:, rationale: nil, blind: false)
     payload = { "abstained" => true }
     payload["rationale"] = rationale if rationale
+    payload["blind"] = true if blind
 
     assertions.create!(asserter: asserter, act: "classify", object: nil, claim: payload)
   end
