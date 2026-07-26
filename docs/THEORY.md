@@ -18,8 +18,8 @@ Names have drifted across sources. This table is the intended authority; where a
 | Current term | Supersedes / also seen as | Notes |
 |---|---|---|
 | **Ideal-based Scoring** | — | The thing being replaced: treats any deviation from a continuous linear path as degradation or risk |
-| **Equitable Baseline Scoring** | "Anti-Discrimination Normalizer" / "Anti-Discrimination Protocol" | Replaces Ideal-based Scoring. **Relation to the Average Ceiling Metric is circular in sources — see §7.4** |
-| **Average Ceiling Metric** | — | The scoring measure. **See §7.4** |
+| **Equitable Baseline Scoring** | "Anti-Discrimination Normalizer" / "Anti-Discrimination Protocol" | Replaces Ideal-based Scoring. The **policy**; invokes the Average Ceiling Metric (Matrix 2.0 Q4) |
+| **Average Ceiling Metric** | — | The **method** the policy applies: what a record established per active window. Averaged over the record's own windows, never over a population (Matrix 2.0 Q5) |
 | **Hyde effect** ("opportunistic Hyde effect") | "cherry-picking", "oportunistické vyberanie hrozienok" (manuscript §3, §9) | Short-term biased optimization. Pairs with the Jekyll Mask: Hyde is the behavior, Jekyll is the facade over it |
 | **Double Vector Bypass** | "Timeline Normalization" | Anchors timelines to fixed historical events |
 | **Jekyll Mask** | "latentná opacita", "deceptive alignment" (manuscript §6) | Named only in later material; the manuscript describes it without naming it |
@@ -84,10 +84,27 @@ The output is an **Attributable Intent State** — a judgment that can be traced
 > A deliberately gap-penalising scorer is caught, which is what keeps the check
 > from passing vacuously.
 >
-> The **Average Ceiling Metric is deliberately not implemented.** Its relation
-> to Equitable Baseline Scoring is circular across sources (§7.4, both terms
-> marked disputed), and inventing a resolution would put a guess underneath the
-> one part of this system with real-world stakes.
+> The **Average Ceiling Metric is implemented** (`AverageCeilingMetric`). It was
+> held back while sources defined it and Equitable Baseline Scoring as
+> containing each other; Matrix 2.0 Q4 settled the direction — Equitable
+> Baseline Scoring is the policy, the metric is the method it invokes — and Q5
+> settled the reference population by refusing one. The ceiling is what a record
+> established **per active window**, averaged over its own windows.
+>
+> One rule carries the design: the ceiling reads active windows only, never
+> calendar span. A ceiling denominated in elapsed years would divide by a bigger
+> number for a record containing a pause, reintroducing the penalty this policy
+> removes — through the denominator, where nobody would look for it. Truncating
+> to active windows makes the metric gap-invariant by construction, and
+> `PolicyAudit.call(scorer: AverageCeilingMetric.new)` records that it is rather
+> than assuming it.
+>
+> The peer group Q5 describes is **supplied, never inferred.** Deriving a group
+> that shares "environmental or parental pauses" would mean reading the record
+> for who paused and why — recovering the sensitive attribute out of exactly the
+> gaps this policy forbids reading. A peer contributes its ceiling and not its
+> length, so the comparison is between demonstrated rates rather than between
+> amounts of available time.
 
 > **Design caution.** Source material describes this as producing judgment "stripped of statistical biases." That claim should be weakened before it reaches a spec. Bias cannot be mathematically eliminated in general — formal fairness criteria (demographic parity, equalized odds, calibration) are provably not simultaneously satisfiable except in degenerate cases, so any implementation is *choosing* which fairness definition to honor and which to sacrifice. The defensible claim is narrower and still strong: **this specific penalty — treating a documented gap as evidence of degradation — is identified, made explicit, and removed.** Naming the chosen criterion is a requirement, not a detail.
 >
@@ -541,13 +558,11 @@ Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, ea
    folding produce different verdicts than not folding? A run with and without,
    compared against [BASELINE.md](BASELINE.md), settles it.
 3. **Do the four categories survive into 2.0?** Objective / Observation / Interpretive / Ontological are the spine of the manuscript and of CONOPS §4, and appear nowhere in the 2.0 map.
-4. **Equitable Baseline Scoring vs. Average Ceiling Metric — circular definition.** Sources state the containment relation in both directions:
-   - *"Equitable Baseline Scoring replaces this with the Average Ceiling Metric"* → the protocol applies the metric.
-   - *"The Average Ceiling Metric replaces this rigid framework with an Equitable Baseline Scoring system"* → the metric produces the system.
+4. ~~**Equitable Baseline Scoring vs. Average Ceiling Metric — circular definition.**~~ **Resolved** by Matrix 2.0 Q4 and Q5, and implemented.
 
-   Both cannot hold. One is the scoring **measure**, the other the **policy** that applies it; which is which is undetermined. Pick one direction before either name enters a schema — they will become a class and a method, and the wrong nesting is expensive to unwind.
+   Sources stated the containment relation in both directions, so the nesting was undetermined and the metric was left unbuilt rather than guessed at. Q4 fixes it: Equitable Baseline Scoring is the **policy**, the Average Ceiling Metric is the **method** it invokes. `EquitableBaseline#ceiling` invokes `AverageCeilingMetric`; the absolute score is unchanged.
 
-   Sub-question, independent of the above and arguably more important: **how is the "average ceiling" computed, and over which reference population?** A ceiling averaged over an already-advantaged population reproduces the bias it exists to remove.
+   The sub-question — **over which reference population** — was the more important one, and Q5 answers it by refusing a population. The ceiling is truncated to the record's own active windows. That also settles what the metric may read: active windows only, never calendar span, or the pause would be penalised through the denominator. The property is checked by `GapInvariance` and recorded by `PolicyAudit`, so the resolution is enforced rather than asserted.
 5. **Which epistemic ladder is canonical?** Four variants exist.
 6. **Is ⓑ in scope at all?** Detecting deceptive alignment in a model is a research problem, not an application feature. ⓐ is fully buildable. The framework may need to claim ⓑ as an aspiration rather than a capability.
 

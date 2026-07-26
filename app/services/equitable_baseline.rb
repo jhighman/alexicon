@@ -11,11 +11,11 @@
 # simultaneously satisfiable. The claim is exactly one property, named, checked
 # by GapInvariance and provable by test.
 #
-# The Average Ceiling Metric named in the source material is deliberately not
-# implemented here. Sources define it and Equitable Baseline Scoring as
-# containing each other (THEORY.md §7.4, both terms marked disputed), and
-# inventing a resolution would put a guess underneath the one thing in this
-# system with real-world stakes.
+# Sources defined this and the Average Ceiling Metric as containing each other
+# (THEORY.md §7.4), so the metric was left unimplemented rather than guessed at.
+# Matrix 2.0 Q4 settles the direction — this is the POLICY, the metric is the
+# METHOD it invokes — and `AverageCeilingMetric` now exists. `#ceiling` and
+# `#explain` invoke it; the absolute score is unchanged.
 class EquitableBaseline
   CRITERION = GapInvariance::CRITERION
 
@@ -32,8 +32,14 @@ class EquitableBaseline
 
   def to_proc = method(:call).to_proc
 
+  # The measure this policy applies (Matrix 2.0 Q4). Kept separate from `call`:
+  # the score says what a record established, the ceiling says what it
+  # established per window of activity, and only the second is comparable
+  # between records with different amounts of available time.
+  def ceiling(timeline, peers: []) = AverageCeilingMetric.new.read(timeline, peers: peers)
+
   # States what the score was made of, and — as importantly — what it was not.
-  def explain(timeline)
+  def explain(timeline, peers: [])
     {
       "criterion" => CRITERION,
       "score" => call(timeline),
@@ -41,6 +47,7 @@ class EquitableBaseline
       "evidenced_spans" => timeline.evidenced_spans,
       "gaps_observed" => timeline.gaps.size,
       "gaps_scored" => 0,
+      "ceiling" => AverageCeilingMetric.new.explain(timeline, peers: peers),
       "note" => "Gaps are reported so a reviewer may ask about them. They contribute " \
                 "nothing to the score: an absence of evidence is not evidence of degradation."
     }
