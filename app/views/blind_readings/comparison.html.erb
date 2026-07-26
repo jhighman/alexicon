@@ -1,0 +1,100 @@
+<% content_for :title, "Agreement — #{@document.title.presence || 'Document'}" %>
+<% c = @comparison %>
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="h3 mb-1">Where you and the system disagree</h1>
+    <p class="text-body-secondary small mb-0">
+      Only claims you have already typed. This is the first measurement here that
+      is not the system checking itself.
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-shrink-0">
+    <%= link_to "Keep typing", document_blind_reading_path(@document), class: "btn btn-sm btn-outline-primary" %>
+    <%= link_to "Document", document_path(@document), class: "btn btn-sm btn-outline-secondary" %>
+  </div>
+</div>
+
+<% if c.pairs.empty? %>
+  <div class="card"><div class="card-body">
+    <p class="mb-2">Nothing to compare — you have not typed anything yet.</p>
+    <%= link_to "Start", document_blind_reading_path(@document), class: "btn btn-primary btn-sm" %>
+  </div></div>
+<% else %>
+  <section class="card mb-4"><div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Agreement</div>
+        <div class="fs-3"><%= c.rate ? "#{(c.rate * 100).round(1)}%" : "—" %></div>
+        <div class="small text-body-secondary">
+          <%= c.agreed %> of <%= c.both_typed.size %> claims you both typed
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Disagreements you were sure about</div>
+        <div class="fs-3 <%= c.confident_disagreements.any? ? "text-danger" : "" %>">
+          <%= c.confident_disagreements.size %>
+        </div>
+        <div class="small text-body-secondary">
+          of <%= pluralize(c.disagreed.size, "disagreement") %> in total
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-body-secondary small text-uppercase">Only one of you typed</div>
+        <div class="fs-3"><%= c.human_only + c.machine_only %></div>
+        <div class="small text-body-secondary">
+          <%= c.human_only %> you typed and it abstained,
+          <%= c.machine_only %> it typed and you could not tell,
+          <%= c.both_abstained %> neither
+        </div>
+      </div>
+    </div>
+
+    <p class="form-text mt-3 mb-0">
+      The rate is over claims you <em>both</em> typed. Counting a claim one side
+      abstained on as a disagreement would mix coverage into correctness — the
+      mistake section 9 of the baseline warns about.
+    </p>
+  </div></section>
+
+  <% if c.moves.any? %>
+    <p class="text-body-secondary small text-uppercase mb-2">Which way the disagreements run</p>
+    <p class="mb-4">
+      <% c.moves.each do |move, n| %>
+        <span class="badge text-bg-light border me-1"><%= move %> · <%= n %></span>
+      <% end %>
+    </p>
+  <% end %>
+
+  <% if c.disagreed.any? %>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Claim</th>
+            <th scope="col">You said</th>
+            <th scope="col">It said</th>
+            <th scope="col">On how many readings</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% c.disagreed.each do |pair| %>
+            <tr>
+              <td>
+                <%= pair.claim.text %>
+                <% if pair.unsure %>
+                  <span class="badge text-bg-light border ms-1">you could argue it either way</span>
+                <% end %>
+              </td>
+              <td class="text-nowrap"><%= pair.human.name %></td>
+              <td class="text-nowrap"><%= pair.machine.name %></td>
+              <td class="text-nowrap text-body-secondary small"><%= pair.machine_agreement %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-body-secondary">No disagreements yet on the claims you have typed.</p>
+  <% end %>
+<% end %>

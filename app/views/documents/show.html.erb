@@ -33,6 +33,9 @@
         <%= button_to "Judge the steps", govern_document_path(@document),
                       class: "btn btn-sm btn-outline-primary",
                       disabled: !@document.executable? || !@document.classified? %>
+        <%# The only measurement here that is not the system checking itself. %>
+        <%= link_to "Type them yourself", document_blind_reading_path(@document),
+                    class: "btn btn-sm btn-outline-primary" %>
       <% end %>
     </div>
   </div>

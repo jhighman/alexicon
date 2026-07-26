@@ -52,7 +52,7 @@ class Claim < ApplicationRecord
   # applied to its own output.
   def classification
     candidates = classifications.includes(:asserter).to_a
-    human = candidates.select(&:human?).last
+    human = candidates.select { it.human? && it.object }.last
     return human if human
 
     # Among machine readings, the one that agrees with the majority. Any of them
@@ -66,18 +66,26 @@ class Claim < ApplicationRecord
   # How firmly this claim is typed, and on how many readings.
   def agreement
     candidates = classifications.includes(:asserter).to_a
-    human = candidates.select(&:human?).last
+    # An abstention is a reading, but it is not a judgement: a person saying
+    # "I cannot tell" records that they could not, and leaves whatever the
+    # machine agreed on standing rather than blanking it.
+    human = candidates.select { it.human? && it.object }.last
     # A person's judgement is not a vote among others; it settles the question.
     return Agreement.new(category: human.object, agreeing: 1, readings: 1) if human
 
     machine_agreement(candidates)
   end
 
-  private
-
+  # What the MACHINE readings alone agreed on, ignoring any human judgement.
+  #
+  # `agreement` prefers a person's reading, which is right everywhere except one
+  # place: when the person's reading is the thing being compared AGAINST. There,
+  # asking `agreement` returns the human's own answer and the comparison agrees
+  # with itself 100% of the time.
+  #
   # Strict majority: more than half the readings must name the same category.
   # A plurality would let 2 of 5 decide, which is not agreement.
-  def machine_agreement(candidates)
+  def machine_agreement(candidates = classifications.includes(:asserter).to_a)
     objects = candidates.reject(&:human?).filter_map(&:object)
     return Agreement.new(category: nil, agreeing: 0, readings: 0) if objects.empty?
 
@@ -86,8 +94,6 @@ class Claim < ApplicationRecord
 
     Agreement.new(category: decided ? winner : nil, agreeing: count, readings: objects.size)
   end
-
-  public
 
   # Records a classification as an accountable assertion.
   # `invocation` links the judgement to the call that produced it. One call can
@@ -100,5 +106,16 @@ class Claim < ApplicationRecord
 
     assertions.create!(asserter: asserter, act: "classify", object: category,
                        claim: payload, supersedes: supersedes, llm_invocation: invocation)
+  end
+
+  # A reading that reached no category. The model records nothing when it
+  # declines, which leaves "not asked" and "asked and could not tell" looking
+  # identical; when a person declines, the difference is the whole point, so it
+  # is written down. It counts as a reading and not as a judgement.
+  def abstain!(asserter:, rationale: nil)
+    payload = { "abstained" => true }
+    payload["rationale"] = rationale if rationale
+
+    assertions.create!(asserter: asserter, act: "classify", object: nil, claim: payload)
   end
 end

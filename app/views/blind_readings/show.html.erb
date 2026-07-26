@@ -1,0 +1,78 @@
+<% content_for :title, "Typing — #{@document.title.presence || 'Document'}" %>
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="h3 mb-1">What kind of claim is this?</h1>
+    <p class="text-body-secondary small mb-0">
+      Your reading, before you see the system's. Every figure in the baseline is
+      the system agreeing or disagreeing with itself; this is the only thing that
+      can say whether it is <em>right</em>. It stays useful only if you answer
+      without knowing what it said, so nothing on this page tells you.
+    </p>
+  </div>
+  <%= link_to "Leave", document_path(@document), class: "btn btn-sm btn-outline-secondary flex-shrink-0" %>
+</div>
+
+<div class="progress mb-1" role="progressbar" aria-label="Claims typed"
+     aria-valuenow="<%= @reading.answered_count %>" aria-valuemin="0" aria-valuemax="<%= @reading.total %>">
+  <div class="progress-bar" style="width: <%= (@reading.answered_count * 100.0 / [@reading.total, 1].max).round %>%"></div>
+</div>
+<p class="text-body-secondary small mb-4">
+  <%= @reading.answered_count %> of <%= @reading.total %> typed<%= " — you can stop and come back" if @reading.answered_count.positive? %>
+</p>
+
+<%# ---- The claim, in the context the classifier was given ------------------ %>
+<section class="card mb-3">
+  <div class="card-body">
+    <% if @context.any? %>
+      <p class="text-body-secondary small text-uppercase mb-2">What comes before</p>
+      <% @context.each do |before| %>
+        <p class="text-body-secondary mb-1"><%= before.text %></p>
+      <% end %>
+      <hr>
+    <% end %>
+
+    <p class="fs-5 mb-0"><%= @claim.text %></p>
+  </div>
+</section>
+
+<%= form_with url: document_blind_reading_path(@document), method: :post, local: true do |f| %>
+  <%= hidden_field_tag :claim_id, @claim.id %>
+
+  <div class="row g-2 mb-3">
+    <% @categories.each do |category| %>
+      <div class="col-md-6">
+        <input type="radio" class="btn-check" name="claim_category_id" id="cat_<%= category.id %>"
+               value="<%= category.id %>" autocomplete="off">
+        <label class="btn btn-outline-primary w-100 text-start p-3" for="cat_<%= category.id %>">
+          <span class="fw-semibold d-block"><%= category.name %></span>
+          <span class="small text-body-secondary"><%= category.definition %></span>
+        </label>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mb-3">
+    <%= label_tag :rationale, "Why, if it is worth saying", class: "form-label small text-body-secondary" %>
+    <%= text_field_tag :rationale, nil, class: "form-control", placeholder: "optional" %>
+  </div>
+
+  <div class="form-check mb-3">
+    <%= check_box_tag :unsure, "1", false, class: "form-check-input" %>
+    <%= label_tag :unsure, "I could argue it the other way", class: "form-check-label small" %>
+    <div class="form-text">
+      Recorded with your answer. A disagreement you were unsure about says
+      something about the boundary between the categories; one you were sure
+      about says something about the classifier.
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Record and go on", class: "btn btn-primary" %>
+    <%= f.submit "I cannot tell", name: "abstain", class: "btn btn-outline-secondary" %>
+  </div>
+  <p class="form-text mt-2 mb-0">
+    "I cannot tell" is an answer and is written down. It is not the same as
+    skipping, and it will not overwrite what the system decided.
+  </p>
+<% end %>

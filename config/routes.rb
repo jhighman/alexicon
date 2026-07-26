@@ -8,6 +8,13 @@ Rails.application.routes.draw do
       post :propose_identities
       post :govern
     end
+
+    # Typing claims without seeing what the machine said. Its own path rather
+    # than a mode of the document view, because the document view shows the
+    # answers.
+    resource :blind_reading, only: %i[show create], controller: "blind_readings" do
+      get :comparison
+    end
   end
 
   # The programmatic surface. A token acts as its Referent, so whatever calls
