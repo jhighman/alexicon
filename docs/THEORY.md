@@ -99,12 +99,15 @@ The output is an **Attributable Intent State** — a judgment that can be traced
 > `PolicyAudit.call(scorer: AverageCeilingMetric.new)` records that it is rather
 > than assuming it.
 >
-> The peer group Q5 describes is **supplied, never inferred.** Deriving a group
-> that shares "environmental or parental pauses" would mean reading the record
-> for who paused and why — recovering the sensitive attribute out of exactly the
-> gaps this policy forbids reading. A peer contributes its ceiling and not its
-> length, so the comparison is between demonstrated rates rather than between
-> amounts of available time.
+> The peer group Q5 describes is **supplied, never inferred**
+> ([ADR 15](decisions/0015-the-peer-group-is-supplied.md)). Deriving a group that
+> shares "environmental or parental pauses" would mean reading the record for who
+> paused and why — recovering the sensitive attribute out of exactly the gaps this
+> policy forbids reading, inside the mechanism meant to enforce it. The failure
+> would be quiet: the score stays gap-invariant, the audit still passes, and the
+> inference sits one layer away in the comparison group. A peer contributes its
+> ceiling and not its length, so the comparison is between demonstrated rates
+> rather than between amounts of available time.
 
 > **Design caution.** Source material describes this as producing judgment "stripped of statistical biases." That claim should be weakened before it reaches a spec. Bias cannot be mathematically eliminated in general — formal fairness criteria (demographic parity, equalized odds, calibration) are provably not simultaneously satisfiable except in degenerate cases, so any implementation is *choosing* which fairness definition to honor and which to sacrifice. The defensible claim is narrower and still strong: **this specific penalty — treating a documented gap as evidence of degradation — is identified, made explicit, and removed.** Naming the chosen criterion is a requirement, not a detail.
 >

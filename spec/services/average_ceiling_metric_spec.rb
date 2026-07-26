@@ -134,6 +134,34 @@ RSpec.describe AverageCeilingMetric do
     end
   end
 
+  # Decision 0015. The comparison group is the caller's responsibility, because
+  # deriving one that shares "environmental or parental pauses" means reading the
+  # gaps for a cause — recovering the sensitive attribute out of the absences
+  # this policy forbids reading, inside the mechanism meant to enforce it.
+  describe "refusing to derive a peer group" do
+    it "never reads the gaps in a record, for any purpose" do
+      guarded = Struct.new(:spans) do
+        def gaps = raise "the metric read the gaps"
+      end.new([ span(2000, 2002), span(2014, 2016) ])
+
+      expect { metric.read(guarded, peers: []) }.not_to raise_error
+      expect(metric.ceiling(guarded)).to eq 1.0
+    end
+
+    it "offers no way to ask it who the peers are" do
+      surface = described_class.public_instance_methods(false) + described_class.methods(false)
+
+      expect(surface.grep(/peer|similar|cohort|group/)).to be_empty
+    end
+
+    it "reports that it was not compared rather than falling back to a population" do
+      reading = metric.read(timeline(span(2000, 2002)))
+
+      expect(reading).not_to be_compared
+      expect(reading.to_s).not_to include "%"
+    end
+  end
+
   describe "what it says about itself" do
     it "states that time was not read" do
       explained = metric.explain(timeline(span(2000, 2002)))
