@@ -92,7 +92,15 @@ class BaselineReport
       "\"That is when Alec replied\" a publicly checkable fact or a first-person report? Both " \
       "readings follow the definitions as written. That points at the **category boundaries** " \
       "before it points at either judge, and it is the same species of finding as §6: the " \
-      "framework's distinctions are where its instability lives."
+      "framework's distinctions are where its instability lives.",
+    "inter-judge agreement (argumentative prose)" =>
+      "**It does not, and the caveat was right.** 48.6% on narrative against 75.8% here, which " \
+      "puts most of the earlier disagreement on first-person narrative rather than on the " \
+      "categories at large.\n\n" \
+      "The reversal is the more interesting half. On narrative the second judge pushed claims " \
+      "*toward* observation; on argument it pushed them *toward* interpretive. Neither judge is " \
+      "simply the more literal one — they disagree about where a **different boundary** sits in " \
+      "each genre. A single definition of observation is being asked to do two jobs."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -116,6 +124,8 @@ class BaselineReport
       "%{in_both} of %{run1} steps flagged again",
     "inter-judge agreement (second model, blind)" =>
       "%{agreed} of %{compared} claims typed alike",
+    "inter-judge agreement (argumentative prose)" =>
+      "%{rate} here against %{narrative_rate} on narrative",
     "finding-set churn (three-reading passes)" =>
       "%{in_both} of %{pass1} steps flagged again"
   }.freeze

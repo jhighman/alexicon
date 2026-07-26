@@ -9,7 +9,7 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 6 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`, `d95b3f1`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
+> **Taken across 7 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`, `d95b3f1`, `9b8e462-dirty`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
 > **How to read a number here.** None of these say the model is right. They
 > say whether it is *consistent*, which is a different and smaller claim. A
@@ -311,6 +311,44 @@ The disagreements are not scattered. Fifteen of eighteen are the classifier typi
 - The sample is the document's opening — first-person narrative setup throughout. Sections that argue rather than narrate may not behave this way.
 - 7 of the 18 disagreements were ones judge B marked itself sure about.
 
+## 11. Inter-judge agreement (argumentative prose) — 75.8% here against 48.6% on narrative
+
+| | |
+|---|---|
+| rate | 75.8% |
+| moves — objective->interpretive | 3 |
+| moves — interpretive->ontological | 1 |
+| moves — observation->interpretive | 3 |
+| moves — ontological->interpretive | 1 |
+| agreed | 25 |
+| neither | 1 |
+| compared | 33 |
+| only judge b | 0 |
+| disagreements | 8 |
+| narrative rate | 48.6% |
+| only classifier | 3 |
+| typed by judge b | 37 |
+| sure disagreements | 2 |
+
+Tests the caveat recorded with the narrative measurement: that sections which argue rather than narrate may not behave the same way. They do not.
+
+**It does not, and the caveat was right.** 48.6% on narrative against 75.8% here, which puts most of the earlier disagreement on first-person narrative rather than on the categories at large.
+
+The reversal is the more interesting half. On narrative the second judge pushed claims *toward* observation; on argument it pushed them *toward* interpretive. Neither judge is simply the more literal one — they disagree about where a **different boundary** sits in each genre. A single definition of observation is being asked to do two jobs.
+
+**Sample:** drawn positions 256-292 — polemic, then the framework argument, claims 37, document 20, excluded positions 293+, which name the four categories in the text and would have stated their own answers  
+**Conditions:** judge a claim-classifier (gemini-2.5-pro), up to 3 readings, batches of 12 with 4 of context, judge b claude-opus-5, single reading, via POST /api/v1/documents/20/blind_reading, blindness enforced by BlindReading, rate over claims both judges typed, judge b referent opus-reader-argument — a separate reader, so this sample does not merge with the narrative one  
+**Code:** `9b8e462-dirty`
+
+**What this cannot tell you.**
+- The gap is large — 48.6% narrative against 75.8% argumentative — and it localises most of the earlier disagreement to first-person narrative rather than to the categories in general.
+- The direction of disagreement REVERSED. On narrative, judge B moved claims toward observation (15 of 18). On argument it moved them toward interpretive (6 of 8). So neither judge is simply 'more factual' than the other; the two disagree about where a different boundary sits in each genre.
+- Judge B was also less certain when it disagreed here: 2 of 8 disagreements were ones it marked itself sure about, against 7 of 18 on narrative.
+- SELECTION EFFECT. Judge B chose this sample, and chose it by reading the text first to confirm it argued rather than narrated. It never saw the categories, but it did see the claims before deciding they were a suitable test. A sample picked by one of the judges is not a random sample.
+- Genre is confounded with content. This section is theological and polemical, which may carry effects of its own that have nothing to do with arguing.
+- Both samples are small — 40 and 37 claims — and drawn from one document.
+- Every caveat on the narrative measurement still applies: judge B read once against judge A's three, read its claims in one pass rather than through a 4-claim window, and is not a disinterested party.
+
 ---
 
 ## Comparing a later reading
@@ -326,7 +364,7 @@ number cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 10 figures. 9 of them are the system agreeing or disagreeing with itself; 1 compares it against a second judge, which is agreement between two readers and not evidence that either is right.
+- **Correctness.** 11 figures. 9 of them are the system agreeing or disagreeing with itself; 2 compare it against a second judge, which is agreement between two readers and not evidence that either is right.
   Nothing here compares the system's output to a *person's* judgement of the
   same text — which would be the most valuable next measurement, and is not a
   software task.

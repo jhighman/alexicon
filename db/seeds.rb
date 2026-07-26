@@ -197,6 +197,21 @@ Referent.find_or_initialize_by(key: "retroactive-audit").update!(
          "Never re-judges a step, never re-classifies a claim, never calls a model."
 )
 
+# The other half of the anti-poisoning pair. TEI inversion tightens what a broad
+# delegation must carry when it is granted; this watches what the holder does
+# afterwards, since a covert policy arrives as a slow shift across many
+# reasonable decisions rather than as one suspicious command. A separate actor
+# from the sentinels whose decisions it reads, for the usual reason.
+Referent.find_or_initialize_by(key: "temporal-drift-audit").update!(
+  name: "Temporal Drift Audit",
+  subject: "System",
+  role: "Auditor",
+  primitive: "system",
+  notes: "Compares an actor's recent decisions against its own earlier ones. Never " \
+         "revokes, never blocks, never calls a model, and reports a shift without " \
+         "calling it wrong."
+)
+
 # A measurement OF the system needs a home like any other claim. Findings about
 # a model are recorded as assertions about that model, by this referent, so a
 # later measurement can supersede an earlier one rather than overwrite it.
