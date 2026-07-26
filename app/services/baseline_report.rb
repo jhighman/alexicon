@@ -29,7 +29,10 @@ class BaselineReport
     "finding-set churn (unearned steps)" =>
       "Run the same document twice. Are the same steps flagged?",
     "repeated reading — agreement and coverage" =>
-      "What does asking three times instead of once buy, and what does it cost?"
+      "What does asking three times instead of once buy, and what does it cost?",
+    "finding-set churn (three-reading passes)" =>
+      "Does asking three times make the finding set reproduce? Two independent " \
+      "three-reading passes, compared set against set."
   }.freeze
 
   # What each figure means, where the number alone would mislead. Editorial, and
@@ -71,7 +74,11 @@ class BaselineReport
       "The unexpected benefit is larger than the intended one. Asking three times was built " \
       "for reliability and bought **coverage**: a claim that abstains on one reading is often " \
       "typed on another. Unearned steps rose because more steps have both endpoints typed and " \
-      "can be judged at all — more of the document analysed, not more failures found."
+      "can be judged at all — more of the document analysed, not more failures found.",
+    "finding-set churn (three-reading passes)" =>
+      "**Not by much**: 0.51 to 0.60, for three times the cost, with 40% of flagged steps " \
+      "still not reproducing. Agreement-gating helps at the margin and does not make the " \
+      "finding set stable — which settles a question §7 and §8 could each only leave open."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -92,7 +99,9 @@ class BaselineReport
     # A Jaccard rendered as a percentage reads as an agreement rate, which it is
     # not. The counts say the same thing without the unit inviting the mistake.
     "finding-set churn (unearned steps)" =>
-      "%{in_both} of %{run1} steps flagged again"
+      "%{in_both} of %{run1} steps flagged again",
+    "finding-set churn (three-reading passes)" =>
+      "%{in_both} of %{pass1} steps flagged again"
   }.freeze
 
   PREAMBLE = <<~MD.freeze
@@ -164,10 +173,23 @@ class BaselineReport
     question = QUESTIONS[measurement.criterion]
     parts << "*#{question}*" if question
     parts << table(measurement.measured)
+    # Recorded by whoever took the measurement, so it precedes the editorial note.
+    parts << detail(measurement)
     parts << NOTES[measurement.criterion]
     parts << context_line(measurement)
     parts << caveats(measurement) if measurement.caveats.present?
     parts.compact.join("\n\n")
+  end
+
+  # Recorded as prose by some runs and as a hash of named fields by others.
+  # Rendering the hash through `table` rather than interpolating it keeps a
+  # recorded field visible without printing Ruby at the reader.
+  def detail(measurement)
+    value = measurement.detail
+    return nil if value.blank?
+    return table(value) if value.is_a?(Hash)
+
+    value.to_s
   end
 
   def headline(measurement)

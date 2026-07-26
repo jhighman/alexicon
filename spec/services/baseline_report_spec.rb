@@ -40,6 +40,23 @@ RSpec.describe BaselineReport do
     expect(described_class.render(version: "test")).to include "| top moves — a->b | 4 |"
   end
 
+  # A recorded field the document drops is the drift this generator exists to stop.
+  it "shows the detail the measurement was recorded with" do
+    record(criterion: "one", detail: "the comparison the earlier figure could not make")
+
+    expect(described_class.render(version: "test"))
+      .to include "the comparison the earlier figure could not make"
+  end
+
+  it "renders a detail recorded as named fields rather than printing a hash at the reader" do
+    record(criterion: "one", detail: { note: "20 pairs; per-pair categories in the run log" })
+
+    report = described_class.render(version: "test")
+
+    expect(report).to include "| note | 20 pairs; per-pair categories in the run log |"
+    expect(report).not_to include "=>"
+  end
+
   it "carries the caveats through, since a figure without them overstates itself" do
     record(criterion: "one", caveats: [ "classified alone, not in context" ])
 

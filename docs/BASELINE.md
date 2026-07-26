@@ -9,7 +9,7 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 4 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
+> **Taken across 5 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
 > **How to read a number here.** None of these say the model is right. They
 > say whether it is *consistent*, which is a different and smaller claim. A
@@ -36,6 +36,10 @@ than overwritten. If you re-measure, the earlier reading is still there.
 | checked | 14 |
 | kind changes | 2 |
 | skipped abstention | 6 |
+
+| | |
+|---|---|
+| note | 20 pairs; per-pair categories retained in the run log, not here |
 
 The categories differ in kind, not in content, so a classifier whose category moves under negation is reading what a claim *says* rather than what it *does*. Both of the changes seen were arguable rather than obviously wrong.
 
@@ -238,6 +242,37 @@ The unexpected benefit is larger than the intended one. Asking three times was b
 - Does NOT establish that repeated reading reduces churn. That needs two independent three-reading passes compared set against set; this compares a one-reading set with a three-reading one, which should differ because the second is better informed.
 - 30 claims ended with zero readings — declined on every attempt.
 
+## 9. Finding-set churn (three-reading passes) — 36 of 55 steps flagged again
+
+*Does asking three times make the finding set reproduce? Two independent three-reading passes, compared set against set.*
+
+| | |
+|---|---|
+| rate | 60.0% |
+| pass1 | 55 |
+| pass2 | 41 |
+| in both | 36 |
+| jaccard | 60.0% |
+| only pass1 | 19 |
+| only pass2 | 5 |
+| claims agreeing | 253 |
+| claims compared | 306 |
+| count difference | 25.5% |
+
+The comparison the single-reading churn figure could not make: like against like, two independent three-reading passes over the same document rather than a one-reading set against a three-reading one.
+
+**Not by much**: 0.51 to 0.60, for three times the cost, with 40% of flagged steps still not reproducing. Agreement-gating helps at the margin and does not make the finding set stable — which settles a question §7 and §8 could each only leave open.
+
+**Sample:** claims 306, passes 2, document 20, readings per pass 3  
+**Conditions:** pass1 the recorded three-reading state, persisted, pass2 three fresh readings held in memory, nothing written, compared unearned transitions, set against set, majority strict — more than half, batch size 12, context claims 4, declines count toward readings yes  
+**Code:** `23202c9`
+
+**What this cannot tell you.**
+- One pair of passes over one document. It does not establish that 0.60 is a property of three-reading passes rather than of this pair.
+- Asymmetric in a way this cannot explain: 19 steps appear only in pass 1 against 5 only in pass 2. If the passes were exchangeable those should be roughly equal. Pass 2's typed-claim count was held in memory and not printed, so the asymmetry cannot be attributed to more abstentions rather than to different judgements.
+- The 253 of 306 agreement is over ALL claims, counting both-abstained as agreement and typed-against-abstained as disagreement. It is NOT comparable to the 87.9% under classification reproducibility (batched), which was 203 of 231 over claims typed in both runs. Reporting the two side by side would look like reliability fell when they measure different things.
+- The count moved 25% (55 -> 41), more than the 21% the single-reading pair moved. Repeated reading improved set stability and did not improve count stability.
+
 ---
 
 ## Comparing a later reading
@@ -253,7 +288,7 @@ number cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 8 figures, every one of them the system
+- **Correctness.** 9 figures, every one of them the system
   agreeing or disagreeing with itself. Nothing here compares its output to a
   human judgement of the same text — which would be the most valuable next
   measurement, and is not a software task.
