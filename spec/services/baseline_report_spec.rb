@@ -14,6 +14,50 @@ RSpec.describe BaselineReport do
                        .merge(attrs))
   end
 
+  # A later baseline is not a correction of an earlier one, and a reader who
+  # assumes the numbers line up is the failure this whole file exists to prevent.
+  describe "more than one baseline" do
+    it "points at the others and says they are not revisions" do
+      record(criterion: "one")
+      Baseline.record!(version: "later", criterion: "one", model: model,
+                       measured: { rate: 0.9 }, sample: {}, conditions: {})
+
+      report = described_class.render(version: "test")
+
+      expect(report).to include "Also recorded: `later`"
+      expect(report).to include "not revisions of each other"
+    end
+
+    it "says nothing about other versions when there are none" do
+      record(criterion: "one")
+
+      expect(described_class.render(version: "test")).not_to include "Also recorded"
+    end
+  end
+
+  # Editorial text is looked up version-first. Without that, the note explaining
+  # v1's figure prints under v2's identically-named criterion and reads as though
+  # it described it — the notes name counts and directions specific to a run.
+  describe "editorial text across versions" do
+    it "prefers a note written for this version" do
+      stub_const("#{described_class}::NOTES",
+                 { "one" => "the v1 reading", "test/one" => "the test reading" })
+      record(criterion: "one")
+
+      report = described_class.render(version: "test")
+
+      expect(report).to include "the test reading"
+      expect(report).not_to include "the v1 reading"
+    end
+
+    it "falls back to the unscoped note when the version has none" do
+      stub_const("#{described_class}::NOTES", { "one" => "the shared reading" })
+      record(criterion: "one")
+
+      expect(described_class.render(version: "test")).to include "the shared reading"
+    end
+  end
+
   it "says so plainly when nothing has been measured" do
     expect(described_class.render(version: "empty")).to include "No measurements recorded"
   end

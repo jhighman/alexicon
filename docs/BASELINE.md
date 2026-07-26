@@ -11,6 +11,8 @@ honest rather than reassuring.
 
 > **Taken across 8 code revisions** — `08fa0ac-dirty`, `8385cd3`, `0c0b918-dirty`, `e136369`, `23202c9`, `d95b3f1`, `9b8e462-dirty`, `3aa169c`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
+Also recorded: `v2` ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** — each was taken under its own conditions, and `Baseline.compare` refuses a pair whose conditions diverged rather than reporting a difference that may be the instrument.
+
 > **How to read a number here.** None of these say the model is right. They
 > say whether it is *consistent*, which is a different and smaller claim. A
 > model can be perfectly consistent and consistently wrong. Consistency is
@@ -313,6 +315,8 @@ The disagreements are not scattered. Fifteen of eighteen are the classifier typi
 
 ## 11. Inter-judge agreement (argumentative prose) — 75.8% here against 48.6% on narrative
 
+*The narrative measurement recorded a caveat: that prose which argues rather than narrates might not behave the same way. Does it?*
+
 | | |
 |---|---|
 | rate | 75.8% |
@@ -350,6 +354,8 @@ The reversal is the more interesting half. On narrative the second judge pushed 
 - Every caveat on the narrative measurement still applies: judge B read once against judge A's three, read its claims in one pass rather than through a 4-claim window, and is not a disinterested party.
 
 ## 12. Finding-set churn (coverage-corrected) — 70.0% judging the same steps, 57.4% overall
+
+*When two passes flag different steps, is it because they disagree about the step, or because one of them could not judge it at all?*
 
 | | |
 |---|---|

@@ -55,6 +55,13 @@ class Baseline
     ))
   end
 
+  # Every baseline the record holds, oldest first. A version exists because
+  # something was measured into it; there is no registry to fall out of step.
+  def self.versions
+    Assertion.acting("assert").standing.where(asserter: recorder)
+             .filter_map { it.claim["baseline"] }.uniq.sort
+  end
+
   # Standing measurements only: a superseded one is kept but is no longer what
   # the baseline says.
   def self.for(version:, model: nil)

@@ -36,7 +36,16 @@ class BaselineReport
     "inter-judge agreement (second model, blind)" =>
       "A different model reads the same claims without seeing the first one's " \
       "answers. Do two judges applying the same four definitions reach the same " \
-      "categories?"
+      "categories?",
+    "inter-judge agreement (argumentative prose)" =>
+      "The narrative measurement recorded a caveat: that prose which argues rather " \
+      "than narrates might not behave the same way. Does it?",
+    "finding-set churn (coverage-corrected)" =>
+      "When two passes flag different steps, is it because they disagree about the " \
+      "step, or because one of them could not judge it at all?",
+    "v2/repeated reading — agreement and coverage" =>
+      "Thirteen lead-ins and headings are no longer queued as claims. What did that " \
+      "buy, and what did it leave?"
   }.freeze
 
   # What each figure means, where the number alone would mislead. Editorial, and
@@ -111,7 +120,24 @@ class BaselineReport
       "could judge it at all.\n\n" \
       "The unlooked-for finding is the second one. Coverage is itself unstable — the same " \
       "classifier on the same document left 30 claims unread on one pass and 51 on the next, " \
-      "10% against 17%. Everything measured so far assumed the abstention rate held."
+      "10% against 17%. Everything measured so far assumed the abstention rate held.",
+    "v2/finding-set churn (coverage-corrected)" =>
+      "**The asymmetry v1 could not explain is gone.** It was 20 steps flagged in one pass " \
+      "against 6 in the other; here it is 11 against 11, and the unearned counts are identical " \
+      "at 50 and 50 where v1 moved 55 to 41.\n\n" \
+      "Everything moved the same way once 13 lead-ins stopped being queued as claims — raw " \
+      "0.574 to 0.639, corrected 0.70 to 0.75, count movement 25% to nothing. That is " \
+      "**consistent with** the lead-ins having been the unstable population, and it is one pair " \
+      "of passes at each segmentation. Four indicators from one pair are not four confirmations.",
+    "v2/repeated reading — agreement and coverage" =>
+      "What the segmentation change bought, and what it did not. Claims given an unstable 1 or " \
+      "2 readings of 3 fell from **41 to 26**, and what remains is mostly prose rather than " \
+      "fragments.\n\n" \
+      "The never-read population did not move at all: 30 either way. Those are the cells of a " \
+      "table flattened to one line per cell before the text was ever pasted, plus the title " \
+      "block. The segmenter refuses to guess about runs of short unterminated lines — the rule " \
+      "that did once swallowed 49 claims including the framework's own category definitions — " \
+      "so this was expected rather than a shortfall."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -139,6 +165,8 @@ class BaselineReport
       "%{rate} here against %{narrative_rate} on narrative",
     "finding-set churn (coverage-corrected)" =>
       "%{jaccard_where_both_could_judge} judging the same steps, %{jaccard_raw} overall",
+    "v2/repeated reading — agreement and coverage" =>
+      "%{unstably_read} unstably read, was 41",
     "finding-set churn (three-reading passes)" =>
       "%{in_both} of %{pass1} steps flagged again"
   }.freeze
@@ -191,8 +219,26 @@ class BaselineReport
       What this system has measured about the model it runs on, written down so a
       later reading has something to be compared against, and so the comparison is
       honest rather than reassuring.
-      #{mixed_revisions_warning(shas)}
+      #{mixed_revisions_warning(shas)}#{other_versions}
     MD
+  end
+
+  # A later baseline is not a correction of an earlier one. Saying so where a
+  # reader will see it is cheaper than letting them assume the numbers line up,
+  # and the generator knows which versions exist so the note cannot go stale.
+  def other_versions
+    others = Baseline.versions - [ version ]
+    return "" if others.empty?
+
+    links = others.sort.map { "`#{it}` (#{link_for(it)})" }
+    "\n\nAlso recorded: #{links.to_sentence}. These are **not revisions of each " \
+      "other** — each was taken under its own conditions, and `Baseline.compare` " \
+      "refuses a pair whose conditions diverged rather than reporting a difference " \
+      "that may be the instrument."
+  end
+
+  def link_for(other)
+    other == "v1" ? "[BASELINE.md](BASELINE.md)" : "[BASELINE-#{other}.md](BASELINE-#{other}.md)"
   end
 
   # Measurements taken at different revisions are not straightforwardly a single
@@ -209,12 +255,12 @@ class BaselineReport
 
   def section(measurement, number)
     parts = [ "## #{number}. #{measurement.criterion.humanize.sub(/\A\w/, &:upcase)}#{headline(measurement)}" ]
-    question = QUESTIONS[measurement.criterion]
+    question = editorial(QUESTIONS, measurement)
     parts << "*#{question}*" if question
     parts << table(measurement.measured)
     # Recorded by whoever took the measurement, so it precedes the editorial note.
     parts << detail(measurement)
-    parts << NOTES[measurement.criterion]
+    parts << editorial(NOTES, measurement)
     parts << context_line(measurement)
     parts << caveats(measurement) if measurement.caveats.present?
     parts.compact.join("\n\n")
@@ -231,8 +277,18 @@ class BaselineReport
     value.to_s
   end
 
+  # Editorial text is looked up version-first, then by criterion alone.
+  #
+  # Two baselines can measure the same criterion under different conditions, and
+  # the note explaining one figure is usually wrong about the other — it names
+  # counts and directions specific to the run. Without the version key, v1's
+  # commentary would print under v2's number and read as though it described it.
+  def editorial(table, measurement)
+    table["#{version}/#{measurement.criterion}"] || table[measurement.criterion]
+  end
+
   def headline(measurement)
-    template = HEADLINES[measurement.criterion]
+    template = editorial(HEADLINES, measurement)
     filled = substitute(template, measurement.measured) if template.present?
     return " — #{filled}" if filled
     return " — #{(measurement.rate * 100).round(1)}%" if measurement.rate

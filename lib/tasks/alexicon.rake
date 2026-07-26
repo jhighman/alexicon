@@ -84,7 +84,11 @@ namespace :alexicon do
   task :baseline, [ :version ] => :environment do |_t, args|
     version = args[:version].presence || "v1"
     report = BaselineReport.render(version: version)
-    path = Rails.root.join("docs/BASELINE.md")
+    # The first baseline keeps the published filename other documents link to;
+    # later ones sit beside it. They are not revisions of each other — a baseline
+    # taken under different conditions is a different measurement, not a newer
+    # reading of the same one.
+    path = Rails.root.join(version == "v1" ? "docs/BASELINE.md" : "docs/BASELINE-#{version}.md")
     File.write(path, report.end_with?("\n") ? report : "#{report}\n")
 
     count = Baseline.for(version: version).size
