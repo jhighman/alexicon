@@ -138,6 +138,31 @@ RSpec.describe ClaimSegmenter do
       expect(described_class.new(table).call.none?(&:structural?)).to be true
     end
 
+    # A trailing space is invisible in an editor and ordinary in pasted text.
+    # Testing for a bare newline meant a line carrying one was not "alone on its
+    # line", so every heading rule silently switched off for it — two real
+    # headings in the essay under analysis were claims for that reason alone.
+    it "marks a heading whose line carries a trailing space" do
+      segments = described_class.new("The Sentinel \n\nTrust is a discipline. It is not a feeling.").call
+
+      expect(segments.first.text).to eq "The Sentinel"
+      expect(segments.first).to be_structural
+    end
+
+    it "marks a heading indented on its own line" do
+      segments = described_class.new("It fell.\n\n   The Sentinel\t\n\nTrust is a discipline.").call
+
+      expect(segments.find { it.text == "The Sentinel" }).to be_structural
+    end
+
+    # The tolerance is for horizontal whitespace only: a heading still has to be
+    # alone, and text on the same line still means it is not.
+    it "does not mark a phrase that shares its line with a sentence" do
+      segments = described_class.new("It fell. The Sentinel\n\nTrust is a discipline.").call
+
+      expect(segments.none?(&:structural?)).to be true
+    end
+
     it "does not mark a short sentence that ends properly" do
       segments = described_class.new("It fell.\n\nI saw it happen.").call
 

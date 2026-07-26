@@ -190,10 +190,14 @@ class ClaimSegmenter
     !stripped.match?(/[.!?…:,;]["'”’)\]]*\z/)
   end
 
+  # Trailing spaces before a newline are invisible in an editor and common in
+  # pasted text. Testing for a bare "\n" meant "Postscript: \n" was not alone on
+  # its line and no heading rule could reach it — the whole of heading detection
+  # silently switched off for any line someone had left a space on.
   def own_line?(candidate, start)
-    before = start.zero? || text[0...start].end_with?("\n")
     finish = start + candidate.length
-    after = finish >= text.length || text[finish..].start_with?("\n")
+    before = start.zero? || text[0...start].match?(/\n[ \t]*\z/)
+    after = finish >= text.length || text[finish..].match?(/\A[ \t]*(\n|\z)/)
     before && after
   end
 
