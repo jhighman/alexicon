@@ -175,12 +175,38 @@ class ClaimSegmenter
   # heading detection off for the rest of a mostly-plain document.
   def heading?(candidate, start)
     return true if markdown.structural?(start, start + candidate.length)
+    return true if lead_in?(candidate, start)
 
     return false unless heading_shaped?(candidate)
     return false unless own_line?(candidate, start)
 
     [ line_before(start), line_after(start + candidate.length) ]
       .compact.none? { heading_shaped?(it) }
+  end
+
+  # A short line ending in a colon, alone on its line, announces what follows
+  # rather than claiming anything itself: "Postscript:", "What I learned in
+  # this:", "The Enlightenment model is:". The claim is the text underneath.
+  #
+  # This is a JUDGEMENT rather than a derivation, and it has a known cost, so
+  # ADR 16 records it. "Polanyi reverses it:" does predicate — it asserts that
+  # Polanyi reverses it — and this rule marks it structure anyway, because
+  # separating it from "Postscript:" means deciding whether a line predicates,
+  # and that is interpreting the text. Segmentation refuses to interpret,
+  # because everything downstream inherits the decision ungoverned. Given the
+  # choice between two rules that are each wrong somewhere, the framework's
+  # authors chose this one.
+  #
+  # No isolation test, unlike `heading?`. Isolation exists because a RUN of
+  # short unterminated lines is a flattened table whose cells may be real
+  # content; a run of colon-terminated lines is not a shape tables take. The
+  # length bound still applies, so a full sentence that happens to end in a
+  # colon stays a claim.
+  def lead_in?(candidate, start)
+    return false if candidate.length > HEADING_MAX
+    return false unless candidate.match?(/:["'”’)\]]*\z/)
+
+    own_line?(candidate, start)
   end
 
   def heading_shaped?(line)

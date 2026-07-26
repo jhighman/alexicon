@@ -169,10 +169,52 @@ RSpec.describe ClaimSegmenter do
       expect(segments.none?(&:structural?)).to be true
     end
 
-    it "does not mark a line that ends in a colon, which introduces what follows" do
-      segments = described_class.new("Polanyi reverses it:\n\nCommitment then understanding.").call
+    # A colon-terminated line announces what follows; the claim is the text
+    # underneath. See ADR 16 — this is a judgement about the framework, taken
+    # deliberately, and the two specs after it record what it costs.
+    describe "a lead-in" do
+      it "marks a bare label that asserts nothing" do
+        segments = described_class.new("Postscript:\n\nI learned something.").call
 
-      expect(segments.first).not_to be_structural
+        expect(segments.first.text).to eq "Postscript:"
+        expect(segments.first).to be_structural
+      end
+
+      it "marks one whose sentence is completed by the text beneath it" do
+        segments = described_class.new("The Enlightenment model is:\n\nCertainty then belief.").call
+
+        expect(segments.first).to be_structural
+      end
+
+      it "reaches one carrying a trailing space, which is how they usually arrive" do
+        segments = described_class.new("What I learned in this: \n\nIt fell.").call
+
+        expect(segments.first).to be_structural
+      end
+
+      # THE COST, recorded rather than hidden. This line predicates — it asserts
+      # that Polanyi reverses it — and is marked structure anyway. Telling it
+      # apart from "Postscript:" means deciding whether a line predicates, which
+      # is interpreting the text, which segmentation will not do.
+      it "also marks one that does assert something, which is the price of the rule" do
+        segments = described_class.new("Polanyi reverses it:\n\nCommitment then understanding.").call
+
+        expect(segments.first).to be_structural
+      end
+
+      it "leaves a full sentence ending in a colon alone, being over the length bound" do
+        long = "The discipline of trust is preventing an inference from becoming evidence:"
+        segments = described_class.new("#{long}\n\nThat is the whole of it.").call
+
+        expect(long.length).to be > ClaimSegmenter::HEADING_MAX
+        expect(segments.first).not_to be_structural
+      end
+
+      it "leaves one that shares its line with a sentence" do
+        segments = described_class.new("It fell. And then this:\n\nIt was over.").call
+
+        expect(segments.none?(&:structural?)).to be true
+      end
     end
 
     # Without the ellipsis as a terminator this read as an unterminated line and
