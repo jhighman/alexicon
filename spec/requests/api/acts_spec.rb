@@ -91,7 +91,9 @@ RSpec.describe "the acts API", type: :request do
 
     # The rule the whole surface turns on.
     it "attributes the judgement to the agent, and marks it inference" do
-      Delegation.create!(agent_pattern: "*", act: "ground_mention", granted_by: person)
+      Delegation.create!(agent_pattern: "*", act: "ground_mention", granted_by: person,
+                         rationale: "harness run across every agent",
+                         expires_at: 3.days.from_now)
 
       post ground_api_v1_mention_path(mention),
            params: { subject: "Person", role: "Philosopher" }, headers: auth(agent_token)
@@ -121,7 +123,9 @@ RSpec.describe "the acts API", type: :request do
     # Delegation widens whose judgement counts, never what the credential is for.
     it "still refuses a viewer token that has been delegated the act" do
       viewer = token_for(agent, role: "viewer")
-      Delegation.create!(agent_pattern: "*", act: "ground_mention", granted_by: person)
+      Delegation.create!(agent_pattern: "*", act: "ground_mention", granted_by: person,
+                         rationale: "harness run across every agent",
+                         expires_at: 3.days.from_now)
 
       post ground_api_v1_mention_path(mention),
            params: { subject: "Person", role: "Philosopher" }, headers: auth(viewer)
@@ -142,7 +146,9 @@ RSpec.describe "the acts API", type: :request do
     end
 
     it "records the agent's disposition alongside the flag, never over it" do
-      Delegation.create!(agent_pattern: "*", act: "dispose_flag", granted_by: person)
+      Delegation.create!(agent_pattern: "*", act: "dispose_flag", granted_by: person,
+                         rationale: "measuring how verdicts move under different dispositions",
+                         expires_at: 3.days.from_now)
 
       patch api_v1_flag_path(flag), params: { disposition: "accepted" }, headers: auth(agent_token)
 
@@ -152,7 +158,9 @@ RSpec.describe "the acts API", type: :request do
     end
 
     it "rejects a disposition it does not recognise" do
-      Delegation.create!(agent_pattern: "*", act: "dispose_flag", granted_by: person)
+      Delegation.create!(agent_pattern: "*", act: "dispose_flag", granted_by: person,
+                         rationale: "measuring how verdicts move under different dispositions",
+                         expires_at: 3.days.from_now)
 
       patch api_v1_flag_path(flag), params: { disposition: "maybe" }, headers: auth(agent_token)
 

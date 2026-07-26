@@ -329,6 +329,131 @@ are routing it to?**
 
 ---
 
+## 5b. Sentinel decision-making — a developing line
+
+*Alexandra Krížová, 26 July 2026. Read against the implementation to show where
+the code has caught up with the thinking and where it has not — the gaps below
+are the implementation's position, not a deficiency in the proposals.*
+
+Six proposals for how the Sentinels should decide. Two are already load-bearing;
+the others specify an architecture the code has not reached, and say precisely
+enough what it would require to be worth building toward.
+
+### §4 Latent Intent Lock — the same rule, found independently
+
+*"I am hiring for a young IT team full of great guys"* must not trigger a
+compliance penalty at the entry node. The bias vector is held as a neutral
+environmental variable; the Sentinel stays silent until selection data intersects
+with the stored preference and threatens to crystallise into a measurable act.
+
+This is [ADR 11](decisions/0011-the-lock-guards-predication.md) — *the lock
+guards predication, not description* — arrived at from the other direction and
+applied to a domain the implementation had not touched. ADR 11 was forced by
+measurement: gating classification on identity produced 204 blocking questions
+on one essay. §4 reaches the same rule from the discrimination case, and states
+the general principle more sharply than the ADR does: **the utterance is not the
+act, and policing language instead of outcomes is the precursive error.**
+
+Two routes to one rule is the strongest evidence either of us has that it is
+right. It also diagnoses the standard failure of compliance tooling, which flags
+keywords and misses outcomes.
+
+Not yet built here, for a reason that is about scope rather than merit: it needs
+an *execution stage*, and this system reads documents rather than running
+selection algorithms. It stands as a rule for systems built on the Sentinel
+pattern — a stakeholder CONOPS §5 already names.
+
+### §5 TEI Infection Shield — a real inversion, and the code had it backwards
+
+A high-authority user gradually poisoning the tool through individually
+reasonable commands.
+
+**TEI Inversion is built** (below). It identified something the implementation
+had genuinely wrong: `admin` granted wider capability with no additional
+scrutiny, and a delegation could be made as casually as it was broad.
+
+*Immutable intent logging* was already satisfied — assertions are immutable,
+attributed and time-stamped, so post-hoc rationalisation cannot rewrite them.
+*Temporal drift audit* is not built and is the natural sibling of the
+retroactive audit: compare a node's recent judgements against its own long-run
+baseline.
+
+### §1–3 Non-Polar Valuation and the Actuarial Cascade — a layer the code lacks
+
+These specify an intent layer: intent isolated as a neutral invariant, played
+forward through a dependency graph, with action denied only where a request
+connects latent intent to functional output.
+
+The implementation has no notion of intent at all — nothing extracts it, nothing
+stores it — and no calibration data for risk propagation. So this is a
+specification for a layer that does not exist rather than a change to one that
+does, and the phase structure is clear enough to build against when it is
+wanted.
+
+**Phase 3 is the sharpest part**, and generalises beyond intent: *act
+preventatively at the boundary of execution, not retroactively on the profile*.
+That is the same instinct as §4 and as ADR 11, stated a third way.
+
+One caution, which is her own axiom applied to her own proposal. **If intent
+becomes a variable that drives decisions, it has to arrive as an attributable
+inference** — with an author and a confidence, the way identity proposals do.
+Otherwise the system acts on an unrecorded guess about a person's motives, which
+is inference becoming evidence at the point where it is least defensible. The
+existing proposer pattern already gives the shape for this.
+
+### §6 Mirror Sentinel — the stance the system already takes, extended
+
+Friction rather than blocking; the system as mirror rather than gate; most
+boundary violations arising from convenience rather than malice.
+
+The principle is **already this system's operating stance**, which is why it
+reads as continuous with the rest. A flag never says a claim is false — it says
+the conditions for proceeding were not satisfied, and a reviewer may let it
+stand. The reading view presents findings beside the text rather than verdicts
+over it. §6 names that stance and pushes it further: not merely refusing to
+block, but actively returning the user's attention to what they were about to
+skip.
+
+The specific mechanism — generating text with citations injected — reaches past
+what this system does, since it produces no prose by decision
+([ADR 13](decisions/0013-the-reading-view-writes-no-prose.md)). The stance
+carries over regardless, and is the clearest statement yet of what the Sentinel
+is *for* rather than what it prevents.
+
+The 80% estimate is offered as intuition. It is exactly the kind of claim this
+system exists to hold apart from measurement until someone measures it — and it
+would be a good thing to measure.
+
+### TEI Inversion, as built
+
+> Authority tightens the justification required of it rather than loosening it.
+
+The instinct in most systems runs the other way: a powerful actor is trusted
+further and asked for less, which is the path by which a covert policy is
+installed one reasonable command at a time.
+
+A delegation's **scrutiny** is its act's consequence plus its pattern's reach,
+and what it must carry rises with it:
+
+| Delegation | Scrutiny | Must carry |
+|---|---|---|
+| one agent, ground a mention | 1 | nothing extra |
+| one agent, dispose a flag | 2 | a rationale |
+| a family, dispose a flag | 3 | rationale + expiry |
+| every agent, certify a model | 5 | rationale + expiry, bounded to 30 days |
+
+And the anti-poisoning core: **only a person may delegate**. An agent cannot
+widen its own authority or another agent's and record that a decision was made.
+
+Nothing here makes a powerful delegation impossible. It makes one impossible to
+make quietly.
+
+*The weights and thresholds above are an implementation's first guess at values
+this rule needs, not a result. They are the sort of thing that should settle
+over iteration.*
+
+---
+
 ## 6. The 2.0 Reframing
 
 Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, each carrying components, a set of failure modes it protects against, and a governing question.

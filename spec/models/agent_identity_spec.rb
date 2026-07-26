@@ -83,21 +83,24 @@ RSpec.describe "agent identity" do
     end
 
     it "permits an act a person has delegated, and only that act" do
-      Delegation.create!(agent_pattern: "review-agent", act: "dispose_flag", granted_by: person)
+      Delegation.create!(agent_pattern: "review-agent", act: "dispose_flag",
+                         granted_by: person, rationale: "measuring verdict variance")
 
       expect(token.may_judge?("dispose_flag")).to be true
       expect(token.may_judge?("certify_model")).to be false
     end
 
     it "matches a family of agents by glob" do
-      Delegation.create!(agent_pattern: "*-agent", act: "ground_mention", granted_by: person)
+      Delegation.create!(agent_pattern: "*-agent", act: "ground_mention",
+                         granted_by: person, rationale: "a family of harness agents")
 
       expect(Delegation.permits?(referent: agent, act: "ground_mention")).to be true
     end
 
     it "records who granted it, so a delegation is itself attributable" do
       delegation = Delegation.create!(agent_pattern: "*", act: "dispose_flag",
-                                      granted_by: person, rationale: "measuring verdict variance")
+                                      granted_by: person, rationale: "measuring verdict variance",
+                                      expires_at: 3.days.from_now)
 
       expect(delegation.granted_by).to eq person
       expect(delegation.rationale).to be_present
@@ -105,7 +108,7 @@ RSpec.describe "agent identity" do
 
     it "stops permitting once deactivated, without losing the record of it" do
       delegation = Delegation.create!(agent_pattern: "review-agent", act: "dispose_flag",
-                                      granted_by: person)
+                                      granted_by: person, rationale: "measuring variance")
       delegation.update!(active: false)
 
       expect(token.may_judge?("dispose_flag")).to be false
@@ -114,7 +117,8 @@ RSpec.describe "agent identity" do
 
     it "stops permitting once expired" do
       Delegation.create!(agent_pattern: "review-agent", act: "dispose_flag",
-                         granted_by: person, expires_at: 1.minute.ago)
+                         granted_by: person, rationale: "measuring variance",
+                         expires_at: 1.minute.ago)
 
       expect(token.may_judge?("dispose_flag")).to be false
     end
@@ -131,7 +135,8 @@ RSpec.describe "agent identity" do
     # credential is for.
     it "cannot lift an act the role never allowed" do
       viewer = ApiToken.issue!(referent: agent, name: "reader", role: "viewer")
-      Delegation.create!(agent_pattern: "review-agent", act: "dispose_flag", granted_by: person)
+      Delegation.create!(agent_pattern: "review-agent", act: "dispose_flag",
+                         granted_by: person, rationale: "measuring variance")
 
       expect(viewer.may_judge?("dispose_flag")).to be false
     end
@@ -146,6 +151,71 @@ RSpec.describe "agent identity" do
       %i[can_view? can_review? can_ingest? can_view_llm_registry? can_certify_models?].each do |q|
         expect(token.public_send(q)).to eq(user.public_send(q)), "#{q} disagreed"
       end
+    end
+  end
+
+  # Alexandra Krížová's TEI inversion: authority tightens the justification
+  # required of it rather than loosening it. Most systems run the other way,
+  # which is the path by which a covert policy gets installed one reasonable
+  # command at a time.
+  describe "TEI inversion" do
+    def delegation(pattern, act, **attrs)
+      Delegation.new({ agent_pattern: pattern, act: act, granted_by: person }.merge(attrs))
+    end
+
+    it "asks nothing extra of a narrow delegation of a light act" do
+      expect(delegation("review-agent", "ground_mention")).to be_valid
+    end
+
+    it "scores reach and consequence together" do
+      expect(delegation("review-agent", "ground_mention").scrutiny).to eq 1
+      expect(delegation("*", "certify_model").scrutiny).to eq 5
+    end
+
+    it "requires a reason once the delegation is heavy enough" do
+      broad = delegation("*", "dispose_flag")
+
+      expect(broad).not_to be_valid
+      expect(broad.errors[:rationale].join).to match(/record why it was granted/)
+    end
+
+    it "requires an expiry when it is heavier still" do
+      broad = delegation("*", "certify_model", rationale: "because")
+
+      expect(broad).not_to be_valid
+      expect(broad.errors[:expires_at].join).to match(/renewed deliberately/)
+    end
+
+    it "will not let a heavy permission outlive its reason" do
+      far = delegation("*", "certify_model", rationale: "because", expires_at: 90.days.from_now)
+
+      expect(far).not_to be_valid
+      expect(far.errors[:expires_at].join).to match(/cannot be more than/)
+    end
+
+    it "permits the heaviest delegation when it carries what it must" do
+      expect(delegation("*", "certify_model", rationale: "audited migration",
+                             expires_at: 7.days.from_now)).to be_valid
+    end
+
+    # The anti-poisoning core: a system cannot widen its own authority and
+    # record that a decision was made.
+    it "refuses a delegation granted by an agent rather than a person" do
+      by_agent = delegation("other-agent", "ground_mention", granted_by: agent)
+
+      expect(by_agent).not_to be_valid
+      expect(by_agent.errors[:granted_by].join).to match(/an agent cannot delegate judgement/)
+    end
+
+    it "weights certification above grounding, since it decides which model may judge at all" do
+      expect(Delegation::ACT_WEIGHT["certify_model"]).to be > Delegation::ACT_WEIGHT["ground_mention"]
+      expect(Delegation::ACT_WEIGHT["dispose_flag"]).to be > Delegation::ACT_WEIGHT["ignore_mention"]
+    end
+
+    it "treats a bare star as wider than a family, and a family as wider than one agent" do
+      expect(delegation("*", "ground_mention").breadth).to eq 2
+      expect(delegation("*-agent", "ground_mention").breadth).to eq 1
+      expect(delegation("review-agent", "ground_mention").breadth).to eq 0
     end
   end
 end
