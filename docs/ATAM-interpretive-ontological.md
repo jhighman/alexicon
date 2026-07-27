@@ -58,8 +58,16 @@ Epistemic integrity
 
 ### Sensitivity point S1 — the rank scale
 
-`justification_rank` assigns **three values to four categories**: objective 1,
-observation 1, interpretive 2, ontological 3.
+`justification_rank` assigns **three values to five categories**: objective 1,
+observation 1, interpretive 2, ontological 3, normative 3.
+
+> This analysis was written when there were four. Adding `normative`
+> ([ADR 17](decisions/0017-a-normative-category.md)) did not relieve the
+> sensitivity point below — it sharpened it. `ontological` and `normative` now
+> **share a rank and are still not lateral**, where `objective` and `observation`
+> share a rank and are. The rank scale cannot express that difference at all,
+> and only the ordered-pair weighting can, which is the remedy this document
+> recommended.
 
 Every downstream judgement about *how far* a claim was promoted reads this
 scale. It is the single number that decides whether a promotion looks large.

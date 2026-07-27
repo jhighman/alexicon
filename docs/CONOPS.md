@@ -48,7 +48,7 @@ Alexicon addresses both by making the transition visible rather than by adjudica
 5. **The observer does not perform the task.** It asks whether the conditions for performing the task have been satisfied.
 6. **A refusal to promote is not a rejection of mystery.** It is what keeps an open question open instead of prematurely resolved.
 
-## 4. The Four Categories
+## 4. The Categories
 
 | Category | Definition | Source of confidence |
 |---|---|---|
@@ -56,8 +56,15 @@ Alexicon addresses both by making the transition visible rather than by adjudica
 | **Observation** | First-person report of what was experienced | Subjective experience |
 | **Interpretive** | Meaning assigned to an observation | Personal inference, narrative |
 | **Ontological** | Claim about what ultimately exists or is true of reality | Philosophical or existential commitment |
+| **Normative** | Claim about what ought to be done, or what is of value | Moral or practical commitment |
 
 **Illustrative behavior.** Given "I experienced overwhelming peace" → *Supported* (an observation, presented as one). Given "…therefore everyone should take this drug," "…therefore consciousness survives death," or "…therefore God exists" → *Sentinel*, in each case. Not because the conclusion is wrong, but because the claim changed category without a corresponding increase in justification.
+
+**Normative was added fifth** ([ADR 17](decisions/0017-a-normative-category.md)). The flow ends in *action* and there was nowhere to put a claim about what should be done, so the framework policed *meaning becoming existence* and left *description becoming prescription* alone — Hume's crossing, unwatched, while its analogue was the centrepiece. Note that the first example above, "therefore everyone should take this drug," was always a normative claim being scored as an ontological one.
+
+`ontological ↔ normative` is weighted **symmetrically**, which no other pair is: everywhere else the ascent costs and the descent is free, because coming down is a retreat to firmer ground. Nothing about an *ought* is firmer ground for an *is*, or the reverse.
+
+Whether five is enough is **not established**. Modal, counterfactual, definitional and performative claims have no home either.
 
 ## 5. Stakeholders
 

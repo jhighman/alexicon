@@ -17,7 +17,8 @@ The recursive question the system exists to answer:
 |---|---|
 | [`docs/REPRODUCIBILITY-REQUIREMENT.md`](docs/REPRODUCIBILITY-REQUIREMENT.md) | Which uses actually need high reproducibility, and which do not |
 | [`docs/ATAM-interpretive-ontological.md`](docs/ATAM-interpretive-ontological.md) | Architecture tradeoff analysis of the framework's central boundary |
-| [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you |
+| [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you — **generated** from the recorded measurements, never hand-written |
+| [`docs/BASELINE-v2.md`](docs/BASELINE-v2.md) | The same, re-measured after the segmentation changed. Not a revision of v1: the sample differs by construction |
 | [`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md) | A note to the co-author about how this came to be published |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How it is built — pipeline, record model, where the locks bite, diagrams |
 | [`docs/THESIS.md`](docs/THESIS.md) | The Sentinel Principle — ontology, the Assertion Principle, the Binding Problem |
@@ -118,6 +119,24 @@ A credential can be set in the browser or exported into the environment. Either
 way it stays out of the audit trail: assertions and invocations record who
 judged, on which model, at what cost — never the key.
 
+**Blind typing — the only measurement that is not the system checking itself.**
+A person, or a second model through the API, types the same claims without
+seeing what the classifier concluded. The blindness is enforced in the object
+rather than the template: asking what the machine said, about a claim the reader
+has not answered, raises. So far: 48.6% agreement on first-person narrative,
+75.8% on argumentative prose, against a classifier that reproduces *itself*
+87.9% of the time.
+
+**The anti-discrimination policy is a constraint rather than a statement.** It
+is cross-cutting — binding Identity, Reflection and Governance without being an
+eighth domain — and `GapInvariance` states the one claim it makes as a property
+a scorer either has or does not: *two records identical in what they establish
+score the same, however they are spaced in time.* `PolicyAudit` records the check
+as an assertion, pass **or** fail. `AverageCeilingMetric` is the measure the
+policy applies, averaged over a record's own active windows and never over a
+population, with the peer group supplied rather than derived
+([ADR 15](docs/decisions/0015-the-peer-group-is-supplied.md)).
+
 **Review surface** — paste a text, see its claims and their categories, and answer
 the flags waiting on a person. Flags are never presented as claims of falsehood:
 they state that the conditions for proceeding were not satisfied, and a reviewer
@@ -166,6 +185,36 @@ POST /api/v1/mentions/12/ground
 That is the difference between delegating judgement and bypassing it. The person
 does not stop deciding; they decide once, about a class of judgement, instead of
 repeatedly about instances.
+
+`Delegation` applies **TEI inversion**: the wider the pattern and the heavier the
+act, the more a delegation must carry to exist at all — a rationale, then an
+expiry, then a bounded one. A delegation granted by an agent is invalid however
+wide its role. And `TemporalDriftAudit` watches what happens *after* the grant,
+comparing an actor's recent decisions against its own earlier ones, since a
+covert policy arrives as a slow shift across many defensible commands rather than
+as one suspicious one.
+
+### Typing claims blind
+
+The act the programmatic surface was built for: a review decision the
+application expects a person to make, made by an agent instead, on the record,
+as itself.
+
+```
+GET  /api/v1/documents/:id/blind_reading             next claim, context, categories
+POST /api/v1/documents/:id/blind_reading             record a reading or an abstention
+GET  /api/v1/documents/:id/blind_reading/comparison  agreement, and where they part
+```
+
+Reading needs no delegation, because the endpoint has nothing to disclose: the
+payload is byte-identical whether or not the classifier has typed the claim.
+Recording one needs `type_claim`.
+
+An agent's blind reading is a **second opinion, not a further vote** — it is
+recorded in full, excluded from the classifier's tally, and the response says so
+in `counts_toward_classification`. Merging two judges' readings into one majority
+would be two instruments reported as one measurement. A person's reading still
+settles the claim, as it does everywhere else.
 
 ## Setup
 

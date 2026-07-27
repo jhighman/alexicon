@@ -93,6 +93,12 @@ Separate from any of the above, and the reason I wanted you to have this now.
 The four categories have been put to a test they could have failed, and the
 result is a finding about the framework rather than a report on a model.
 
+> Since this was measured, a **fifth** category has been added — `normative`, a
+> claim about what ought to be done. The figures below were taken with four, and
+> part of what they measure may be two readers improvising around a category
+> that did not exist: the essay is full of prescription, and prescription had
+> nowhere to go. See [ADR 17](decisions/0017-a-normative-category.md).
+
 Two judges read the same document. The first is the classifier the system runs
 on; the second is a different model entirely, reading through an interface built
 so it *cannot* see what the first one concluded — that refusal is enforced in
