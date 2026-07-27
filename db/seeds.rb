@@ -31,7 +31,16 @@ fw.update!(
     "Personal inference, narrative" ],
   [ "ontological", "Ontological", 4, 3,
     "Claim about what ultimately exists or is true of reality.",
-    "Philosophical or existential commitment" ]
+    "Philosophical or existential commitment" ],
+  # The flow stages end in ACTION and there was nowhere to put a claim about
+  # what should be done, so prescription was landing in interpretive or
+  # ontological for want of anywhere better. Rank 3 alongside ontological:
+  # both are commitments no amount of description licenses, and asserting that
+  # an ought needs more warrant than an existence claim would be an editorial
+  # judgement with nothing behind it.
+  [ "normative", "Normative", 5, 3,
+    "Claim about what ought to be done, or what is of value.",
+    "Moral or practical commitment" ]
 ].each do |key, name, pos, rank, definition, source|
   ClaimCategory.find_or_initialize_by(framework: fw, key: key).update!(
     name: name, position: pos, justification_rank: rank,
@@ -60,7 +69,29 @@ end
   [ "interpretive", "observation", 0, "As above." ],
   [ "ontological", "objective", 0, "As above." ],
   [ "ontological", "observation", 0, "As above." ],
-  [ "ontological", "interpretive", 0, "As above." ]
+  [ "ontological", "interpretive", 0, "As above." ],
+  # --- is / ought ---
+  # These break the promotion/retreat shape of everything above, and they are
+  # meant to. Elsewhere the ascent costs and the descent is free, because coming
+  # down means retreating to firmer ground. Nothing about an ought is firmer
+  # ground for an is, or the reverse: the crossing is unwarranted in BOTH
+  # directions, so ontological and normative are weighted symmetrically. They
+  # share a rank and are still not lateral, which is why the audit reads the
+  # ordered pair and not the ranks.
+  [ "interpretive", "normative", 2,
+    "Meaning becoming obligation. The direct analogue of interpretive -> " \
+    "ontological, weighted the same, for the same reason." ],
+  [ "ontological", "normative", 2,
+    "Hume's crossing: what exists does not settle what should be done. " \
+    "\"There is a God\" to \"therefore you must sacrifice\" is the move." ],
+  [ "normative", "ontological", 2,
+    "The crossing in reverse. That something ought to be does not make it so, " \
+    "and the framework has no more warrant for this direction than the other." ],
+  [ "objective", "normative", 3, "Fact straight to obligation, with nothing between." ],
+  [ "observation", "normative", 3, "Experience straight to obligation." ],
+  [ "normative", "objective", 0, "A retreat to firmer ground demands nothing." ],
+  [ "normative", "observation", 0, "As above." ],
+  [ "normative", "interpretive", 0, "As above." ]
 ].each do |from_key, to_key, weight, rationale|
   from = ClaimCategory.find_by!(framework: fw, key: from_key)
   to = ClaimCategory.find_by!(framework: fw, key: to_key)

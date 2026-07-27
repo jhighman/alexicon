@@ -87,7 +87,7 @@ Where entity ambiguity, broken causality, or out-of-distribution input crosses a
 | ID | Requirement |
 |---|---|
 | F1 | Ingest a text and segment it into individually classifiable claims |
-| F2 | Assign each claim exactly one of the four categories, with a confidence and a rationale |
+| F2 | Assign each claim exactly one of the framework's categories — five since ADR 17 — with a confidence and a rationale |
 | F3 | Record the evidence class actually offered in support of each claim |
 | F4 | Detect transitions between adjacent claims and classify each as *earned* or *unearned* |
 | F5 | Emit a Sentinel flag on unearned promotion, stating the category jump — never a truth verdict |

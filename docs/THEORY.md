@@ -561,6 +561,23 @@ Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, ea
    folding produce different verdicts than not folding? A run with and without,
    compared against [BASELINE.md](BASELINE.md), settles it.
 3. **Do the four categories survive into 2.0?** Objective / Observation / Interpretive / Ontological are the spine of the manuscript and of CONOPS §4, and appear nowhere in the 2.0 map.
+
+   **Resolved by Matrix 2.0 Q3: all four survive.** A fifth has since been added
+   ([ADR 17](decisions/0017-a-normative-category.md)) — **Normative**, *a claim
+   about what ought to be done, or what is of value*. The flow stages end in
+   *action* and there was nowhere to put a claim about what should be done, so
+   the framework policed meaning becoming existence and left description
+   becoming prescription alone. Hume's crossing, unwatched, while its analogue
+   was the centrepiece.
+
+   `ontological ↔ normative` is weighted symmetrically, which no other pair in
+   the table is: everywhere else the ascent costs and the descent is free,
+   because coming down is a retreat to firmer ground. Nothing about an ought is
+   firmer ground for an is, or the reverse.
+
+   Whether five is enough is **not established**. Modal, counterfactual,
+   definitional and performative claims have no home either, and no measurement
+   has asked whether the set is a partition.
 4. ~~**Equitable Baseline Scoring vs. Average Ceiling Metric — circular definition.**~~ **Resolved** by Matrix 2.0 Q4 and Q5, and implemented.
 
    Sources stated the containment relation in both directions, so the nesting was undetermined and the metric was left unbuilt rather than guessed at. Q4 fixes it: Equitable Baseline Scoring is the **policy**, the Average Ceiling Metric is the **method** it invokes. `EquitableBaseline#ceiling` invokes `AverageCeilingMetric`; the absolute score is unchanged.
