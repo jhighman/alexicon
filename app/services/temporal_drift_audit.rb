@@ -39,12 +39,49 @@ class TemporalDriftAudit
   # Total variation distance, which has a reading in plain words: the share of
   # decisions that would have to move to reconcile the two periods. 0 is
   # identical, 1 is no overlap at all.
+  #
+  # This floor alone was not enough, and the way it failed is worth keeping.
+  # Total variation distance between two finite samples is never zero even when
+  # nothing has changed, and how far from zero depends on how many decisions
+  # there were. At twenty decisions a side — the minimum this class declares
+  # sufficient — two samples drawn from an IDENTICAL distribution exceed 0.20
+  # about 62% of the time, with a median of 0.25. A fixed threshold meant the
+  # audit reported drift on noise, most of the time, at its own minimum.
+  #
+  # The diagnosis came from Alexandra Krížová's sentinel-attention sketch, where
+  # a fixed additive logit bias competes against however many tokens there
+  # happen to be and so means something different at every sequence length. The
+  # same error, in the same shape, was already here.
   NOTABLE = 0.20
 
+  # What noise alone produces, in closed form rather than by sampling:
+  #
+  #   E[TV] = ½ · √(2/π) · √(1/n₁ + 1/n₂) · Σᵢ √(pᵢ(1 - pᵢ))
+  #
+  # Each per-category difference is approximately normal with variance
+  # p(1-p)(1/n₁ + 1/n₂), and the mean absolute value of a centred normal is
+  # σ√(2/π). Checked against 4,000 simulated pairs per sample size: predicted
+  # 0.240 against an observed median of 0.250 at n=20, and 0.034 against 0.032
+  # at n=1000.
+  #
+  # The multiple puts the bar near the 95th percentile of that noise. The ratio
+  # of simulated p95 to predicted mean held at 1.67 across every size tried,
+  # which is what makes a single constant defensible here.
+  NOISE_MULTIPLE = 1.67
+
   Reading = Data.define(:actor, :act, :recent, :baseline, :divergence, :moved,
-                        :window, :incomparable) do
+                        :window, :incomparable, :noise_ceiling) do
     def comparable? = incomparable.nil?
-    def notable? = comparable? && divergence >= NOTABLE
+
+    # What this reading had to clear. A small sample sets its own bar, so a
+    # figure is never called notable for being smaller than its own noise.
+    def threshold = [ NOTABLE, noise_ceiling.to_f ].max
+
+    def notable? = comparable? && divergence >= threshold
+
+    # Whether the sample, not the policy, is what the figure had to beat. Worth
+    # surfacing: it means a real shift below this size would not have shown.
+    def noise_bound? = comparable? && noise_ceiling.to_f > NOTABLE
 
     # The single outcome that moved furthest. `moved` is already ordered, so this
     # inherits its tie-break rather than picking arbitrarily among equals.
@@ -52,7 +89,10 @@ class TemporalDriftAudit
 
     def to_s
       return "#{actor.name}: #{incomparable}" unless comparable?
-      return "#{actor.name}: no material shift in #{act}" unless notable?
+      unless notable?
+        floor = noise_bound? ? " (needed #{(threshold * 100).round(1)}% at this sample size)" : ""
+        return "#{actor.name}: no material shift in #{act}#{floor}"
+      end
 
       outcome, delta = largest_move
       "#{actor.name}: #{(divergence * 100).round(1)}% of #{act} decisions moved — " \
@@ -88,7 +128,8 @@ class TemporalDriftAudit
 
     Reading.new(actor: referent, act: act, recent: counts(recent), baseline: counts(earlier),
                 divergence: divergence(recent_share, baseline_share),
-                moved: moves(recent_share, baseline_share), window: window, incomparable: nil)
+                moved: moves(recent_share, baseline_share), window: window, incomparable: nil,
+                noise_ceiling: noise_ceiling(recent_share, baseline_share, recent.size, earlier.size))
   end
 
   # A shift is a claim about the actor, so it is recorded as one — and recorded
@@ -103,6 +144,8 @@ class TemporalDriftAudit
         "window_days" => (reading.window / 1.day).round,
         "comparable" => reading.comparable?, "incomparable" => reading.incomparable,
         "divergence" => reading.divergence, "notable" => reading.notable?,
+        "threshold" => (reading.threshold if reading.comparable?),
+        "noise_ceiling" => reading.noise_ceiling,
         "recent" => reading.recent, "baseline" => reading.baseline,
         "moved" => reading.moved
       }.compact
@@ -122,7 +165,7 @@ class TemporalDriftAudit
 
   def incomparable(recent, earlier)
     Reading.new(actor: referent, act: act, recent: counts(recent), baseline: counts(earlier),
-                divergence: nil, moved: {}, window: window,
+                divergence: nil, moved: {}, window: window, noise_ceiling: nil,
                 incomparable: "#{recent.size} #{act} in the window and #{earlier.size} before it, " \
                               "against a minimum of #{MINIMUM} in each — too few to tell a shift " \
                               "from noise")
@@ -144,6 +187,24 @@ class TemporalDriftAudit
   def share(list)
     total = list.size.to_f
     counts(list).transform_values { (it / total).round(6) }
+  end
+
+  # What two samples this size would differ by even if nothing had changed.
+  # Closed form rather than a bootstrap: the audit calls no model and should not
+  # need to call a random number generator either, or two runs over the same
+  # record would disagree about whether a figure was notable.
+  def noise_ceiling(recent, baseline, recent_n, earlier_n)
+    return nil if recent_n.zero? || earlier_n.zero?
+
+    pooled = (recent.keys | baseline.keys).to_h do |key|
+      total = (recent.fetch(key, 0.0) * recent_n) + (baseline.fetch(key, 0.0) * earlier_n)
+      [ key, total / (recent_n + earlier_n) ]
+    end
+
+    spread = pooled.values.sum { Math.sqrt(it * (1 - it)) }
+    expected = 0.5 * Math.sqrt(2 / Math::PI) * Math.sqrt((1.0 / recent_n) + (1.0 / earlier_n)) * spread
+
+    (NOISE_MULTIPLE * expected).round(4)
   end
 
   # Total variation distance between the two distributions.

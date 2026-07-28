@@ -361,6 +361,15 @@ then a bounded one. A delegation granted by an agent is invalid however wide its
 role. Nothing here makes a powerful delegation impossible; it makes one unable to
 be made quietly.
 
+> **Open: the STOP is binary.** An identity STOP hard-blocks governance —
+> `executable?` is false until a person answers. Alexandra Krížová's sentinel
+> sketch names the alternative precisely, borrowing from cellular handover:
+> ours is **break-before-make**, and the graded version is
+> **make-before-break**, where the link is held through the transition. Her
+> Matrix 2.0 Q7.3 argues a Sentinel should not issue a binary block at all.
+> Nothing here has changed; it is written down as a question rather than left
+> as a setting nobody examined.
+
 ### And afterwards
 
 TEI inversion checks a delegation when it is **granted** and then stops looking.

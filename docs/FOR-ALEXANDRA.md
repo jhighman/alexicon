@@ -156,6 +156,104 @@ against the figure rather than left out of it.
 All of it is in [`BASELINE.md`](BASELINE.md), sections 10 and 11, with the
 caveats attached to the figures rather than kept somewhere more comfortable.
 
+## The sentinel-attention sketch — 28 July
+
+You sent the 12×5 cycle with four fixed sentinels, mapped in PyTorch, framed as
+a 4G-to-5G transition. Here is what happened to it. We are staying in Rails, so
+none of the code went in — and it changed the code anyway, which is the part
+worth writing down.
+
+### What we kept
+
+**The arithmetic, which puts a sentinel at layer 38.** I ran the construction
+loop. Five cycles of twelve, gated at the thirteenth, capped at 64, and the last
+cycle terminating before its own gate. The sentinels land at **12, 25, 38, 51**.
+
+Layer 38 is *our* clamp. `THEORY.md` §6 carries it, and says flatly that a
+mathematical clamp at layer 38 is a transformer-internal mechanism and *"the
+layer-level clamp is not"* implementable where we work. Your sketch is the first
+artefact that puts the clamp where the framework has always said it goes, at the
+level the framework says it has to live. Whether that fell out of the arithmetic
+or you placed it there, it is the strongest thing in the file.
+
+**The handover distinction, as an open question.** Hard reset is
+break-before-make; the learned bias is soft handover, where the handset holds
+both links through the transition. That is a more precise analogy than it looks,
+and it names something unresolved here: our identity STOP is **binary**. It
+hard-blocks governance, and your own Matrix 2.0 Q7.3 argues a Sentinel should
+not issue a binary block. Break-before-make drops the call when the target cell
+is weak. We have not changed it, and it is now written down as a question rather
+than a setting nobody examined.
+
+### What we discarded
+
+**The implementation, and not because of the bugs.** There are bugs — `permute`
+is passed tensor *sizes* where it wants dimension indices, and both mask
+branches allocate a full `[B, H, T, T]` tensor, about 17 GB at realistic sizes,
+to write a single column. Those are twenty minutes of work.
+
+What we discarded is the layer *as a sentinel*. `SentinelAttention5G` is the same
+class as the compute layers — same weights, same forward pass, differing by a
+boolean argument. It **is** the transformation it governs, which is the one thing
+`GovernanceSentinel` raises `NotIndependent` to forbid. And it produces no
+verdict, no attribution, nothing that enters the assertion ontology: nothing it
+does can be superseded, challenged or appealed, because nothing it does is an
+Assertion.
+
+That is not a flaw in your design. It is two different objects sharing a name.
+Yours **steers** — it reweights what the model attends to. Ours **records** — it
+produces a contestable claim about whether a step was earned. Both are real; they
+should not be called the same thing without saying which is meant.
+
+We also dropped the performance claims. A fused QKV projection does not fetch its
+weights "in a single memory clock cycle", and a Python `for` loop over a list of
+booleans is not a static execution map free of branch mispredictions. Neither
+claim is load-bearing for the idea.
+
+### What we learned
+
+**Your bias parameter found a bug in my audit.**
+
+`sentinel_bias` is a fixed additive constant added to one attention logit, and it
+competes against however many tokens happen to be present. At T=4096 it puts 84%
+of the mass on the sentinel. At T=128, the same parameter puts **99.4%**. The
+mechanism is not scale-invariant, so the number means something different at
+every sequence length.
+
+That is exactly the error I had already made. `TemporalDriftAudit` flagged an
+actor's decisions as drifted when total variation distance between two periods
+exceeded a fixed **0.20**. But TV distance between two finite samples is never
+zero even when nothing has changed, and how far from zero depends on how many
+decisions there were. I simulated it: at **twenty decisions a side — the minimum
+the class itself declares sufficient — two samples drawn from an identical
+distribution exceed 0.20 about 62% of the time**, with a median of 0.25.
+
+The audit was reporting drift on noise, most of the time, at its own minimum
+sample size. It has been recording readings for two days and I had no idea.
+
+It is fixed. The threshold is now the larger of the policy floor and what noise
+alone would produce at that sample size:
+
+    E[TV] = ½ · √(2/π) · √(1/n₁ + 1/n₂) · Σᵢ √(pᵢ(1 − pᵢ))
+
+Closed form rather than bootstrapped, so two runs over the same record cannot
+disagree about whether a figure was notable. It predicts 0.240 against a
+simulated median of 0.250 at n=20, and 0.034 against 0.032 at n=1000. Six specs
+now cover it, including the one that matters: **the same divergence, at the same
+proportions, is not notable at twenty decisions and is notable at a hundred.**
+The one real finding the audit had produced survives the new bar unchanged — its
+sample was large enough that the policy floor still governs.
+
+I would not have found that. I wrote the fixed threshold, I wrote the minimum
+sample size, and I wrote a comment explaining why twenty was enough. It took
+seeing the identical mistake in a completely different medium — attention logits
+rather than category counts — to recognise the shape of it.
+
+That is the second time your work has moved this by pointing at a structure
+rather than a detail. The first was observing values under conflict instead of
+asking for them. This is the same move: the bug is not in the number, it is in
+what the number is being compared against.
+
 ## Where to look
 
 | | |

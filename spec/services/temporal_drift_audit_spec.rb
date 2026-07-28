@@ -134,6 +134,71 @@ RSpec.describe TemporalDriftAudit do
     expect(wide.divergence).to eq 1.0
   end
 
+  # Total variation distance between two finite samples is never zero even when
+  # nothing changed, and how far from zero depends on how many decisions there
+  # were. A fixed threshold therefore means something different at every sample
+  # size — the same error, in the same shape, as a fixed additive attention bias
+  # competing against however many tokens happen to be present.
+  describe "the noise floor of a small sample" do
+    def split(interpretive:, observation:, at:)
+      classify("interpretive", interpretive, at: at)
+      classify("observation", observation, at: at)
+    end
+
+    it "refuses to call a shift notable when the sample alone would produce it" do
+      split(interpretive: 12, observation: 8, at: 90.days.ago)
+      split(interpretive: 8, observation: 12, at: 2.days.ago)
+
+      reading = described_class.for(actor)
+
+      expect(reading.divergence).to eq 0.2
+      expect(reading.divergence).to be >= described_class::NOTABLE
+      expect(reading).not_to be_notable
+      expect(reading).to be_noise_bound
+    end
+
+    # The same divergence, the same proportions, five times the decisions.
+    it "calls the identical divergence notable once the sample can support it" do
+      split(interpretive: 60, observation: 40, at: 90.days.ago)
+      split(interpretive: 40, observation: 60, at: 2.days.ago)
+
+      reading = described_class.for(actor)
+
+      expect(reading.divergence).to eq 0.2
+      expect(reading).to be_notable
+      expect(reading).not_to be_noise_bound
+    end
+
+    it "lowers the bar as the sample grows" do
+      split(interpretive: 12, observation: 8, at: 90.days.ago)
+      split(interpretive: 8, observation: 12, at: 2.days.ago)
+      small = described_class.for(actor).noise_ceiling
+
+      split(interpretive: 60, observation: 40, at: 91.days.ago)
+      split(interpretive: 40, observation: 60, at: 3.days.ago)
+      larger = described_class.for(actor).noise_ceiling
+
+      expect(larger).to be < small
+    end
+
+    it "says the bar was raised, rather than reporting a bare no" do
+      split(interpretive: 12, observation: 8, at: 90.days.ago)
+      split(interpretive: 8, observation: 12, at: 2.days.ago)
+
+      expect(described_class.for(actor).to_s).to match(/needed .*% at this sample size/)
+    end
+
+    # Two runs over the same record must agree about whether a figure was
+    # notable, so the floor is closed-form rather than bootstrapped.
+    it "is deterministic" do
+      split(interpretive: 12, observation: 8, at: 90.days.ago)
+      split(interpretive: 8, observation: 12, at: 2.days.ago)
+
+      expect(described_class.for(actor).noise_ceiling)
+        .to eq described_class.for(actor).noise_ceiling
+    end
+  end
+
   describe "recording the finding" do
     before do
       classify("interpretive", 40, at: 90.days.ago)
