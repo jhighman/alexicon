@@ -45,7 +45,12 @@ class BaselineReport
       "step, or because one of them could not judge it at all?",
     "v2/repeated reading — agreement and coverage" =>
       "Thirteen lead-ins and headings are no longer queued as claims. What did that " \
-      "buy, and what did it leave?"
+      "buy, and what did it leave?",
+    "v3/repeated reading — agreement and coverage" =>
+      "A fifth category is now on offer. Does a harder choice cost anything?",
+    "category adoption (normative)" =>
+      "A category added to the framework — is it used at all, and what does it take " \
+      "claims away from?"
   }.freeze
 
   # What each figure means, where the number alone would mislead. Editorial, and
@@ -137,7 +142,25 @@ class BaselineReport
       "table flattened to one line per cell before the text was ever pasted, plus the title " \
       "block. The segmenter refuses to guess about runs of short unterminated lines — the rule " \
       "that did once swallowed 49 claims including the framework's own category definitions — " \
-      "so this was expected rather than a shortfall."
+      "so this was expected rather than a shortfall.",
+    "v3/repeated reading — agreement and coverage" =>
+      "The prediction was that a five-way choice would be harder than a four-way one and " \
+      "reproducibility would fall. Unstably-read claims went 26 to 35, which looks like the " \
+      "predicted cost and **is not evidence of it**: v2's own two passes produced never-read " \
+      "counts of 30 and 35, so a swing this size is what this measurement does when nothing " \
+      "changes at all.\n\n" \
+      "This is the same discipline §12 arrived at from the other direction, and the same one " \
+      "Alexandra Krížová's fixed attention bias exposed in the drift audit: a number compared " \
+      "against a fixed expectation, with no account of what it does under no change, is not a " \
+      "finding. **The cost may be real. This does not show it.**",
+    "category adoption (normative)" =>
+      "It is used — 20 of 254 typed claims, about one in thirteen — so the category is not " \
+      "decorative.\n\n" \
+      "**The modal source is the surprise.** Prescription was not hiding in *ontological*, " \
+      "which is where it was expected: it was being read as **interpretive**, meaning assigned " \
+      "to an observation. \"A man's purpose is one thing\" reads to a classifier as someone " \
+      "assigning meaning, not as a claim about what exists. The category the framework was " \
+      "least worried about was the one absorbing the missing one."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -167,6 +190,10 @@ class BaselineReport
       "%{jaccard_where_both_could_judge} judging the same steps, %{jaccard_raw} overall",
     "v2/repeated reading — agreement and coverage" =>
       "%{unstably_read} unstably read, was 41",
+    "v3/repeated reading — agreement and coverage" =>
+      "%{typed} of %{claims} typed, %{unstably_read} unstably",
+    "category adoption (normative)" =>
+      "%{normative_claims} of %{typed} typed claims",
     "finding-set churn (three-reading passes)" =>
       "%{in_both} of %{pass1} steps flagged again"
   }.freeze

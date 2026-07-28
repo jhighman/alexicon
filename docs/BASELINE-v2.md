@@ -11,7 +11,7 @@ honest rather than reassuring.
 
 > **Taken across 2 code revisions** — `67fcc97`, `67fcc97-dirty`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
-Also recorded: `v1` ([BASELINE.md](BASELINE.md)). These are **not revisions of each other** — each was taken under its own conditions, and `Baseline.compare` refuses a pair whose conditions diverged rather than reporting a difference that may be the instrument.
+Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v3` ([BASELINE-v3.md](BASELINE-v3.md)). These are **not revisions of each other** — each was taken under its own conditions, and `Baseline.compare` refuses a pair whose conditions diverged rather than reporting a difference that may be the instrument.
 
 > **How to read a number here.** None of these say the model is right. They
 > say whether it is *consistent*, which is a different and smaller claim. A
