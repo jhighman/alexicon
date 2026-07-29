@@ -236,14 +236,18 @@ class ProfileReport
       |---|---|---|
       #{rows.join("\n")}#{truncation}
 
-      > **Read this section far more weakly than the others, and here is the number.**
-      > Presented with claim pairs from unrelated parts of a document — no
-      > argumentative relation at all — this layer still produced a confident reading
-      > **61% of the time**, against 93% on real steps. It discriminates, but it
-      > invents roughly three times in five, and its confidence is identical in both
-      > cases so it cannot be used to tell them apart. A single row here is not a
-      > finding. A pattern across many rows is worth a person's attention, and
-      > nothing more than that.
+      > **This section does not currently distinguish signal from noise, and here
+      > are the numbers.** Presented with claim pairs from unrelated parts of a
+      > document — no argumentative relation at all — the judge produced a confident
+      > reading **67.9%** of the time, against **71.4%** on real steps. That gap is
+      > 0.29 standard errors: indistinguishable from none. An earlier version with an
+      > open vocabulary did discriminate (92.9% against 60.7%, 3.08 standard errors)
+      > while inventing three times in five; closing the vocabulary bought abstention
+      > on real steps and lost the discrimination.
+      >
+      > So treat these rows as prompts for a person to look at the step themselves,
+      > not as findings. Their confidence carries no information — it is 0.9 to 1.0
+      > in both arms. Recorded in baseline v3.
     MD
   end
 

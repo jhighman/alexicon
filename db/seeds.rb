@@ -310,9 +310,10 @@ Referent.find_or_initialize_by(key: "step-value-judge").update!(
 
 # --- What a step, or a response, can put first --------------------------------
 #
-# The Motivation domain has listed Values among its components since this
-# framework was first seeded, and nothing instantiated one. The vocabulary lived
-# as free text: eight strings on the probes, and an open vocabulary in the step
+# The Motivation domain carries a component named Values and always has. The
+# component is an entity; what never existed was a model of the individual
+# values it names. The vocabulary lived as free text: eight strings on the
+# probes, and an open vocabulary in the step
 # judge that could emit any phrase. An open vocabulary is where that judge's 61%
 # invention rate comes from — asked what a move protects, it can always produce
 # something, so it does.

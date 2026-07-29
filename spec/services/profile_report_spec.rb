@@ -102,8 +102,9 @@ RSpec.describe ProfileReport do
 
       report = described_class.render(document)
 
-      expect(flat(report)).to include "61% of the time"
-      expect(flat(report)).to include "A single row here is not a finding"
+      expect(flat(report)).to include "does not currently distinguish signal from noise"
+      expect(flat(report)).to include "0.29 standard errors"
+      expect(flat(report)).to include "not as findings"
     end
 
     it "counts how many steps it actually read, against how many were flagged" do

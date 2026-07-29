@@ -54,6 +54,12 @@ class BaselineReport
     "value inference discrimination (shuffle control)" =>
       "Asking what a move protects presupposes there is something to find. Is the " \
       "layer reading the step, or answering the question it was asked?",
+    "value inference discrimination (closed vocabulary)" =>
+      "The open vocabulary let the judge invent. Does giving it a fixed list to " \
+      "choose from stop that?",
+    "vocabulary substitution (a second account of what is protected)" =>
+      "Is the value vocabulary a parameter of the framework, or one worldview " \
+      "seeded and called structure?",
     "v3/inter-judge agreement (argumentative prose)" =>
       "Both judges now have somewhere to put prescription. Did giving them one " \
       "reduce their disagreement where prescription lives?"
@@ -179,6 +185,25 @@ class BaselineReport
       "anything to read. Raising the floor would cut both arms equally.\n\n" \
       "This was run because the layer's own author flagged a 25-of-28 hit rate as too high " \
       "for something designed to abstain readily. It was.",
+    "value inference discrimination (closed vocabulary)" =>
+      "**No. It made it worse, and this was the proposed fix.** Closing the list cut the " \
+      "real-step read rate 92.9% to 71.4% — the abstention it was meant to buy — and raised " \
+      "the shuffled rate 60.7% to 67.9%. The gap fell from 3.08 standard errors to **0.29**. " \
+      "The discrimination that survived an open vocabulary did not survive a closed one.\n\n" \
+      "The likely mechanism is untested and worth stating anyway: sixteen broad values can be " \
+      "read into almost any pair of claims, so a menu that wide makes invention *easier*. " \
+      "Which means Alexandra Krížová's design does not transfer as described — her closed set " \
+      "is **two** values, the pair the probe put in conflict. The defence is not closure, it " \
+      "is closure **scoped to the case**.",
+    "vocabulary substitution (a second account of what is protected)" =>
+      "**Structurally, yes.** A second framework carrying Rand's cardinal values and virtues " \
+      "slots in, the judge reads against whichever list it is given, and the reading records " \
+      "which one produced it. Where the two vocabularies share a key they agree; everywhere " \
+      "else they diverge — the vocabulary is doing the work, not the model's prior.\n\n" \
+      "**And the comparison is rigged in the home vocabulary's favour.** Its eight proposed " \
+      "values were written hours earlier by reading this document's own value readings. It " \
+      "fits this letter because it was fitted to it, so 82% against 39% says nothing about " \
+      "which account of what people protect is better.",
     "v3/inter-judge agreement (argumentative prose)" =>
       "**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for " \
       "adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% " \
@@ -225,6 +250,10 @@ class BaselineReport
       "%{normative_claims} of %{typed} typed claims",
     "value inference discrimination (shuffle control)" =>
       "%{rate} on real steps, %{shuffled_rate} on unrelated ones",
+    "value inference discrimination (closed vocabulary)" =>
+      "%{real_rate} on real steps, %{shuffled_rate} on unrelated ones",
+    "vocabulary substitution (a second account of what is protected)" =>
+      "%{alexicon_read} of %{steps} read against one list, %{objectivist_read} against another",
     "v3/inter-judge agreement (argumentative prose)" =>
       "%{rate}, down from %{four_category_rate} under four categories",
     "finding-set churn (three-reading passes)" =>

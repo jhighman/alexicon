@@ -28,9 +28,8 @@ RSpec.describe StepValueJudge do
   end
 
   # A stubbed adapter, so the guards can be tested without a model.
-  def adapter(protects: "the generalisability of hard-won insight",
-              subordinates: "the limits of a single case", confidence: 0.9)
-    payload = { protects: protects, subordinates: subordinates, confidence: confidence,
+  def adapter(protects: "generality", confidence: 0.9)
+    payload = { protects: protects, confidence: confidence,
                 rationale: "the second sentence widens the scope" }
     completion = LlmClients::Completion.new(text: payload.to_json, input_tokens: 10,
                                             output_tokens: 20)
@@ -71,6 +70,15 @@ RSpec.describe StepValueJudge do
 
       expect(assertion.claim["move"]).to eq "interpretive -> normative"
     end
+
+    # A value already knows what it is put before, so the model is not asked.
+    it "takes what was subordinated from the vocabulary, not from the model" do
+      assertion = described_class.call(step("interpretive", "ontological"), client: adapter)
+      value = FrameworkValue.find_by!(key: "generality")
+
+      expect(assertion.claim["protects"]).to eq value.name
+      expect(assertion.claim["subordinates"]).to eq value.subordinates
+    end
   end
 
   describe "where it runs" do
@@ -108,7 +116,7 @@ RSpec.describe StepValueJudge do
     it "records nothing when the move reveals no commitment" do
       t = step("interpretive", "ontological")
 
-      expect { described_class.call(t, client: adapter(protects: "uncertain")) }
+      expect { described_class.call(t, client: adapter(protects: "none")) }
         .not_to change { t.assertions.count }
     end
 
@@ -116,6 +124,13 @@ RSpec.describe StepValueJudge do
       t = step("interpretive", "ontological")
 
       expect(described_class.call(t, client: adapter(confidence: 0.8))).to be_nil
+    end
+
+    # The whole point of closing the list: it can pick or decline, never invent.
+    it "discards a value that is not in the vocabulary" do
+      t = step("interpretive", "ontological")
+
+      expect(described_class.call(t, client: adapter(protects: "the will to power"))).to be_nil
     end
 
     # Higher than the classifier's: a weak reading of a category is still a
@@ -126,12 +141,40 @@ RSpec.describe StepValueJudge do
     end
   end
 
+  # A framework carries its own values, and what a step protects only means
+  # something relative to a list of things it could have protected.
+  describe "a different vocabulary" do
+    it "reads against the list it was given" do
+      other = Framework.create!(key: "other-fw", name: "Other", version: "1", current: false)
+      domain = Domain.create!(framework: other, key: "motivation", name: "Motivation",
+                              position: 1, question: "Why?")
+      DomainComponent.create!(domain: domain, name: "Values", position: 1)
+      FrameworkValue.create!(framework: other, domain: domain, key: "productiveness",
+                             name: "Productiveness", definition: "Creating value.",
+                             subordinates: "Consuming without creating.", provenance: "proposed")
+
+      assertion = described_class.call(step("interpretive", "ontological"),
+                                       client: adapter(protects: "productiveness"),
+                                       vocabulary: FrameworkValue.where(framework: other))
+
+      expect(assertion.claim["protects"]).to eq "Productiveness"
+      expect(assertion.claim["vocabulary"]).to eq "other-fw"
+    end
+
+    it "refuses to read against an empty one" do
+      expect {
+        described_class.new(step("interpretive", "ontological"), vocabulary: FrameworkValue.none)
+      }.to raise_error described_class::EmptyVocabulary
+    end
+  end
+
   describe "the reading it records" do
     it "carries its confidence, always" do
       assertion = described_class.call(step("observation", "normative"), client: adapter)
 
       expect(assertion.claim["confidence"]).to eq 0.9
       expect(assertion.claim["rationale"]).to be_present
+      expect(assertion.claim["vocabulary"]).to eq Framework.current!.key
     end
 
     it "is attributed to a judge separate from the Sentinel and the classifier" do

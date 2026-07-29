@@ -504,10 +504,11 @@ count in its conditions.
 
 ## Values are framework data
 
-The Motivation domain has listed **Values** among its components since the
-framework was first seeded, and nothing instantiated one. The vocabulary lived
-as free text — eight strings on the probes, reachable only by the probe naming
-them, and an open vocabulary in the step judge that could emit any phrase at all.
+The Motivation domain carries a component named **Values**, and has since the
+framework was first seeded. The component is an entity; what never existed was a
+model of the individual values it refers to. So the vocabulary lived as free
+text — eight strings on the probes, reachable only by the probe naming them, and
+an open vocabulary in the step judge that could emit any phrase at all.
 
 An open vocabulary is where that judge's **61% invention rate** comes from:
 asked what a move protects, it can always produce something, so it does.

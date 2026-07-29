@@ -1,11 +1,12 @@
 # A commitment a step, or a response, can put first.
 #
-# The Motivation domain lists Values among its components and nothing ever
-# instantiated one, so the vocabulary lived as free text: eight strings on
-# `ValueProbe`, reachable only by the probe naming them, and an open vocabulary
-# in the step judge that could emit any phrase at all. An open vocabulary is
-# where that judge's 61% invention rate comes from — it can always produce
-# something, so it does.
+# The Motivation domain has a `DomainComponent` named "Values" — the component
+# is an entity and always was. What did not exist was any model of the
+# individual values it refers to. So the vocabulary lived as free text: eight
+# strings on `ValueProbe`, reachable only by the probe naming them, and an open
+# vocabulary in the step judge that could emit any phrase at all. An open
+# vocabulary is where that judge's 61% invention rate comes from — it can always
+# produce something, so it does.
 #
 # Framework data, like categories and promotions: a value is added by editing a
 # seed, and a framework version carries its own vocabulary.

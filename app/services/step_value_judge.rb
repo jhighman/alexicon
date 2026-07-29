@@ -57,7 +57,7 @@ class StepValueJudge
   # with a number next to it.
   DEFAULT_CONFIDENCE_FLOOR = 0.85
 
-  ABSTAIN = "uncertain".freeze
+  ABSTAIN = "none".freeze
 
   Reading = Data.define(:protects, :subordinates, :confidence, :rationale, :abstained) do
     def abstained? = abstained
@@ -74,6 +74,9 @@ class StepValueJudge
   # Raised if the actor that ruled the step is also the one asked to read it.
   class NotIndependent < StandardError; end
 
+  # A closed vocabulary with nothing in it is an open one.
+  class EmptyVocabulary < StandardError; end
+
   def self.call(transition, **) = new(transition, **).call
 
   # Every unearned step in a document, skipping any already read.
@@ -86,10 +89,17 @@ class StepValueJudge
     transition.assertions.standing.any? { it.claim["inference"] == "step value" }
   end
 
-  def initialize(transition, client: nil, confidence_floor: DEFAULT_CONFIDENCE_FLOOR)
+  # The vocabulary is a parameter, not a constant. A framework carries its own
+  # values, and asking what a step protects only means something relative to a
+  # list of things it could have protected — so the list travels with the
+  # reading rather than being assumed.
+  def initialize(transition, client: nil, confidence_floor: DEFAULT_CONFIDENCE_FLOOR,
+                 vocabulary: FrameworkValue.vocabulary)
     @transition = transition
     @client = client
     @confidence_floor = confidence_floor
+    @vocabulary = vocabulary.to_a
+    raise EmptyVocabulary, "nothing to choose from" if @vocabulary.empty?
   end
 
   def call
@@ -109,7 +119,7 @@ class StepValueJudge
 
   private
 
-  attr_reader :transition, :confidence_floor
+  attr_reader :transition, :confidence_floor, :vocabulary
 
   def judge = @judge ||= Referent.find_by!(key: JUDGE)
 
@@ -154,7 +164,9 @@ class StepValueJudge
           claim: { "inference" => "step value",
                    "move" => "#{transition.source.category&.key} -> #{transition.target.category&.key}",
                    "protects" => reading.protects, "subordinates" => reading.subordinates,
-                   "confidence" => reading.confidence, "rationale" => reading.rationale }
+                   "confidence" => reading.confidence, "rationale" => reading.rationale,
+                   "vocabulary" => vocabulary.first.framework.key,
+                   "vocabulary_size" => vocabulary.size }
         )
       end
     end
@@ -183,13 +195,18 @@ class StepValueJudge
   # Unparseable output abstains rather than raising. A judge that returned
   # nonsense has told you nothing, which is the same position as a judge that
   # could not tell — and this is not a reading anything should stall on.
+  # Anything off the list is discarded rather than recorded. That is the whole
+  # point of closing the vocabulary: the judge can pick or decline, and cannot
+  # invent. What it SUBORDINATES comes from the chosen value's own definition,
+  # not from the model — a value already knows what it is put before.
   def parse(response)
     payload = JSON.parse(response.text.to_s)
-    protects = payload["protects"].to_s.strip
+    key = payload["protects"].to_s.strip
     confidence = payload["confidence"].to_f
-    abstained = protects.blank? || protects == ABSTAIN || confidence < confidence_floor
+    chosen = vocabulary.find { it.key == key }
+    abstained = chosen.nil? || key == ABSTAIN || confidence < confidence_floor
 
-    Reading.new(protects: protects, subordinates: payload["subordinates"].to_s.strip,
+    Reading.new(protects: chosen&.name, subordinates: chosen&.subordinates,
                 confidence: confidence, rationale: payload["rationale"].to_s.strip,
                 abstained: abstained)
   rescue JSON::ParserError, TypeError, NoMethodError
@@ -201,12 +218,11 @@ class StepValueJudge
     {
       type: "object",
       properties: {
-        protects: { type: "string" },
-        subordinates: { type: "string" },
+        protects: { type: "string", enum: vocabulary.map(&:key) + [ ABSTAIN ] },
         confidence: { type: "number" },
         rationale: { type: "string" }
       },
-      required: %w[protects subordinates confidence rationale],
+      required: %w[protects confidence rationale],
       additionalProperties: false
     }
   end
@@ -217,7 +233,9 @@ class StepValueJudge
       move from the first to the second was judged UNEARNED — the second claims
       more than the first supports.
 
-      Say what that MOVE puts first, and what it sets aside.
+      Say what that MOVE puts first, choosing from this list and nothing else:
+
+      #{vocabulary.map { "- #{it.key}: #{it.name} — #{it.definition} Put before: #{it.subordinates}" }.join("\n")}
 
       Write about the move, not about the writer. "Treats a hard-won personal
       insight as generalisable" is a claim about a step. "The writer is
@@ -230,11 +248,13 @@ class StepValueJudge
       different question underneath it: what would have to matter to somebody
       for this step to feel warranted?
 
-      Answer "#{ABSTAIN}" for `protects` if the move does not clearly put one
-      thing before another — because it is a turn of phrase, an aside, a change
-      of subject, or too slight to read. Abstaining is correct and is preferred
-      over a guess. Most steps do not reveal a commitment, and a value nobody
-      could see is not a value.
+      Answer "#{ABSTAIN}" if the move does not clearly put one of those before
+      what it sets aside — because it is a turn of phrase, an aside, a change of
+      subject, too slight to read, or because what it protects is not on the
+      list. Abstaining is correct and is preferred over a guess. Most steps do
+      not reveal a commitment, and a value nobody could see is not a value.
+
+      Do not answer with anything that is not one of the keys above.
 
       Give a confidence between 0 and 1 and a one-sentence rationale naming the
       feature of the two statements that decided it.

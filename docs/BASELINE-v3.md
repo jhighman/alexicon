@@ -9,10 +9,10 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 3 code revisions** — `9831dc6`, `91dee52`, `376b990`. Figures
-> within this baseline were not all measured against the same instrument, so a
-> difference between two of them may be a difference in the code. Each section
-> states its own revision.
+> **Taken across 4 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> `38722b1-dirty`. Figures within this baseline were not all measured against
+> the same instrument, so a difference between two of them may be a difference
+> in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -280,6 +280,138 @@ gemini-2.5-pro, persisted no, categories 5, confidence floor 85.0%
   happening to be relatable by coincidence — some of the 61% may be real
   readings of accidental relations rather than invention.
 
+## 5. Value inference discrimination (closed vocabulary) — 71.4% on real steps, 67.9% on unrelated ones
+
+*The open vocabulary let the judge invent. Does giving it a fixed list to choose
+from stop that?*
+
+| | |
+|---|---|
+| rate | 3.6% |
+| real rate | 71.4% |
+| real recorded | 20 |
+| shuffled rate | 67.9% |
+| pairs each arm | 28 |
+| standard errors | 29.0% |
+| vocabulary size | 16 |
+| shuffled recorded | 19 |
+| open vocabulary real | 92.9% |
+| open vocabulary shuffled | 60.7% |
+| open vocabulary standard errors | 3.08 |
+
+Whether closing the judge's vocabulary fixed the invention the open vocabulary
+showed. It did not.
+
+**No. It made it worse, and this was the proposed fix.** Closing the list cut
+the real-step read rate 92.9% to 71.4% — the abstention it was meant to buy —
+and raised the shuffled rate 60.7% to 67.9%. The gap fell from 3.08 standard
+errors to **0.29**. The discrimination that survived an open vocabulary did not
+survive a closed one.
+
+The likely mechanism is untested and worth stating anyway: sixteen broad values
+can be read into almost any pair of claims, so a menu that wide makes invention
+*easier*. Which means Alexandra Krížová's design does not transfer as described
+— her closed set is **two** values, the pair the probe put in conflict. The
+defence is not closure, it is closure **scoped to the case**.
+
+**Sample:** document 30, shuffled same category pair as each real step, source
+and target at least 20 positions apart, unearned steps 28  
+**Conditions:** judge step-value-judge via gemini-2.5-pro, persisted no,
+categories 5, vocabulary alexicon-2.0, 16 values, closed — the judge picks a key
+or answers none, confidence floor 85.0%  
+**Code:** `38722b1-dirty`
+
+**What this cannot tell you.**
+- THE FIX FAILED AND MADE IT WORSE. Closing the list cut the real-step read rate
+  from 92.9% to 71.4%, which is the abstention it was supposed to buy — but it
+  RAISED the shuffled rate from 60.7% to 67.9%. The gap fell from 0.321 (3.08
+  standard errors, interval excluding zero) to 0.036 (0.29 standard errors). The
+  discrimination that survived the open vocabulary is gone.
+- The likely mechanism, and it is UNTESTED: sixteen broad values — Generality,
+  Purpose, Affirmation, Coherence — can be read into almost any pair of claims.
+  A menu that wide makes invention easier rather than harder, because something
+  on it always plausibly fits.
+- Which means Alexandra Krížová's design does not transfer the way it was
+  described. Her judge's closed set is TWO values, the pair the probe itself put
+  in conflict. The defence is not closure, it is closure SCOPED TO THE CASE. A
+  global menu is nearly as permissive as no menu.
+- The judge's own read rate is not stable between runs. The same vocabulary on
+  the same 28 steps gave 23 readings in one run and 20 in another — 82% against
+  71% — so differences below about ten points mean nothing here.
+- One document, 28 pairs an arm, one model, one vocabulary. A vocabulary of more
+  specific values might discriminate where this one does not; nothing here tests
+  that.
+
+## 6. Vocabulary substitution (a second account of what is protected) — 23 of 28 read against one list, 11 against another
+
+*Is the value vocabulary a parameter of the framework, or one worldview seeded
+and called structure?*
+
+| | |
+|---|---|
+| rate | 39.3% |
+| steps | 28 |
+| shared keys | 2 |
+| alexicon rate | 82.1% |
+| alexicon read | 23 |
+| alexicon values | 16 |
+| objectivist rate | 39.3% |
+| objectivist read | 11 |
+| objectivist values | 11 |
+| alexicon reached for — agency | 2 |
+| alexicon reached for — purpose | 4 |
+| alexicon reached for — autonomy | 1 |
+| alexicon reached for — coherence | 1 |
+| alexicon reached for — generality | 9 |
+| alexicon reached for — affirmation | 5 |
+| alexicon reached for — independence | 1 |
+| objectivist reached for — reason | 1 |
+| objectivist reached for — honesty | 1 |
+| objectivist reached for — purpose | 3 |
+| objectivist reached for — self-esteem | 1 |
+| objectivist reached for — independence | 4 |
+| objectivist reached for — rational self-interest | 1 |
+
+Whether the value vocabulary is genuinely a parameter of the framework or one
+worldview seeded and called structure.
+
+**Structurally, yes.** A second framework carrying Rand's cardinal values and
+virtues slots in, the judge reads against whichever list it is given, and the
+reading records which one produced it. Where the two vocabularies share a key
+they agree; everywhere else they diverge — the vocabulary is doing the work, not
+the model's prior.
+
+**And the comparison is rigged in the home vocabulary's favour.** Its eight
+proposed values were written hours earlier by reading this document's own value
+readings. It fits this letter because it was fitted to it, so 82% against 39%
+says nothing about which account of what people protect is better.
+
+**Sample:** document 30, unearned steps 28  
+**Conditions:** judge step-value-judge via gemini-2.5-pro, persisted no,
+categories 5, vocabulary a alexicon-2.0, 16 values, vocabulary b
+objectivist-1.0, 11 values — Rand's three cardinal values and seven virtues  
+**Code:** `38722b1-dirty`
+
+**What this cannot tell you.**
+- STRUCTURALLY IT IS A PARAMETER. A second framework carries its own values, the
+  judge reads against whichever it is given, the reading records which
+  vocabulary produced it, and the first vocabulary is untouched. Swapping it
+  changes the reading substantively rather than cosmetically.
+- THE COMPARISON IS NOT FAIR AND THE ALEXICON SIDE IS THE CHEAT. Its eight
+  proposed values were written hours earlier by reading this document's own
+  value readings. It reads this letter well because it was fitted to this
+  letter. The 82% against 39% is not evidence that one account of what people
+  protect is better than the other.
+- Where the two vocabularies share a key — purpose, independence — they agree.
+  Everywhere else they diverge. That is the vocabulary doing the work rather
+  than the model's prior, which is the one thing this does establish.
+- The Objectivist vocabulary declined 17 of 28. Whether that is a vocabulary
+  that does not fit the text, or simply one whose values are more specific and
+  therefore harder to apply, is NOT settled here and the two are easily
+  confused.
+- Both arms are single runs, and the judge's read rate moves about ten points
+  between runs on identical input.
+
 ---
 
 ## Comparing a later reading
@@ -295,7 +427,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 4 figures. 3 of them are the system agreeing or disagreeing
+- **Correctness.** 6 figures. 5 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be
