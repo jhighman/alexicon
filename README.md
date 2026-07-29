@@ -156,8 +156,8 @@ audit trail.
 
 ## Driving it programmatically
 
-Every act a person can perform has a REST endpoint, and the CLI and any agent
-use the same one. A token belongs to a **Referent**, not to a user session, so
+Every act a person can perform has a REST endpoint, and `bin/alexicon` and any
+agent use the same one. A token belongs to a **Referent**, not to a user session, so
 whatever calls the API attributes its judgements to itself — an agent can never
 leave a record saying a person decided.
 
@@ -193,6 +193,30 @@ wide its role. And `TemporalDriftAudit` watches what happens *after* the grant,
 comparing an actor's recent decisions against its own earlier ones, since a
 covert policy arrives as a slow shift across many defensible commands rather than
 as one suspicious one.
+
+### The command line
+
+`bin/alexicon` is a thin HTTP client over the same endpoints. It boots no Rails —
+an interactive session should feel like a terminal, and half a second of
+framework startup per claim is the difference between forty claims being a task
+and forty claims being a chore.
+
+```sh
+export ALEXICON_TOKEN=...        # or ~/.alexicon, or --token=
+bin/alexicon type 27             # type a document's claims blind, one keystroke each
+bin/alexicon comparison 27       # agreement with the classifier, and where you part
+bin/alexicon documents           # documents · show · ingest · classify · govern · mentions
+```
+
+`type` is the reason it exists. It shows the claim with the same four-claim
+context window the classifier was given, the categories with their definitions,
+and nothing else — no reading, no flags, no neighbours' categories. A number
+types the claim, `u` marks an answer you could argue the other way, `.` records
+that you cannot tell, `q` stops and the session resumes where you left it.
+
+A token belongs to a **Referent**, so what you record from a terminal is
+attributed exactly as it would be from the browser, and an agent driving the same
+command still needs the delegation a person would not.
 
 ### Typing claims blind
 

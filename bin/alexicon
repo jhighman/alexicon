@@ -1,0 +1,418 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# The Alexicon command line.
+#
+# A thin HTTP client over the same REST surface the browser and any agent use.
+# It boots no Rails: an interactive typing session should feel like a terminal,
+# not like a web request, and half a second of framework startup per claim is
+# the difference between forty claims being a task and forty claims being a
+# chore.
+#
+# A token belongs to a REFERENT, so a reading recorded here attributes to
+# whoever holds the token, exactly as it would in the browser. There is no
+# separate authorisation path and no way to act as someone else.
+#
+#   alexicon type 27          the reason this exists: type claims blind
+#   alexicon documents        what is here
+#   alexicon comparison 27    where you and the classifier part
+#
+# Configuration, in order of precedence: --url/--token, then ALEXICON_URL and
+# ALEXICON_TOKEN, then ~/.alexicon holding `url=` and `token=` lines. The token
+# is never printed, logged, or echoed.
+
+require "net/http"
+require "json"
+require "uri"
+require "io/console"
+
+module Alexicon
+  DEFAULT_URL = "http://localhost:3000"
+  CONFIG_FILE = File.join(Dir.home, ".alexicon")
+
+  # ANSI, but only when a human is watching. Piped output stays plain so it can
+  # be diffed and grepped.
+  module Style
+    module_function
+
+    def tty? = $stdout.tty?
+    def wrap(text, code) = tty? ? "\e[#{code}m#{text}\e[0m" : text.to_s
+    def bold(text) = wrap(text, 1)
+    def dim(text) = wrap(text, 2)
+    def red(text) = wrap(text, 31)
+    def green(text) = wrap(text, 32)
+    def yellow(text) = wrap(text, 33)
+    def cyan(text) = wrap(text, 36)
+  end
+
+  class Error < StandardError; end
+
+  # Raised when the server refuses a judgement for want of a delegation. Kept
+  # distinct because the remedy is a person granting one, not a retry.
+  class NotDelegated < Error; end
+
+  class Client
+    def initialize(url:, token:)
+      @base = URI.parse(url)
+      @token = token
+    end
+
+    def get(path) = request(Net::HTTP::Get, path)
+    def post(path, form = {}) = request(Net::HTTP::Post, path, form)
+    def patch(path, form = {}) = request(Net::HTTP::Patch, path, form)
+
+    private
+
+    attr_reader :base, :token
+
+    def request(verb, path, form = nil)
+      uri = URI.join(base, path)
+      req = verb.new(uri)
+      req["Authorization"] = "Bearer #{token}"
+      req["Accept"] = "application/json"
+      req.set_form_data(form) if form
+
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do
+        it.request(req)
+      end
+      interpret(response)
+    rescue Errno::ECONNREFUSED
+      raise Error, "Nothing is listening at #{base}. Start the server, or set ALEXICON_URL."
+    end
+
+    def interpret(response)
+      body = response.body.to_s.empty? ? {} : JSON.parse(response.body)
+      return body if response.is_a?(Net::HTTPSuccess)
+
+      raise NotDelegated, delegation_message(body) if body["error"] == "not_delegated"
+      raise Error, failure_message(response, body)
+    rescue JSON::ParserError
+      raise Error, "#{response.code} from the server, and the body was not JSON."
+    end
+
+    def delegation_message(body)
+      "#{body['detail']}\n" \
+        "  A person must delegate #{Style.bold(body['act'])} to " \
+        "#{body['acting_as']} before this token may do it."
+    end
+
+    def failure_message(response, body)
+      case response.code
+      when "401" then "Unauthenticated. Set ALEXICON_TOKEN, or pass --token."
+      when "403" then "This token's role does not allow that."
+      when "404" then "Not found."
+      else "#{response.code}: #{body['detail'] || body['error'] || 'no detail given'}"
+      end
+    end
+  end
+
+  # Typing claims blind, one keystroke at a time.
+  #
+  # The endpoint refuses to disclose what the classifier concluded until the
+  # reader has answered, so this cannot show it by accident. What this class is
+  # careful about is the rest: it never fetches the comparison mid-session, and
+  # it never displays a claim's neighbours' categories, because the measurement
+  # is only worth taking if the reader could not have been anchored.
+  class Session
+    QUIT = %w[q  ].freeze
+
+    def initialize(client, document_id)
+      @client = client
+      @document_id = document_id
+      @unsure = false
+    end
+
+    def run
+      loop do
+        state = client.get(path)
+        return finished(state) if state["claim"].nil?
+
+        render(state)
+        break unless answer(state)
+      end
+      true
+    end
+
+    private
+
+    attr_reader :client, :document_id
+    attr_accessor :unsure
+
+    def path = "/api/v1/documents/#{document_id}/blind_reading"
+
+    def finished(state)
+      puts
+      puts Style.green("Nothing left to type — #{state['typed']} of #{state['total']}.")
+      puts Style.dim("  alexicon comparison #{document_id}")
+      true
+    end
+
+    def render(state)
+      @categories = state["categories"]
+      puts "\n#{Style.dim('─' * 72)}"
+      puts progress(state)
+      puts
+      state["context"].each { puts Style.dim("  #{truncate(it)}") }
+      puts Style.dim("  #{'·' * 20}") if state["context"].any?
+      puts "  #{Style.bold(state['claim']['text'])}"
+      puts
+      @categories.each_with_index do |category, index|
+        puts "  #{Style.cyan("[#{index + 1}]")} #{category['name'].ljust(13)} " \
+             "#{Style.dim(category['definition'])}"
+      end
+      puts
+    end
+
+    def progress(state)
+      done, total = state["typed"], state["total"]
+      width = 40
+      filled = total.zero? ? 0 : (done * width / total)
+      bar = "#{'█' * filled}#{'░' * (width - filled)}"
+      "  #{Style.dim(bar)}  #{done} of #{total}"
+    end
+
+    # One keystroke for the common case. `u` toggles a flag that rides along
+    # with the next answer, so recording "I could argue it the other way" costs
+    # one key rather than a prompt.
+    def answer(state)
+      loop do
+        print prompt
+        key = read_key
+        puts
+
+        return false if QUIT.include?(key)
+
+        case key
+        when "u" then self.unsure = !unsure
+        when "." then return record(state, nil)
+        when "?" then help
+        when /\A[1-9]\z/
+          category = @categories[key.to_i - 1]
+          next puts(Style.red("  There is no category #{key}.")) if category.nil?
+
+          return record(state, category)
+        else
+          puts Style.dim("  ? for help, q to stop.")
+        end
+      end
+    end
+
+    def prompt
+      flag = unsure ? Style.yellow(" [unsure]") : ""
+      keys = "1-#{@categories.size}"
+      "  #{Style.dim("#{keys} type · u unsure · . cannot tell · q stop")}#{flag} > "
+    end
+
+    # One character, without waiting for Enter. When stdin is not a terminal —
+    # a piped answer file, a test — `getch` cannot set raw mode, and reading a
+    # whole LINE would swallow every remaining keystroke and end the session
+    # after one answer. So the fallback also reads one character, skipping the
+    # whitespace that separates them.
+    def read_key
+      $stdin.getch
+    rescue Errno::ENOTTY, IOError
+      loop do
+        char = $stdin.getc
+        return "q" if char.nil?
+        return char unless char.strip.empty?
+      end
+    end
+
+    def record(state, category)
+      form = { claim_id: state["claim"]["id"] }
+      if category.nil?
+        form[:abstain] = "true"
+      else
+        form[:category] = category["key"]
+        form[:unsure] = "true" if unsure
+      end
+
+      client.post(path, form)
+      self.unsure = false
+      true
+    rescue NotDelegated => e
+      puts Style.red("  #{e.message}")
+      false
+    end
+
+    def help
+      puts Style.dim(<<~TEXT)
+          A number types the claim as that kind. `u` marks the answer as one you
+          could argue the other way, and stays on until you use it. `.` records
+          that you cannot tell — an answer, not a skip, and it will not overwrite
+          what the classifier decided. `q` stops; the session resumes where you
+          left it.
+
+          Nothing here shows what the classifier concluded. That is the point:
+          the comparison is only worth anything if you could not have seen it.
+      TEXT
+    end
+
+    def truncate(text, width = 68)
+      text.length > width ? "#{text[0, width - 1]}…" : text
+    end
+  end
+
+  class CLI
+    def self.run(argv) = new.run(argv)
+
+    def run(argv)
+      argv = argv.dup
+      options = extract_options(argv)
+      command = argv.shift
+
+      return usage if command.nil? || %w[help -h --help].include?(command)
+
+      dispatch(command, argv, options)
+      0
+    rescue Error => e
+      warn Style.red(e.message)
+      1
+    rescue Interrupt
+      puts
+      0
+    end
+
+    private
+
+    def dispatch(command, args, options)
+      case command
+      when "documents"  then documents(client(options))
+      when "show"       then show(client(options), require_id(args, "show"))
+      when "type"       then Session.new(client(options), require_id(args, "type")).run
+      when "comparison" then comparison(client(options), require_id(args, "comparison"))
+      when "ingest"     then ingest(client(options), args.first)
+      when "classify"   then queue(client(options), require_id(args, "classify"), "classify")
+      when "govern"     then queue(client(options), require_id(args, "govern"), "govern")
+      when "mentions"   then mentions(client(options), require_id(args, "mentions"))
+      else raise Error, "Unknown command #{command.inspect}. Try `alexicon help`."
+      end
+    end
+
+    def require_id(args, command)
+      id = args.shift
+      raise Error, "`alexicon #{command}` needs a document id." if id.nil?
+
+      id
+    end
+
+    def documents(client)
+      client.get("/api/v1/documents")["documents"].each do |doc|
+        puts format("%6s  %-44s %4s claims", doc["id"],
+                    truncate(doc["title"] || "Untitled", 44), doc["claims"])
+      end
+    end
+
+    def show(client, id)
+      doc = client.get("/api/v1/documents/#{id}")
+      doc.each do |key, value|
+        next if value.is_a?(Array) || value.is_a?(Hash)
+
+        puts format("  %-22s %s", key, value)
+      end
+    end
+
+    def comparison(client, id)
+      c = client.get("/api/v1/documents/#{id}/blind_reading/comparison")
+      rate = c.dig("agreement", "rate")
+      puts "  typed        #{c['typed']}"
+      puts "  agreement    #{rate ? "#{(rate * 100).round(1)}%" : '—'} " \
+           "(#{c.dig('agreement', 'agreed')} of #{c.dig('agreement', 'compared')} both typed)"
+      puts "  sure         #{c['sure_disagreements']} of #{c['disagreements'].size} disagreements"
+      puts "  moves        #{c['moves'].map { |m, n| "#{m} ×#{n}" }.join(', ')}" if c["moves"].any?
+      puts
+      c["disagreements"].each do |d|
+        flag = d["unsure"] ? Style.dim(" (either way)") : ""
+        puts "  #{Style.bold(d['yours'])} vs #{d['classifier']}#{flag}  #{Style.dim(d['classifier_agreement'])}"
+        puts "    #{truncate(d['text'], 68)}"
+      end
+      puts Style.dim("\n  #{c['note']}")
+    end
+
+    def ingest(client, file)
+      body = file.nil? || file == "-" ? $stdin.read : File.read(file)
+      raise Error, "Nothing to ingest." if body.strip.empty?
+
+      result = client.post("/api/v1/documents",
+                           { "document[body]" => body, "document[title]" => file.to_s })
+      puts Style.green("  document #{result['id']} — " \
+                       "#{result.dig('ingested', 'claims')} claims, " \
+                       "#{result.dig('ingested', 'mentions')} mentions")
+    end
+
+    def queue(client, id, action)
+      result = client.post("/api/v1/documents/#{id}/#{action}")
+      puts Style.green("  #{result['detail'] || result['note'] || 'queued'}")
+    end
+
+    def mentions(client, id)
+      client.get("/api/v1/documents/#{id}/mentions")["names"].each do |name|
+        puts format("  %-32s %3s occurrences", truncate(name["name"], 32), name["occurrences"])
+      end
+    end
+
+    def extract_options(argv)
+      options = {}
+      argv.reject! do |arg|
+        case arg
+        when /\A--url=(.+)\z/ then options[:url] = ::Regexp.last_match(1)
+        when /\A--token=(.+)\z/ then options[:token] = ::Regexp.last_match(1)
+        end
+      end
+      options
+    end
+
+    def client(options)
+      config = file_config
+      url = options[:url] || ENV["ALEXICON_URL"] || config["url"] || DEFAULT_URL
+      token = options[:token] || ENV["ALEXICON_TOKEN"] || config["token"]
+      raise Error, missing_token if token.to_s.empty?
+
+      Client.new(url: url, token: token)
+    end
+
+    def file_config
+      return {} unless File.exist?(CONFIG_FILE)
+
+      File.readlines(CONFIG_FILE).filter_map do |line|
+        key, value = line.strip.split("=", 2)
+        [ key, value ] if value
+      end.to_h
+    end
+
+    def missing_token
+      <<~TEXT
+        No token. A token belongs to a Referent, so what you record is attributed
+        to whoever it belongs to.
+
+          bin/rails "alexicon:token[USERNAME,laptop]"
+
+        Then export ALEXICON_TOKEN, or put `token=…` in ~/.alexicon.
+      TEXT
+    end
+
+    def truncate(text, width)
+      text.to_s.length > width ? "#{text[0, width - 1]}…" : text.to_s
+    end
+
+    def usage
+      puts <<~TEXT
+        #{Style.bold('alexicon')} — the same REST surface the browser uses
+
+          type ID          type a document's claims blind, one keystroke each
+          comparison ID    agreement with the classifier, and where you part
+          documents        list documents
+          show ID          one document
+          ingest FILE      submit a text (or - for stdin)
+          classify ID      queue classification
+          govern ID        queue the step judgements
+          mentions ID      names awaiting resolution
+
+        #{Style.dim('--url=  --token=  or ALEXICON_URL / ALEXICON_TOKEN / ~/.alexicon')}
+      TEXT
+      0
+    end
+  end
+end
+
+exit Alexicon::CLI.run(ARGV) if $PROGRAM_NAME == __FILE__
