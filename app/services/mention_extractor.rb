@@ -67,11 +67,29 @@ class MentionExtractor
 
   attr_reader :claim, :text, :origin, :casing
 
-  # Surface forms already in the graph, matched case-insensitively anywhere in
-  # the claim -- a known referent should be recognised even in lower case.
+  # Surface forms already in the graph, matched case-insensitively at any
+  # POSITION in the claim -- a known referent should be recognised even in lower
+  # case -- but never inside another word.
+  #
+  # Without that second guard the match was a bare substring, and every short
+  # name ever grounded became a landmine in every document written afterwards.
+  # A referent named "Eve", grounded once while reading an essay, produced 36
+  # mentions in an unrelated letter: whenever, even, eleven, however, believe.
+  # Each one raised an identity STOP, and a STOP blocks governance, so a name
+  # from one document could halt the analysis of another it never appeared in.
+  #
+  # Lookarounds rather than \b: a form may begin or end with punctuation --
+  # "St. Joe", "O'Brien" -- and \b is defined against word characters, so it
+  # behaves differently at those edges depending on the form. Asserting that
+  # neither neighbour is alphanumeric says what is actually meant, and still
+  # admits a possessive: "McDonald" matches in "McDonald's".
   def known
     forms = Referent.pluck(:name) + ReferentAlias.pluck(:name)
-    forms.compact.uniq.flat_map { |form| matches_for(Regexp.new(Regexp.escape(form), Regexp::IGNORECASE)) }
+    forms.compact.uniq.flat_map { matches_for(word_pattern(it)) }
+  end
+
+  def word_pattern(form)
+    Regexp.new("(?<![[:alnum:]])#{Regexp.escape(form)}(?![[:alnum:]])", Regexp::IGNORECASE)
   end
 
   # A sentence-initial function word is capitalised too, so "Therefore God"

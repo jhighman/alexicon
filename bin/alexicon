@@ -281,7 +281,7 @@ module Alexicon
       when "show"       then show(client(options), require_id(args, "show"))
       when "type"       then Session.new(client(options), require_id(args, "type")).run
       when "comparison" then comparison(client(options), require_id(args, "comparison"))
-      when "ingest"     then ingest(client(options), args.first)
+      when "ingest"     then ingest(client(options), args.first, options[:title])
       when "classify"   then queue(client(options), require_id(args, "classify"), "classify")
       when "govern"     then queue(client(options), require_id(args, "govern"), "govern")
       when "mentions"   then mentions(client(options), require_id(args, "mentions"))
@@ -329,12 +329,16 @@ module Alexicon
       puts Style.dim("\n  #{c['note']}")
     end
 
-    def ingest(client, file)
+    # The title defaults to the file's name, not its path. A document listing
+    # full of absolute paths tells a reader nothing and leaks where the machine
+    # keeps things.
+    def ingest(client, file, title = nil)
       body = file.nil? || file == "-" ? $stdin.read : File.read(file)
       raise Error, "Nothing to ingest." if body.strip.empty?
 
+      name = title || (file && file != "-" ? File.basename(file, ".*") : nil)
       result = client.post("/api/v1/documents",
-                           { "document[body]" => body, "document[title]" => file.to_s })
+                           { "document[body]" => body, "document[title]" => name })
       puts Style.green("  document #{result['id']} — " \
                        "#{result.dig('ingested', 'claims')} claims, " \
                        "#{result.dig('ingested', 'mentions')} mentions")
@@ -357,6 +361,7 @@ module Alexicon
         case arg
         when /\A--url=(.+)\z/ then options[:url] = ::Regexp.last_match(1)
         when /\A--token=(.+)\z/ then options[:token] = ::Regexp.last_match(1)
+        when /\A--title=(.+)\z/ then options[:title] = ::Regexp.last_match(1)
         end
       end
       options
@@ -403,7 +408,7 @@ module Alexicon
           comparison ID    agreement with the classifier, and where you part
           documents        list documents
           show ID          one document
-          ingest FILE      submit a text (or - for stdin)
+          ingest FILE      submit a text (or - for stdin), --title= to name it
           classify ID      queue classification
           govern ID        queue the step judgements
           mentions ID      names awaiting resolution

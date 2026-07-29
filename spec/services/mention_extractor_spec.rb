@@ -10,6 +10,42 @@ RSpec.describe MentionExtractor do
                             char_start: char_start, char_end: char_start + text.length)
   end
 
+  # A known form was matched as a bare substring, so every short name ever
+  # grounded became a landmine in every document written afterwards. A referent
+  # named "Eve", grounded once while reading an essay, produced 36 mentions in
+  # an unrelated letter — whenever, even, eleven — each raising an identity STOP,
+  # and a STOP blocks governance. A name from one document could halt the
+  # analysis of another it never appeared in.
+  describe "a known name inside another word" do
+    before { Referent.create!(name: "Eve", subject: "Person", role: "Figure", primitive: "person") }
+
+    def names_in(text) = described_class.new(claim(text)).call.map(&:text)
+
+    it "is not a mention" do
+      expect(names_in("I can move whenever I feel like it.")).not_to include "eve"
+      expect(names_in("It explains the eleven traps of life.")).to be_empty
+      expect(names_in("A counter top, even with granite.")).to be_empty
+    end
+
+    it "still finds the name standing on its own" do
+      expect(names_in("A man will meet Eve.")).to include "Eve"
+    end
+
+    # The case-insensitivity was deliberate and stays: a known referent should
+    # be recognised in lower case. Only the substring matching was the bug.
+    it "still finds it in lower case" do
+      expect(names_in("he met eve on the path")).to include "eve"
+    end
+
+    it "still finds it possessive, where the next character is not alphanumeric" do
+      expect(names_in("That was Eve's choice.")).to include "Eve"
+    end
+
+    it "does not match it hyphenated into a compound word" do
+      expect(names_in("The evening was long.")).to be_empty
+    end
+  end
+
   def extract(text, **) = described_class.new(claim(text, **)).call
 
   def texts(text, **) = extract(text, **).map(&:text)
