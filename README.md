@@ -119,6 +119,26 @@ A credential can be set in the browser or exported into the environment. Either
 way it stays out of the audit trail: assertions and invocations record who
 judged, on which model, at what cost — never the key.
 
+**A third level, beneath judgement, that does not yet work.** Where a step is
+judged unearned, `StepValueJudge` proposes what that **step** put first and what
+it set aside — a claim about the move, enforced by the shape of the record
+rather than the prompt, since the assertion's subject is the `Transition` and a
+Referent cannot be named as one.
+
+Its vocabulary is framework data
+([`FrameworkValue`](app/models/framework_value.rb), sixteen values under the
+Motivation domain, with provenance marking which were already in the record and
+which are proposed). Swap the framework and the vocabulary swaps with it — a
+second framework carrying Rand's cardinal values and virtues reads the same
+steps and reaches for different things.
+
+But two controls say it does not currently distinguish signal from noise.
+Presented with claim pairs from unrelated parts of a document it reads them
+almost as often as real steps: a gap of **0.29 standard errors**. So its output
+is shown as prompts for a person, never as findings, and its confidence is not
+used as a filter because it carries no information. Recorded in
+[`BASELINE-v3.md`](docs/BASELINE-v3.md).
+
 **Blind typing — the only measurement that is not the system checking itself.**
 A person, or a second model through the API, types the same claims without
 seeing what the classifier concluded. The blindness is enforced in the object
@@ -257,7 +277,11 @@ and forty claims being a chore.
 export ALEXICON_TOKEN=...        # or ~/.alexicon, or --token=
 bin/alexicon type 27             # type a document's claims blind, one keystroke each
 bin/alexicon comparison 27       # agreement with the classifier, and where you part
-bin/alexicon documents           # documents · show · ingest · classify · govern · mentions
+bin/alexicon profile 27          # the document's epistemic structure, as markdown
+bin/alexicon mentions 27         # names awaiting an answer
+bin/alexicon ground 1940 --subject=Person --role=Mother
+bin/alexicon ignore 1945         # ...or record that it is not a subject at all
+bin/alexicon documents           # documents · show · ingest · classify · govern
 ```
 
 `type` is the reason it exists. It shows the claim with the same four-claim

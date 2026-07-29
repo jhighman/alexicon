@@ -530,6 +530,93 @@ applies to disputed terms.
 
 ---
 
+## The third level, and what is wrong with it
+
+A chapter of the book names three levels of inquiry: **trust** — can I lean on
+this claim; **judgement** — did it survive contact with consequence; and beneath
+both, **values**, the commitments that decide which arguments feel reasonable
+before evidence arrives.
+
+Classification is the first. `GovernanceSentinel` is the second. `StepValueJudge`
+is the third, and it sits beneath judgement literally rather than
+metaphorically: it runs **only** where a verdict has been reached, and only
+where that verdict was *unearned*. An unearned step is a place where somebody
+moved without warrant; this asks the one question underneath it and asks it
+nowhere else.
+
+```mermaid
+flowchart LR
+    C["Claims typed"] --> G{"GovernanceSentinel"}
+    G -->|earned| E["nothing to explain"]
+    G -->|unearned| V["StepValueJudge"]
+    V --> R["What the STEP puts first<br/><i>subject: the Transition</i>"]
+    style E fill:#d1e7dd,stroke:#198754
+    style R fill:#e2e3e5,stroke:#6c757d
+```
+
+**It is a claim about the move, never about the person**, and that is enforced
+by the shape of the record rather than by the prompt: the assertion's subject is
+the `Transition`. This class cannot write a claim whose subject is a Referent,
+so *"this author values X"* is not a sentence it can express. Inferring what
+somebody values from the points where their reasoning failed is a short walk
+from psychologising them, and a promise in a system prompt is not a guard.
+
+### And it does not currently work
+
+Two controls, both recorded in [v3](BASELINE-v3.md).
+
+Presented with claim pairs from **unrelated parts of the same document** — no
+argumentative relation at all — the judge reads them almost as readily as real
+steps:
+
+| vocabulary | real steps | shuffled pairs | gap |
+|---|---|---|---|
+| open | 92.9% | 60.7% | 3.08 SE |
+| closed, 16 values | 71.4% | 67.9% | **0.29 SE** |
+
+The open vocabulary discriminated while inventing three times in five. Closing
+it bought the abstention it was meant to and **lost the discrimination**. The
+likely mechanism is untested: sixteen broad values can be read into almost any
+pair of claims, so a menu that wide makes invention easier rather than harder.
+
+Which also means Alexandra Krížová's model-facing judge does not transfer the
+way it was first described. Its closed set is **two** values — the pair the
+probe itself put in conflict. The defence is not closure, it is closure **scoped
+to the case**.
+
+So the layer stays, its output is presented as prompts for a person rather than
+findings, and its confidence is not used as a filter because it carries no
+information: 0.9 to 1.0 in both arms.
+
+---
+
+## Reports
+
+`ProfileReport` renders a document's epistemic structure as markdown, from the
+recorded assertions — reachable as `alexicon profile ID` or
+`POST /api/v1/documents/:id/profile`. Templates are data, not code paths.
+
+Two rules shape it, and the second is what makes it a report rather than a
+plausible document.
+
+**The subject is the document.** Every section describes how a text is built.
+Nothing attributes a belief, a value, a trait or a tendency to a person, because
+the record holds no assertion that would support one — and a report that
+reintroduced it at the presentation layer would undo `StepValueJudge`'s guard
+where nobody was looking. A spec checks the rendered output for exactly that.
+
+**Every section cites what it rests on, or does not render.** A template may only
+name sections with a source; one naming an unsourced section raises rather than
+filling the gap with prose. Adding a section means building the measurement
+first, which is why there is no "symbolic density" here and will not be until
+something measures it.
+
+The weakest section carries its own error rate inline rather than in a footnote,
+and the limits section is generated rather than written, so it cannot drift from
+what is true of the document being reported on.
+
+---
+
 ## A second judge
 
 Nine of v1's twelve figures are the system agreeing or disagreeing with itself.

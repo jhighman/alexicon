@@ -101,6 +101,11 @@ Where entity ambiguity, broken causality, or out-of-distribution input crosses a
 | F6 | Halt and escalate rather than guess when input crosses an ambiguity threshold (§6.4) |
 | F7 | Preserve provenance: original text, classification, rationale, and human disposition are all separately retained and independently auditable |
 | F8 | Make every classification reversible and annotatable by a human without destroying the machine's original judgment |
+| F9 | Where a step is judged unearned, propose what that **step** put first and what it set aside — a claim about the move, never about its author, and recorded as interpretive with a confidence |
+| F10 | Render a document's epistemic structure as a report whose every section cites the assertions it rests on, and which refuses to render a section that has no source |
+| F11 | Expose every act a person can perform through REST and a command line, and the record itself through a read-only query layer, with one authorisation path shared by all of them |
+
+**On F9.** It does not currently work well enough to be read as a finding. Presented with claim pairs from unrelated parts of the same document, the judge reads them almost as often as real steps — a gap of 0.29 standard errors. Its output is shown as prompts for a person to look at the step themselves. See [`BASELINE-v3.md`](BASELINE-v3.md).
 
 ## 8. Non-Goals
 

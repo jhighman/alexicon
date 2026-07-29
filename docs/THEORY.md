@@ -588,6 +588,49 @@ Alexicon 2.0 restates the seven G7 stations as seven human-level **domains**, ea
 
 ---
 
+## 7a. Three levels
+
+A chapter of the book names three levels of inquiry, and they map onto the
+implementation closely enough to be worth stating as architecture rather than as
+metaphor.
+
+**Trust** — *can I lean on this claim?* Approximated here by agreement and the
+confidence floor: a claim's category is what a strict majority of repeated
+readings said, and one reading is a sample rather than a finding.
+
+**Judgement** — *did this survive contact with consequence?* This is
+`GovernanceSentinel`: the step between two claims, and whether the promotion it
+makes was earned.
+
+**Values** — *what commitments decided which arguments felt reasonable before
+the evidence arrived?* `StepValueJudge`, running only beneath a verdict and only
+where the verdict was unearned. Its vocabulary is framework data under the
+Motivation domain, which is where this framework has always located Values, and
+it is a parameter rather than a constant: a different framework carries a
+different account of what people protect, and the reading records which one
+produced it.
+
+> **The third level does not currently work, and the failure is recorded rather
+> than described around.** Given claim pairs from unrelated parts of a document
+> the judge reads them almost as readily as real steps — a gap of 0.29 standard
+> errors. An earlier open-vocabulary version discriminated at 3.08 standard
+> errors while inventing a commitment three times in five; closing the
+> vocabulary bought abstention and lost the discrimination. See
+> [`BASELINE-v3.md`](BASELINE-v3.md) sections 4 to 6.
+>
+> One structural lesson came out of it. Alexandra Krížová's model-facing value
+> judge has a closed answer set of **two** values — the pair the probe itself put
+> in conflict — and the defence turns out to be closure **scoped to the case**
+> rather than closure as such. A global menu of sixteen is nearly as permissive
+> as no menu at all.
+
+The ordering matters as much as the levels. Trust asks about a claim, judgement
+about a step, values about what made a step feel warranted. Each sits beneath
+the one before it, and each is answered by a different actor — which is the
+Sentinel Principle applied to the framework's own layers.
+
+---
+
 ## 8. Sources
 
 Full citations accompany the manuscript in `docs/private/`. Primary references: Winnicott (1965), *Ego Distortion in Terms of True and False Self*; Bion (1959), *Attacks on Linking*, and *Learning from Experience*; Polanyi, *Personal Knowledge* and *The Tacit Dimension*; Lacan, *Écrits*; Freud (1925), *Die Verneinung*; Mahler, separation–individuation; Klein, object relations; Festinger (1957), cognitive dissonance; Eide & Eide, *The Dyslexic Advantage*; Acevedo et al. (2021), *Neuropsychobiology* 80(2).
