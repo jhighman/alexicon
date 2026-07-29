@@ -256,8 +256,9 @@ class BaselineReport
 
     sections = measurements.each_with_index.map { |measurement, i| section(measurement, i + 1) }
 
-    [ header(measurements), PREAMBLE, "---", *sections,
-      comparing, not_measured(measurements) ].join("\n\n")
+    # Reflowed once, after interpolation — the same reason ProfileReport does it.
+    MarkdownReflow.call([ header(measurements), PREAMBLE, "---", *sections,
+                          comparing, not_measured(measurements) ].join("\n\n"))
   end
 
   private

@@ -33,6 +33,10 @@ class ProfileReport
     "governance" => %w[coverage steps identity limits]
   }.freeze
 
+  # A table nobody can scroll is not more honest than a shorter one, but a table
+  # that silently stops at ten reads as though ten were all there were.
+  SHOWN = 10
+
   class UnknownTemplate < StandardError; end
   class UnsourcedSection < StandardError; end
 
@@ -51,8 +55,14 @@ class ProfileReport
     raise UnsourcedSection, "no source for #{unsourced.join(', ')}" if unsourced.any?
   end
 
+  # Reflowed once, at the end, when every interpolated value is known. Wrapping
+  # the source prose cannot get this right: a `#{}` expands to a different length
+  # than the text around it suggested, and the line breaks land wherever the
+  # figures happened to fall.
   def render
-    [ header, *TEMPLATES.fetch(template).filter_map { send(SECTIONS.fetch(it)) } ].join("\n\n")
+    sections = TEMPLATES.fetch(template).filter_map { send(SECTIONS.fetch(it)) }
+
+    MarkdownReflow.call([ header, *sections ].join("\n\n"))
   end
 
   SECTIONS = {
@@ -207,8 +217,13 @@ class ProfileReport
   def commitments
     return nil if value_readings.empty?
 
-    rows = value_readings.sort_by { -it.claim["confidence"].to_f }.first(10).map do |a|
-      "| #{a.claim['move']} | #{a.claim['protects']} | #{a.claim['subordinates']} |"
+    shown = value_readings.sort_by { -it.claim["confidence"].to_f }.first(SHOWN)
+    rows = shown.map { "| #{it.claim['move']} | #{it.claim['protects']} | #{it.claim['subordinates']} |" }
+    truncation = if value_readings.size > shown.size
+                   "\n\nShowing #{shown.size} of #{value_readings.size}, highest confidence first. " \
+                     "The rest are in the record."
+    else
+                   ""
     end
 
     <<~MD.strip
@@ -219,7 +234,7 @@ class ProfileReport
 
       | Move | Puts first | Sets aside |
       |---|---|---|
-      #{rows.join("\n")}
+      #{rows.join("\n")}#{truncation}
 
       > **Read this section far more weakly than the others, and here is the number.**
       > Presented with claim pairs from unrelated parts of a document — no

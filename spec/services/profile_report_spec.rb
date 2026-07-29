@@ -146,6 +146,24 @@ RSpec.describe ProfileReport do
     end
   end
 
+  describe "how it reads" do
+    it "wraps prose to a consistent width, whatever the figures interpolated to" do
+      3.times { claim("A claim.", "observation") }
+      unearned_step
+
+      lines = described_class.render(document).lines.map(&:chomp)
+      prose = lines.reject { it.start_with?("|", "#", ">", "-") }.reject(&:empty?)
+
+      expect(prose.map(&:length).max).to be <= MarkdownReflow::WIDTH
+    end
+
+    it "leaves its tables intact" do
+      2.times { claim("A claim.", "observation") }
+
+      expect(described_class.render(document)).to include "| Observation | 2 | 100.0% |"
+    end
+  end
+
   describe "the limits it reports" do
     it "derives the instability figure from this document rather than asserting one" do
       claim("Stable.", "observation", readings: 3)

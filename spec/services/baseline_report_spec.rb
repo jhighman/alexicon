@@ -8,6 +8,9 @@ RSpec.describe BaselineReport do
 
   let(:model) { LlmModel.find_by!(model_identifier: "claude-opus-5") }
 
+  # Prose wraps; a spec should test the sentence, not the column it broke at.
+  def flat(text) = text.gsub(/^>\s?/, "").gsub(/\s+/, " ")
+
   def record(criterion:, **attrs)
     Baseline.record!(**{ version: "test", criterion: criterion, model: model,
                          measured: { rate: 0.9, checked: 10 }, sample: {}, conditions: {} }
@@ -24,8 +27,8 @@ RSpec.describe BaselineReport do
 
       report = described_class.render(version: "test")
 
-      expect(report).to include "Also recorded: `later`"
-      expect(report).to include "not revisions of each other"
+      expect(flat(report)).to include "Also recorded: `later`"
+      expect(flat(report)).to include "not revisions of each other"
     end
 
     it "says nothing about other versions when there are none" do
@@ -110,7 +113,7 @@ RSpec.describe BaselineReport do
     it "says so when every figure is the system checking itself" do
       record(criterion: "one")
 
-      expect(described_class.render(version: "test"))
+      expect(flat(described_class.render(version: "test")))
         .to include "All of them are the system agreeing or disagreeing with itself"
     end
 
@@ -120,8 +123,8 @@ RSpec.describe BaselineReport do
 
       report = described_class.render(version: "test")
 
-      expect(report).to include "1 of them are the system agreeing or disagreeing with itself"
-      expect(report).to include "1 compares it against a second judge"
+      expect(flat(report)).to include "1 of them are the system agreeing or disagreeing with itself"
+      expect(flat(report)).to include "1 compares it against a second judge"
       expect(report).not_to include "All of them"
     end
   end
