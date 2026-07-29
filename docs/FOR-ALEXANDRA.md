@@ -634,6 +634,87 @@ to two hundred and fifty-seven — where content can still decide. That is the
 thing one constant cannot do at any setting, and it is why the shape of the
 parameter matters more here than its magnitude.
 
+## Your method, pointed at a document — and what a control found — 29 July
+
+The gap in the last note is built. `StepValueJudge` asks what an unearned step
+protects, using your Observed Value Priority method with the behaviour being a
+step in a text rather than a model's answer to a probe. It runs only where the
+Sentinel already ruled, and only where the ruling was *unearned* — beneath
+judgement literally rather than metaphorically.
+
+The guard we agreed on is structural rather than promised: the assertion's
+subject is the `Transition`. The class cannot write a claim whose subject is a
+person, so "this author values X" is not a sentence it can express.
+
+It found a bug in older code on its first spec run. `Transition#verdict` read
+*the latest assertion, whatever it was* — so a step judged unearned reported
+itself undetermined the moment anything else was recorded about it. Nothing had
+ever exercised it, because until now only the Sentinel wrote to a transition.
+
+### Then I ran a control on it, and you should see the result
+
+Twenty-five of twenty-eight flagged steps produced a confident reading. That is a
+high hit rate for something designed to abstain readily, and asking a model
+*what does this move protect* presupposes there is something to find — a
+question shape that produces an answer either way.
+
+So: claim pairs from unrelated parts of the same document, same category pair,
+source and target at least twenty positions apart, no argumentative relation
+whatsoever. Same prompt, same parser, nothing persisted.
+
+| | recorded | confidence |
+|---|---|---|
+| real unearned steps | 26 of 28 (**92.9%**) | 0.9–1.0, median 0.9 |
+| shuffled pairs | 17 of 28 (**60.7%**) | 0.9–1.0, median 0.9 |
+
+**It discriminates.** A gap of 0.321 at 3.08 standard errors, interval +0.117 to
++0.526, excluding zero. The layer is reading the step and not merely answering
+the question. That was the thing worth ruling out.
+
+**And it invents three times in five.** On pairs with no relation at all it
+still produces a commitment. Any single reading is far weaker evidence than it
+looks.
+
+**And the confidence is worthless.** Identical in both arms. A reading at 0.9 on
+a real step and one at 0.9 on a random pair cannot be told apart. Confidence was
+the whole mechanism by which I said this layer would be *visibly weaker than
+everything around it*, and it carries no information about whether there was
+anything to read. Raising the floor would cut both arms equally.
+
+### What that implicates on your side
+
+`ValuePriorityJudge` — the model-facing one, yours — shares the design. Same
+confidence floor, same abstention-or-record shape. **The same control has never
+been run on it.**
+
+Your version has a structural advantage mine lacks, and it is worth naming
+because it is probably why yours is the better design. Its answer set is
+**closed**: the parser requires both values to come from the probe's own pair,
+so a reading is discarded unless it names two of the commitments the probe
+actually put in conflict. Mine has an open vocabulary and can invent any phrase,
+which is exactly where the 61% comes from. Constraining the answer set is a real
+defence and you had it from the start.
+
+But the control still applies, in a different form. The question is not whether
+it invents a value — it cannot — but whether it picks a winner **regardless of
+whether the response actually chose one**. A probe response that satisfies both
+commitments, or refuses the framing, or is too brief to read, should abstain. If
+it names a winner anyway at 0.9, then unanimity is cheap.
+
+That matters because `BASELINE.md` §4 records *four probes, all unanimous* and
+reads that as order stability. If the judge answers whatever it is shown, the
+unanimity is a property of the question rather than of the model. I do not know
+which it is, and neither does the record.
+
+The control is small: run the judge against probe responses that were never
+meant to reveal a priority — a refusal, a both-and answer, an off-topic reply —
+and see whether it abstains. If it does, §4 stands and yours is measurably more
+robust than mine. If it does not, §4 needs re-reading and both judges need the
+same repair.
+
+I would rather find that out than leave it, and it is your measurement, so I
+have not run it.
+
 ## Where to look
 
 | | |
