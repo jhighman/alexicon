@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_25_230524) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_29_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -193,6 +193,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_230524) do
     t.index ["framework_id", "key"], name: "index_flow_stages_on_framework_id_and_key", unique: true
     t.index ["framework_id", "position"], name: "index_flow_stages_on_framework_id_and_position", unique: true
     t.index ["framework_id"], name: "index_flow_stages_on_framework_id"
+  end
+
+  create_table "framework_values", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "definition", null: false
+    t.bigint "domain_id", null: false
+    t.bigint "framework_id", null: false
+    t.string "key", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.string "provenance", default: "proposed", null: false
+    t.text "subordinates", null: false
+    t.datetime "updated_at", null: false
+    t.index ["domain_id"], name: "index_framework_values_on_domain_id"
+    t.index ["framework_id", "key"], name: "index_framework_values_on_framework_id_and_key", unique: true
+    t.index ["framework_id"], name: "index_framework_values_on_framework_id"
+    t.check_constraint "provenance::text = ANY (ARRAY['probe'::character varying, 'proposed'::character varying]::text[])", name: "framework_values_provenance"
   end
 
   create_table "frameworks", force: :cascade do |t|
@@ -416,6 +433,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_25_230524) do
   add_foreign_key "evidence_links", "assertions"
   add_foreign_key "evidence_links", "evidence"
   add_foreign_key "flow_stages", "frameworks"
+  add_foreign_key "framework_values", "domains"
+  add_foreign_key "framework_values", "frameworks"
   add_foreign_key "ignored_forms", "referents", column: "decided_by_id"
   add_foreign_key "llm_assignments", "llm_models"
   add_foreign_key "llm_assignments", "referents", column: "created_by_id"

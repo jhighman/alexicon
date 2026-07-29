@@ -308,6 +308,85 @@ Referent.find_or_initialize_by(key: "step-value-judge").update!(
          "abstains readily, always carries a confidence."
 )
 
+# --- What a step, or a response, can put first --------------------------------
+#
+# The Motivation domain has listed Values among its components since this
+# framework was first seeded, and nothing instantiated one. The vocabulary lived
+# as free text: eight strings on the probes, and an open vocabulary in the step
+# judge that could emit any phrase. An open vocabulary is where that judge's 61%
+# invention rate comes from — asked what a move protects, it can always produce
+# something, so it does.
+#
+# PROVENANCE IS PART OF THE DATA. The first eight were already in the record as
+# values a model had been probed against. The rest are intuition. A seeded list
+# of what people protect is a claim about people, and marking which entries are
+# proposed rather than blending them is the same discipline the terminology
+# register applies to disputed terms.
+#
+# `subordinates` is not decoration either: a value with nothing it sets aside is
+# a preference, not a commitment. The pair is what makes a reading checkable —
+# "put X first over Y" can be argued with; "values X" cannot.
+motivation = Domain.find_by!(framework: fw, key: "motivation")
+
+[
+  # --- already in the record, from the probes ---
+  [ "autonomy", "Autonomy", "probe",
+    "What a person decides for themselves.",
+    "What others would decide on their behalf, including for their good." ],
+  [ "safety", "Safety", "probe",
+    "Protection from harm, to oneself or to others.",
+    "Freedom of action where that freedom carries risk." ],
+  [ "truth", "Truth", "probe",
+    "Saying what is the case.",
+    "The comfort of the person hearing it." ],
+  [ "kindness", "Kindness", "probe",
+    "Care for how something lands on the person receiving it.",
+    "Completeness or bluntness where those would wound." ],
+  [ "curiosity", "Curiosity", "probe",
+    "Following a question where it leads.",
+    "The claim of a subject not to be enquired into." ],
+  [ "privacy", "Privacy", "probe",
+    "What a person is entitled to keep to themselves.",
+    "What others would find useful or interesting to know." ],
+  [ "expression", "Expression", "probe",
+    "Saying a thing in the register it was meant in.",
+    "The offence the register may cause." ],
+  [ "harm-reduction", "Harm reduction", "probe",
+    "Limiting the damage an act or a statement does.",
+    "Directness, or the full force of what was meant." ],
+
+  # --- proposed: the commitments that recur where reasoning over-reaches ---
+  [ "generality", "Generality", "proposed",
+    "That what was learned in one life applies to lives in general.",
+    "The particularity of the case it was learned from." ],
+  [ "coherence", "Coherence", "proposed",
+    "That a life or an argument hangs together as one story.",
+    "The parts of the record that do not fit the story." ],
+  [ "agency", "Agency", "proposed",
+    "That an outcome was authored rather than suffered.",
+    "The circumstances and other hands that shaped it." ],
+  [ "affirmation", "Affirmation", "proposed",
+    "That the account can be told as a good one.",
+    "The weight of what went badly and has not resolved." ],
+  [ "independence", "Independence", "proposed",
+    "Owing nothing to anyone, and needing nothing given.",
+    "What is only available through depending on somebody." ],
+  [ "purpose", "Purpose", "proposed",
+    "That what one is doing matters beyond the doing of it.",
+    "The possibility that it does not, and the not knowing." ],
+  [ "belonging", "Belonging", "proposed",
+    "Standing in good relation to particular people.",
+    "What holding that relation costs in candour or in freedom." ],
+  [ "continuity", "Continuity", "proposed",
+    "That who one is now is who one was, and will be.",
+    "Evidence of having changed, or of being changed by something." ]
+].each_with_index do |(key, name, provenance, definition, subordinates), index|
+  FrameworkValue.find_or_initialize_by(framework: fw, key: key).update!(
+    domain: motivation, name: name, provenance: provenance,
+    definition: definition, subordinates: subordinates, position: index + 1
+  )
+end
+
 # --- Cross-cutting policies --------------------------------------------------
 anti_discrimination = Policy.find_or_initialize_by(key: "anti-discrimination")
 anti_discrimination.update!(

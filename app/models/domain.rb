@@ -5,6 +5,12 @@
 # NOT modelled as a dependency: no source asserts that a domain strictly
 # requires the one below it, only that they are listed in sequence.
 class Domain < ApplicationRecord
+  # The Motivation domain has listed Values among its components since the
+  # framework was seeded; this is where they actually live.
+  has_many :framework_values, -> { ordered }, dependent: :destroy, inverse_of: :domain
+
+  alias_method :values, :framework_values
+
   belongs_to :framework
   has_many :domain_components, -> { order(:position) }, dependent: :destroy
   has_many :domain_failure_modes, dependent: :destroy

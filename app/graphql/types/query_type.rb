@@ -31,6 +31,9 @@ module Types
     field :categories, [ ClaimCategoryType ], null: false,
           description: "The current framework's kinds of claim."
 
+    field :values, [ FrameworkValueType ], null: false,
+          description: "The vocabulary of commitments a step or a response can put first."
+
     field :baseline_versions, [ String ], null: false
     field :baseline, [ BaselineMeasurementType ], null: false,
           description: "Requires a role that may see the model registry." do
@@ -42,6 +45,7 @@ module Types
     def claim(id:) = Claim.find_by(id: id)
     def assertion(id:) = Assertion.find_by(id: id)
     def categories = Framework.current!.claim_categories
+    def values = FrameworkValue.vocabulary
 
     def referent(key: nil, id: nil)
       return Referent.find_by(key: key) if key.present?

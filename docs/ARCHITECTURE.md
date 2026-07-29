@@ -502,6 +502,33 @@ count in its conditions.
 
 ---
 
+## Values are framework data
+
+The Motivation domain has listed **Values** among its components since the
+framework was first seeded, and nothing instantiated one. The vocabulary lived
+as free text — eight strings on the probes, reachable only by the probe naming
+them, and an open vocabulary in the step judge that could emit any phrase at all.
+
+An open vocabulary is where that judge's **61% invention rate** comes from:
+asked what a move protects, it can always produce something, so it does.
+
+`FrameworkValue` seeds them like categories and promotions, under Motivation
+where the framework always put them. Two consequences worth the change on their
+own. What a **model** prioritises under conflict and what a **text's step** puts
+first are now the same currency, where before they were incomparable by
+construction. And a value carries what it **subordinates**, because a value with
+nothing it sets aside is a preference rather than a commitment — the pair is
+what makes a reading arguable, since *"put X first over Y"* can be contested and
+*"values X"* cannot.
+
+**Provenance is part of the data.** Eight entries were already in the record as
+values a model had been probed against; the other eight are intuition. A seeded
+list of what people protect is a claim about people, and the entries say which
+they are rather than blending, the same discipline the terminology register
+applies to disputed terms.
+
+---
+
 ## A second judge
 
 Nine of v1's twelve figures are the system agreeing or disagreeing with itself.
