@@ -254,6 +254,101 @@ rather than a detail. The first was observing values under conflict instead of
 asking for them. This is the same move: the bug is not in the number, it is in
 what the number is being compared against.
 
+## Exponential context attenuation — 28 July, second pass
+
+You replaced the binary gate with soft handover: exponential attenuation scaled
+by sequence length, framed through conservation of momentum and Newton's Third
+Law. Same treatment as before.
+
+First, what I could not assess. **The formula did not arrive** — the message
+referred to an image that was not in it. Everything below is about the argument
+around the damping law, not the damping law itself.
+
+### What we kept
+
+**The direction, and the gradient argument is stronger than you made it.** A
+`-inf` mask does not merely slow learning on the suppressed paths. Softmax output
+there is exactly zero, so the gradient is exactly zero, and those paths do not
+learn at all — ever, at any learning rate. Finite attenuation keeps them
+differentiable. That alone justifies the change, before any argument about
+nuance.
+
+**Action-reaction, which is a description of softmax — and that is a
+compliment.** There is nothing to build. Softmax conserves mass by construction:
+the denominator renormalises, so damping a subset of logits *automatically*
+transfers that mass to whatever survives. The energy extracted from the
+suppressed noise really is instantly channelled into the remaining signal, in the
+operation you are already modifying. You described the conservation law that is
+actually there, in unusual vocabulary, and got it right. Do not implement it —
+you would be paying for it twice.
+
+**The scale correction, taken structurally rather than patched.** You did not
+tune the constant, you made it a function of sequence length. That is the fix,
+and it is the same move that repaired the drift audit here.
+
+### What we discarded
+
+**One claim: "maintains absolute governance without stalling."** You cannot have
+both, and you are the one who explained why — break-before-make against
+make-before-break is a *trade*. Soft handover means the suppressed context still
+leaks at low weight. That is the mechanism working, not a defect in it.
+
+The argument is stronger if it says so: *this buys gradient flow and
+low-probability nuance at the cost of absoluteness, and here is why that trade is
+right at a governance gate.* It is the only place in the piece that asks a reader
+to take something on faith, and it does not need to.
+
+The momentum and nozzle language we treated as illustration rather than
+mechanism. No objection — the underlying conservation intuition is correct, as
+above. It just already has a name.
+
+### What we learned
+
+**The scale-free form is additive in log(T).** Holding the sentinel's share
+constant as the sequence grows needs
+
+    b(T) = log(T − 1) + log( f / (1 − f) )
+
+where `f` is the share you want it to hold, and is the only free parameter.
+
+| T | fixed b = 10 | b ∝ log(T) |
+|---|---|---|
+| 128 | 99.4% | 80.0% |
+| 4,096 | 84.3% | 80.0% |
+| 65,536 | 25.2% | 80.0% |
+
+Worth checking your formula against this: if the damping is **multiplicative** —
+`b/T` or `b/√T` — it over-corrects hard. At T=4096 those leave 0.1% and 0.0% of
+the mass on the sentinel, which is a *harder* reset than the hard reset it
+replaces.
+
+**And a question I cannot answer without the formula: what is the decay indexed
+by?** Distance from the sentinel token, rank within the attention distribution,
+or depth across the four gates. Three different mechanisms behind one
+description. If it is distance, you are close to ALiBi (Press et al., 2021) —
+which would be good news rather than a collision, since it is well tested and
+extrapolates past training length.
+
+**The part that changed our architecture, and it is not the part I expected.**
+
+Two days ago I wrote the identity STOP into `ARCHITECTURE.md` as an open
+question, on your analogy: ours is break-before-make, and the graded version is
+make-before-break. I assumed the fix was to make the gate continuous.
+
+Working through your attenuation, I do not think it is. **A verdict has no weight
+to attenuate.** A claim cannot be 30% asserted. Attenuation needs a continuous
+quantity, and what an audit trail carries instead is *standing* — a judgement
+that is recorded, attributed, and open to challenge.
+
+So the soft handover for us is a **provisional verdict, not a weighted one**, and
+we already have the state: `undetermined`. It holds the link open without
+inventing a fractional confidence nobody could act on, and it stays
+attributable, which an attenuated weight would not be.
+
+Same idea, different currency. In a system of records the thing that can be
+partial is the *standing* of a claim rather than its magnitude — and I only got
+there by trying to port your version and finding it would not carry.
+
 ## Where to look
 
 | | |

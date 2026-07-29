@@ -367,8 +367,14 @@ be made quietly.
 > ours is **break-before-make**, and the graded version is
 > **make-before-break**, where the link is held through the transition. Her
 > Matrix 2.0 Q7.3 argues a Sentinel should not issue a binary block at all.
-> Nothing here has changed; it is written down as a question rather than left
-> as a setting nobody examined.
+>
+> What the graded version *is* here has since been narrowed, by trying to port
+> her attenuation and finding it would not carry. **A verdict has no weight to
+> attenuate** — a claim cannot be 30% asserted. Attenuation needs a continuous
+> quantity, and what a record carries instead is *standing*: a judgement that is
+> recorded, attributed, and open to challenge. So the soft handover here would
+> be a **provisional verdict rather than a weighted one**, and `undetermined` is
+> already that state. Still not built; better understood.
 
 ### And afterwards
 
