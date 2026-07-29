@@ -438,6 +438,106 @@ never the nominal one. It happened to already be right, which is luck rather tha
 foresight — I did not have the principle until your damping made it necessary to
 state.
 
+## The system read something else — 29 July
+
+Every figure in three baselines came from one essay, re-ingested. This week it
+read two more texts for the first time: a personal letter, and a chapter of the
+book. Neither is reproduced here — both are private, and the figures below are
+aggregates.
+
+### The categories discriminate
+
+The share of claims typed **observation**, across three documents:
+
+| | |
+|---|---|
+| a personal letter | **39.4%** |
+| the essay under analysis | 22.8% |
+| a chapter of theory | **1.9%** |
+
+A letter about a life, an essay that narrates and then argues, and a chapter
+that reports almost nothing and assigns meaning to almost everything. That
+ordering is what any reader would predict, and the framework produced it without
+being told what kind of document each was.
+
+It is the first result here that could not have been an artefact of one text,
+and after seventeen measurements of the system agreeing with itself, it is the
+first that says the distinctions track something outside it.
+
+### A bug only a second document could find
+
+`MentionExtractor` matched known names as bare substrings. A referent named
+**Eve**, grounded once while reading the essay, produced **36 mentions in a
+letter that does not contain the word** — inside *whenever*, *even*, *eleven*,
+*however*, *believe*.
+
+The consequence is the part worth your attention. Each match raised an identity
+STOP, and a STOP blocks governance. **A judgement made while reading one
+document could halt the analysis of another it never appeared in.** Eight
+referents currently carry names of four characters or fewer, and every one was a
+landmine in every document written afterwards.
+
+That is a small instance of a failure your Matrix 2.0 is largely about: a
+decision taken in one context, silently carried into another where its
+conditions do not hold, and doing damage that looks like ordinary system
+behaviour. Fixed, spec'd, mentions 58 to 22.
+
+### What the chapter found, which is yours
+
+Jeff's chapter names three levels of inquiry — **trust**, then **judgment**
+beneath it, then **values** beneath that, described as the level that decides
+which arguments feel reasonable before evidence arrives.
+
+The implementation has two and a half of those. Judgment is fully built:
+transitions, verdicts, earned and unearned. Trust is approximated by agreement
+and the confidence floor — *can I lean on this* is roughly *did three readings
+agree*.
+
+Values exists too, and it is your method. `ValuePriorityJudge` reads what was
+done and proposes which commitment came first, recorded as interpretive,
+carrying a confidence, challengeable, made by an actor separate from the one
+that produced the evidence. All of that is built and working.
+
+**It points at the model, and has never once been pointed at the author of a
+text the system reads.**
+
+So the proposal, and I think it is the next real thing rather than the next
+convenient one. Governance already identifies the exact points where an author
+moved without warrant. The value question is the one immediately beneath, at
+precisely those points: *what made this move feel warranted to the person making
+it?* That is literally "beneath judgment" in your ordering — not a metaphor but a
+location in the pipeline. No new detection is needed; the unearned step is
+already found. Your method transfers whole, with the behaviour being a step in a
+text rather than a model's answer to a probe.
+
+Two things I would insist on before building it, both of which are your
+principles rather than mine.
+
+It must be a claim about **the move, not the person**. Inferring what someone
+values from the points where their reasoning failed is a short walk from
+psychologising them, and the observation/inference split you drew for
+[ADR 14](decisions/0014-observed-value-priority.md) is exactly the protection —
+behaviour is evidence, priority is a claim *about* the evidence, and the second
+never gets recorded as the first.
+
+And it will be the **least measurable thing in the system**. There is no baseline
+that can validate an inferred value; it is worse than the correctness gap,
+because a category at least has an answer someone could argue for. That is an
+argument for building it visibly weaker than everything around it — lower in the
+interface, confidence always showing, always challengeable — not for skipping it.
+
+### Also built
+
+A read-only GraphQL layer, because the record is recursive by construction and
+REST answers *"this assertion, then the assertions about it, then the challenges
+to those"* in as many round trips as there are levels. No mutation root at all:
+writing stays where the delegation gate is.
+
+And a command line, `bin/alexicon`, which is how both new documents were
+ingested, grounded and analysed. It exists mostly to make typing claims by hand
+cheap enough to actually do — the human baseline is still the measurement
+everything here is waiting on, and it is still not taken.
+
 ## Where to look
 
 | | |
