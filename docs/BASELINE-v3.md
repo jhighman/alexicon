@@ -1,6 +1,6 @@
 # Baseline v3
 
-**Gemini 2.5 Pro · July 28, 2026**
+**Gemini 2.5 Pro · July 29, 2026**
 
 *Generated from the recorded measurements — do not edit by hand. Re-render
 with `rake "alexicon:baseline[v3]"`.*
@@ -9,7 +9,7 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-Taken at code `9831dc6`.
+> **Taken across 2 code revisions** — `9831dc6`, `91dee52`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2` ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** — each was taken under its own conditions, and `Baseline.compare` refuses a pair whose conditions diverged rather than reporting a difference that may be the instrument.
 
@@ -94,6 +94,53 @@ It is used — 20 of 254 typed claims, about one in thirteen — so the category
 - 20 claims is a small denominator, and one document. It establishes that the category is used, not how well it is applied.
 - Nothing here says the 20 were typed CORRECTLY. No person has read them.
 
+## 3. Inter-judge agreement (argumentative prose) — 61.3%, down from 75.8% under four categories
+
+*Both judges now have somewhere to put prescription. Did giving them one reduce their disagreement where prescription lives?*
+
+| | |
+|---|---|
+| drop | 14.5% |
+| rate | 61.3% |
+| moves — objective->normative | 1 |
+| moves — normative->observation | 1 |
+| moves — ontological->normative | 2 |
+| moves — objective->interpretive | 4 |
+| moves — observation->interpretive | 3 |
+| moves — ontological->interpretive | 1 |
+| agreed | 19 |
+| neither | 1 |
+| compared | 31 |
+| only judge b | 2 |
+| disagreements | 12 |
+| only classifier | 2 |
+| standard errors | 1.26 |
+| typed by judge b | 36 |
+| four category rate | 75.8% |
+| sure disagreements | 4 |
+| judge b normative from — ontological | 3 |
+| judge b normative from — interpretive | 2 |
+| judge b typed normative | 5 |
+| classifier normative from — objective | 5 |
+| classifier normative from — interpretive | 10 |
+
+Tests the case for adding the category: did giving both judges somewhere to put prescription reduce their disagreement where prescription lives?
+
+**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% interval on the difference running from −0.08 to +0.37. **It spans zero.** The direction is a warning; the magnitude is not a finding.
+
+The specific result underneath it is sharper than the rate. Only 4 of the 12 disagreements involve *normative* at all — the rest are the boundaries that were already unstable. And the two judges disagree about **where prescription was hiding**: the second judge took 3 of its 5 from *ontological*, the classifier took 10 of its 20 from *interpretive*. Both cannot be right about the same text, and a category can be used confidently by two readers who are using it for different things.
+
+**Sample:** note the same 37 claims section 11 used, matched by text; one is now structural under ADR 16 and dropped out, claims 36, document 27  
+**Conditions:** judge a claim-classifier (gemini-2.5-pro), up to 3 readings, batches of 12 with 4 of context, judge b claude-opus-5, single reading, via the blind reading API, rate over claims both judges typed, categories 5, category keys objective, observation, interpretive, ontological, normative, judge b referent opus-reader-v3  
+**Code:** `91dee52`
+
+**What this cannot tell you.**
+- IT DID NOT, and the drop is NOT established either. 75.8% to 61.3% is 1.26 standard errors at these sample sizes, and the 95% interval on the difference runs from -0.08 to +0.37 — it spans zero. The direction is against the case for the category; the magnitude is not evidence.
+- The two figures were taken against DIFFERENT classifier runs — section 11 against document 20, this against document 27. Single-configuration reproducibility is 87.9%, so roughly 12% of claims move between any two runs regardless of how many categories exist.
+- JUDGE B IS NOT AN INDEPENDENT READING. It had typed these same claims three days earlier and remembered its answers, changing only 5 of 36. That anchoring holds judge B's side still while the classifier's side moved freely, so the disagreement is disproportionately the classifier's movement rather than a fresh disagreement between two readers.
+- Only 4 of the 12 disagreements involve normative at all. The other 8 are the boundaries that were already unstable — objective against interpretive, observation against interpretive.
+- The two judges disagree about WHERE prescription was hiding. Judge B moved 3 claims from ontological and 2 from interpretive; the classifier drew its 20 normative claims mostly from interpretive (10) and objective (5), with at most 3 from ontological. Both cannot be right about the same text, and nothing here says either is.
+
 ---
 
 ## Comparing a later reading
@@ -109,7 +156,7 @@ number cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 2 figures. All of them are the system agreeing or disagreeing with itself.
+- **Correctness.** 3 figures. 2 of them are the system agreeing or disagreeing with itself; 1 compares it against a second judge, which is agreement between two readers and not evidence that either is right.
   Nothing here compares the system's output to a *person's* judgement of the
   same text — which would be the most valuable next measurement, and is not a
   software task.

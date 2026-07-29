@@ -58,6 +58,32 @@ RSpec.describe BaselineReport do
     end
   end
 
+  # Twice now an edit to one of these hashes consumed its closing brace, which is
+  # a syntax error that only shows when the rake task is run. Loading the class
+  # and asserting the shape catches it in the suite instead.
+  describe "the editorial tables" do
+    it "are frozen hashes of strings" do
+      %i[QUESTIONS NOTES HEADLINES].each do |name|
+        table = described_class.const_get(name)
+
+        expect(table).to be_a(Hash), "#{name} is not a Hash"
+        expect(table).to be_frozen, "#{name} is not frozen"
+        expect(table.keys).to all(be_a(String))
+        expect(table.values).to all(be_a(String))
+      end
+    end
+
+    # A version-scoped key with no unscoped counterpart is fine; a malformed one
+    # is not. Anything before the slash must look like a version.
+    it "carry well-formed keys" do
+      %i[QUESTIONS NOTES HEADLINES].each do |name|
+        described_class.const_get(name).each_key do |key|
+          expect(key).to match(/\A(v\d+\/)?[a-z].*\z/), "#{name} has a malformed key: #{key.inspect}"
+        end
+      end
+    end
+  end
+
   it "says so plainly when nothing has been measured" do
     expect(described_class.render(version: "empty")).to include "No measurements recorded"
   end

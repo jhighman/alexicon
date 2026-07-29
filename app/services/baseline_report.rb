@@ -50,7 +50,10 @@ class BaselineReport
       "A fifth category is now on offer. Does a harder choice cost anything?",
     "category adoption (normative)" =>
       "A category added to the framework — is it used at all, and what does it take " \
-      "claims away from?"
+      "claims away from?",
+    "v3/inter-judge agreement (argumentative prose)" =>
+      "Both judges now have somewhere to put prescription. Did giving them one " \
+      "reduce their disagreement where prescription lives?"
   }.freeze
 
   # What each figure means, where the number alone would mislead. Editorial, and
@@ -160,7 +163,18 @@ class BaselineReport
       "which is where it was expected: it was being read as **interpretive**, meaning assigned " \
       "to an observation. \"A man's purpose is one thing\" reads to a classifier as someone " \
       "assigning meaning, not as a claim about what exists. The category the framework was " \
-      "least worried about was the one absorbing the missing one."
+      "least worried about was the one absorbing the missing one.",
+    "v3/inter-judge agreement (argumentative prose)" =>
+      "**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for " \
+      "adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% " \
+      "interval on the difference running from −0.08 to +0.37. **It spans zero.** The " \
+      "direction is a warning; the magnitude is not a finding.\n\n" \
+      "The specific result underneath it is sharper than the rate. Only 4 of the 12 " \
+      "disagreements involve *normative* at all — the rest are the boundaries that were " \
+      "already unstable. And the two judges disagree about **where prescription was hiding**: " \
+      "the second judge took 3 of its 5 from *ontological*, the classifier took 10 of its 20 " \
+      "from *interpretive*. Both cannot be right about the same text, and a category can be " \
+      "used confidently by two readers who are using it for different things."
   }.freeze
 
   # Where a measurement records several figures and no single `rate`, this says
@@ -194,6 +208,8 @@ class BaselineReport
       "%{typed} of %{claims} typed, %{unstably_read} unstably",
     "category adoption (normative)" =>
       "%{normative_claims} of %{typed} typed claims",
+    "v3/inter-judge agreement (argumentative prose)" =>
+      "%{rate}, down from %{four_category_rate} under four categories",
     "finding-set churn (three-reading passes)" =>
       "%{in_both} of %{pass1} steps flagged again"
   }.freeze
