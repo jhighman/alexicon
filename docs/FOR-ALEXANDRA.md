@@ -538,6 +538,102 @@ ingested, grounded and analysed. It exists mostly to make typing claims by hand
 cheap enough to actually do — the human baseline is still the measurement
 everything here is waiting on, and it is still not taken.
 
+## Variance, and two things I had to correct — 29 July
+
+You asked what the variance distribution looks like right before the softmax,
+and framed the distance matrix as something I implemented. Both need correcting
+before the technical answer means anything.
+
+### What I got wrong in how I presented this
+
+**I did not implement it.** `dist_matrix = |i − j|` is yours. There is no
+PyTorch in this repository — we stayed in Ruby, deliberately — and what I did
+was read your file and do arithmetic on its constants. There is no parallel
+implementation here to compare against.
+
+**And I cannot instrument a softmax.** Nothing here runs a transformer. Every
+figure I have sent you — the 84% / 99.4% table, the 3.1-token window, the 9.6
+nats — was closed form on the numbers in your code, not measurement. I should
+have said so the first time, and the fact that you asked for a variance
+distribution suggests I gave the impression of a rig I do not have.
+
+That is a boundary this project chose rather than an oversight. `THEORY.md` §6
+records the framework being relocated from transformer-internal layers to the
+epistemic level, because the policy is implementable at the application level
+and the layer-level clamp is not. You are working at the level this
+implementation left. If you want real variance measurements you need a training
+or inference harness, and that is a different project from this one — worth
+knowing before you wait on numbers I cannot produce.
+
+### The symptom is right. The mechanism is not.
+
+Content **is** being swamped by distance. That part of your reading is correct
+and it is the important part.
+
+But the penalty is already applied after the scaling:
+
+    scores = matmul(q, k.transpose(-2,-1)) / (head_dim ** 0.5)
+    ...
+    scores = scores - damping_penalty
+
+The subtraction operates on already-scaled logits, so it is in the same units.
+There is no missing coupling to `1/√d_head`.
+
+**And adding one would be wrong.** The entire purpose of that factor is to make
+the QK term ~N(0,1) *regardless of head dimension*. Once it has, a bias must be
+chosen in those O(1) units. Making the slope a function of `d_head` would
+reintroduce exactly the dependence the factor exists to remove — two heads of
+different width would then get different horizons for the same intent. ALiBi
+declines to do this for the same reason.
+
+### Nothing collapses in the variance
+
+The penalty is deterministic per position. It shifts means; it does not shrink
+spread. Content variance is exactly 1.0 in every row at every slope. What
+collapses is the **ratio**:
+
+| slope | positional spread / content spread | P(token at d=4 wins on content) | window where content still decides |
+|---|---|---|---|
+| 1.5 | 6142 : 1 | 0.0006 | **1 token** |
+| 0.84 | 3440 : 1 | 0.037 | 2 tokens |
+| 0.0625 | 256 : 1 | 0.447 | 17 tokens |
+| 0.0039 | 16 : 1 | 0.497 | 257 tokens |
+
+At 1.5, a token four positions away beats its neighbour on content six times in
+ten thousand. That is the precise form of the blindness you named, and it is a
+signal-to-position problem rather than a variance one. No rescaling against
+`d_head` touches it. Only the slope does.
+
+### The 9.6 nats is connected exactly as you sensed, and repaired elsewhere
+
+It is not caused by variance. `b = log(T−1) + log(f/(1−f))` assumes `T−1` rivals
+sitting at logit zero; your damping crushes the rival **sum** to
+`R ≈ 1/(eᵐ − 1) = 0.287` at m=1.5, against 4095. Same `b`, denominator wrong by
+four orders of magnitude.
+
+So the damping's severity *does* cause the overshoot — your instinct joined two
+things that are genuinely joined. The repair is either a slope small enough that
+rivals survive, or computing `b` from `R`. Both were in the last note and both
+still stand.
+
+### Still yours to answer
+
+**Encoder or decoder.** I asked last time and I still do not know, and it is not
+mine to decide. The consequence is definite rather than probabilistic: `|i − j|`
+is symmetric and your file carries no causal mask, so as a decoder every token
+attends forward. That is a correctness failure, not a tuning one, and no slope
+value fixes it. As a decoder you want `is_causal=True` or a `tril` mask, after
+which `|i − j|` collapses to `i − j` over the surviving half.
+
+### One disagreement, stated plainly
+
+I would not treat per-head slopes as a pivot away from fixing the scaling.
+**They are the fix.** A single scalar gives all thirty-two heads one horizon at
+whatever value you choose; geometric slopes give the stack a range — two tokens
+to two hundred and fifty-seven — where content can still decide. That is the
+thing one constant cannot do at any setting, and it is why the shape of the
+parameter matters more here than its magnitude.
+
 ## Where to look
 
 | | |
