@@ -80,6 +80,17 @@ namespace :alexicon do
 end
 
 namespace :alexicon do
+  desc "Re-render docs/LEXICON.md from the framework's own vocabulary"
+  task lexicon: :environment do
+    path = Rails.root.join("docs/LEXICON.md")
+    report = Lexicon.render
+    File.write(path, report.end_with?("\n") ? report : "#{report}\n")
+
+    lexicon = Lexicon.new
+    puts "Wrote #{path.relative_path_from(Rails.root)} — #{lexicon.terms.size} terms, " \
+         "#{lexicon.collisions.size} word(s) carried by more than one."
+  end
+
   desc "Re-render docs/BASELINE.md from the recorded measurements: rake 'alexicon:baseline[v1]'"
   task :baseline, [ :version ] => :environment do |_t, args|
     version = args[:version].presence || "v1"

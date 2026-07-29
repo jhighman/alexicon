@@ -20,6 +20,7 @@ The recursive question the system exists to answer:
 | [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you — **generated** from the recorded measurements, never hand-written |
 | [`docs/BASELINE-v2.md`](docs/BASELINE-v2.md) | The same, re-measured after the segmentation changed. Not a revision of v1: the sample differs by construction |
 | [`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md) | A note to the co-author about how this came to be published |
+| [`docs/LEXICON.md`](docs/LEXICON.md) | Every term the system uses, generated from its own data — with the words that carry more than one meaning named rather than tidied away |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How it is built — pipeline, record model, where the locks bite, diagrams |
 | [`docs/THESIS.md`](docs/THESIS.md) | The Sentinel Principle — ontology, the Assertion Principle, the Binding Problem |
 | [`docs/CONOPS.md`](docs/CONOPS.md) | Concept of operations: scenarios, functional requirements, non-goals |
