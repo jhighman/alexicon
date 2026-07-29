@@ -287,6 +287,7 @@ module Alexicon
       when "mentions"   then mentions(client(options), require_id(args, "mentions"))
       when "ground"     then ground(client(options), require_id(args, "ground"), options)
       when "ignore"     then ignore(client(options), require_id(args, "ignore"))
+      when "profile"    then profile(client(options), require_id(args, "profile"), options)
       else raise Error, "Unknown command #{command.inspect}. Try `alexicon help`."
       end
     end
@@ -351,6 +352,13 @@ module Alexicon
       puts Style.green("  #{result['detail'] || result['note'] || 'queued'}")
     end
 
+    # The end-to-end output: a document's epistemic structure, as markdown, from
+    # the recorded assertions. Straight to stdout so it can be piped to a file.
+    def profile(client, id, options)
+      form = options[:template] ? { template: options[:template] } : {}
+      puts client.post("/api/v1/documents/#{id}/profile", form)["report"]
+    end
+
     def mentions(client, id)
       client.get("/api/v1/documents/#{id}/mentions")["names"].each do |name|
         puts format("  %6s  %-32s %3s occurrences",
@@ -386,6 +394,7 @@ module Alexicon
         when /\A--subject=(.+)\z/ then options[:subject] = ::Regexp.last_match(1)
         when /\A--role=(.+)\z/ then options[:role] = ::Regexp.last_match(1)
         when /\A--same-as=(.+)\z/ then options[:same_as] = ::Regexp.last_match(1)
+        when /\A--template=(.+)\z/ then options[:template] = ::Regexp.last_match(1)
         end
       end
       options
@@ -430,6 +439,7 @@ module Alexicon
 
           type ID          type a document's claims blind, one keystroke each
           comparison ID    agreement with the classifier, and where you part
+          profile ID       the document's epistemic structure, --template= to choose one
           documents        list documents
           show ID          one document
           ingest FILE      submit a text (or - for stdin), --title= to name it

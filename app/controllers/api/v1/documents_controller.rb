@@ -49,6 +49,17 @@ class Api::V1::DocumentsController < Api::V1::BaseController
                    note: "Proposals only. A STOP lifts when someone accepts." }, status: :accepted
   end
 
+  # Reading, not judging: everything in the report is already in the record.
+  def profile
+    document = Document.find(params[:id])
+    authorize document, :show?
+
+    render json: { document: document.id, template: template_name,
+                   report: ProfileReport.render(document, template: template_name) }
+  rescue ProfileReport::UnknownTemplate, ProfileReport::UnsourcedSection => e
+    unprocessable("#{e.message}. Available: #{ProfileReport.templates.join(', ')}")
+  end
+
   def govern
     document = Document.find(params[:id])
     authorize document, :govern?
@@ -83,4 +94,8 @@ class Api::V1::DocumentsController < Api::V1::BaseController
                unearned: steps.count(&:unearned?) }
     )
   end
+
+  private
+
+  def template_name = params[:template].presence || "epistemic-structure"
 end

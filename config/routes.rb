@@ -26,6 +26,7 @@ Rails.application.routes.draw do
           post :classify
           post :propose_identities
           post :govern
+          post :profile
         end
         resources :mentions, only: :index
         resources :flags, only: :index

@@ -194,6 +194,34 @@ comparing an actor's recent decisions against its own earlier ones, since a
 covert policy arrives as a slow shift across many defensible commands rather than
 as one suspicious one.
 
+### Profiles
+
+An end-to-end report on a document's epistemic structure, from the recorded
+assertions.
+
+```sh
+bin/alexicon profile 30                          # epistemic-structure (default)
+bin/alexicon profile 30 --template=brief         # or: governance
+```
+
+Two rules shape it. **The subject is the document, not its author** — every
+section describes how a text is built, and nothing attributes a belief, a value
+or a tendency to a person, because the system holds no evidence that would
+support one. `StepValueJudge` makes the subject of a value reading structurally
+a `Transition` so that "this author values X" cannot be written; a report that
+reintroduced it at the presentation layer would undo that where nobody was
+looking.
+
+And **every section cites what it rests on, or does not render.** A template may
+only name sections that have a source; ask for one that does not and the render
+fails loudly rather than filling the gap with prose. Adding a section means
+building the measurement first — which is why there is no "symbolic density"
+here, and will not be until something measures it.
+
+The weakest section carries its own false-positive rate inline: the value layer
+produces a confident reading on unrelated claim pairs **61%** of the time, so a
+single row is not a finding.
+
 ### Reading the graph
 
 `POST /api/v1/graphql` — **queries only.** The record is recursive by
