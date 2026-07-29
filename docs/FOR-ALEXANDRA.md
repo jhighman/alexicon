@@ -349,6 +349,95 @@ Same idea, different currency. In a system of records the thing that can be
 partial is the *standing* of a claim rather than its magnitude — and I only got
 there by trying to port your version and finding it would not carry.
 
+## SentinelConcurrenceLayer V2 — 29 July
+
+Third round. Shorter, because most of it landed.
+
+### What we kept
+
+Four things fixed, and the ones that mattered:
+
+- `permute(2, 0, 3, 1, 4)` — the fatal one. It runs now.
+- The log-ratio bias, implemented exactly, with `f` exposed as the only free
+  parameter. That is the correction taken structurally rather than tuned.
+- The bias mask broadcast at `[1, 1, T, T]` instead of `[B, H, T, T]` — 17 GB
+  down to 67 MB at realistic sizes.
+- The sentinel column excluded from temporal decay. The anchor should not decay
+  with distance, and now it does not.
+
+Additive damping in logit space is also the right *form*. Everything below is
+about one constant inside it.
+
+### What we discarded
+
+**`time_scalar = 1.5`, multiplying `|i − j|`.**
+
+| distance | penalty | relative weight |
+|---|---|---|
+| 1 | 1.5 | 2.2 × 10⁻¹ |
+| 3 | 4.5 | 1.1 × 10⁻² |
+| 10 | 15.0 | 3.1 × 10⁻⁷ |
+| 59 | 88.5 | underflows float32 to **exactly zero** |
+
+The effective window is **3.1 tokens**. Past distance 59 the weights are not
+small, they are zero. **V2's soft handover is harder than V1's hard reset** —
+the `-inf` mask preserved one token; this preserves about three.
+
+The cause is precise and worth more than the symptom. The `log(T)` correction
+went onto the **bias**. The **damping** has no normalisation at all — and
+`time_scalar` scales with *depth* (`current_model_layers / 128`) while
+multiplying a *distance*. Two different axes. One term got the fix; the other
+needs its own, and it is not the same one.
+
+The form that works is **per-head geometric slopes**, which is ALiBi (Press et
+al., 2021) and is well tested. A single scalar across 32 heads gives every head
+the same horizon; `mᵢ = 2^(−8i/H)` gives the stack a range of them:
+
+| head | slope | 1% window |
+|---|---|---|
+| steepest | 0.84 | ~5 tokens |
+| median | 0.0625 | ~74 tokens |
+| shallowest | 0.0039 | ~1,179 tokens |
+
+### What we learned
+
+**Your damping found the case my formula does not cover, and I sent it to you as
+though it were general.**
+
+`b = log(T − 1) + log(f / (1 − f))` assumes `T − 1` rivals sitting *at logit
+zero*. The moment you damp them, they are not at zero and the denominator is not
+`T − 1`. The joint form is
+
+    b = log(R) + log( f / (1 − f) ),   R = Σⱼ exp(−m · dⱼ)
+
+with a closed form `R → 1 / (eᵐ − 1)` for long sequences, and it recovers my
+version exactly at `m = 0`.
+
+Your current pair overshoots by **9.6 nats**: calibrated for 90%, delivering
+100.00%. So the careful log-ratio work is currently doing nothing — the damping
+has destroyed every rival before the bias is applied. Correct the slope and the
+calibration starts working as designed. **The two terms have to be solved
+together**, and neither of us was looking at them that way: I gave you the
+un-damped case, you built the damped one, and the interaction is only visible
+with both in the room.
+
+### One question back
+
+`dist_matrix = |i − j|` is symmetric, so a future token is penalised exactly like
+a past one. In a decoder that means every token attends forward. Intentional, or
+is this meant as an encoder? It changes what the layer is, not just how it is
+tuned.
+
+### On our side
+
+Nothing to build this round, but I checked the analogue rather than assuming it.
+`TemporalDriftAudit` computes its noise floor over the categories that *actually
+occur* in the two periods, not over the framework's nominal five. Same lesson,
+arrived at from the other direction: calibrate against the effective rival set,
+never the nominal one. It happened to already be right, which is luck rather than
+foresight — I did not have the principle until your damping made it necessary to
+state.
+
 ## Where to look
 
 | | |
