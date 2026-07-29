@@ -285,6 +285,8 @@ module Alexicon
       when "classify"   then queue(client(options), require_id(args, "classify"), "classify")
       when "govern"     then queue(client(options), require_id(args, "govern"), "govern")
       when "mentions"   then mentions(client(options), require_id(args, "mentions"))
+      when "ground"     then ground(client(options), require_id(args, "ground"), options)
+      when "ignore"     then ignore(client(options), require_id(args, "ignore"))
       else raise Error, "Unknown command #{command.inspect}. Try `alexicon help`."
       end
     end
@@ -351,8 +353,27 @@ module Alexicon
 
     def mentions(client, id)
       client.get("/api/v1/documents/#{id}/mentions")["names"].each do |name|
-        puts format("  %-32s %3s occurrences", truncate(name["name"], 32), name["occurrences"])
+        puts format("  %6s  %-32s %3s occurrences",
+                    name["mention_id"] || name["id"], truncate(name["name"], 32), name["occurrences"])
       end
+    end
+
+    # Answering an identity STOP. Both acts are judgements, so both pass the
+    # delegation gate — an agent may see the question and not answer it.
+    def ground(client, mention_id, options)
+      subject, role = options[:subject], options[:role]
+      raise Error, "ground needs --subject= and --role=, or --same-as=" if subject.nil? && options[:same_as].nil?
+
+      form = { subject: subject, role: role, same_as_id: options[:same_as] }.compact
+      r = client.post("/api/v1/mentions/#{mention_id}/ground", form)
+      mark = r["inferred"] ? Style.yellow(" (inferred)") : ""
+      puts Style.green("  #{r['grounded']} — #{r['passport']}, #{r['occurrences']} cleared#{mark}")
+    end
+
+    def ignore(client, mention_id)
+      r = client.post("/api/v1/mentions/#{mention_id}/ignore")
+      mark = r["inferred"] ? Style.yellow(" (inferred)") : ""
+      puts Style.dim("  not a subject: #{r['form']}, #{r['cleared']} cleared#{mark}")
     end
 
     def extract_options(argv)
@@ -362,6 +383,9 @@ module Alexicon
         when /\A--url=(.+)\z/ then options[:url] = ::Regexp.last_match(1)
         when /\A--token=(.+)\z/ then options[:token] = ::Regexp.last_match(1)
         when /\A--title=(.+)\z/ then options[:title] = ::Regexp.last_match(1)
+        when /\A--subject=(.+)\z/ then options[:subject] = ::Regexp.last_match(1)
+        when /\A--role=(.+)\z/ then options[:role] = ::Regexp.last_match(1)
+        when /\A--same-as=(.+)\z/ then options[:same_as] = ::Regexp.last_match(1)
         end
       end
       options
@@ -412,6 +436,8 @@ module Alexicon
           classify ID      queue classification
           govern ID        queue the step judgements
           mentions ID      names awaiting resolution
+          ground ID        answer one: --subject= --role=, or --same-as=
+          ignore ID        record that it is not a subject at all
 
         #{Style.dim('--url=  --token=  or ALEXICON_URL / ALEXICON_TOKEN / ~/.alexicon')}
       TEXT
