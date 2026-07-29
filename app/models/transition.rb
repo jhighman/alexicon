@@ -25,14 +25,25 @@ class Transition < Relationship
 
   # Derived from the standing governance assertions, newest wins.
   def verdict(at: Time.current)
-    claim = current_claim(at: at)
-    value = claim && claim["verdict"]
+    value = ruling(at: at)&.claim&.fetch("verdict", nil)
     VERDICTS.include?(value) ? value : "undetermined"
   end
 
-  def score(at: Time.current)
-    value = current_claim(at: at)&.fetch("score", nil)
-    value&.to_f
+  def score(at: Time.current) = ruling(at: at)&.claim&.fetch("score", nil)&.to_f
+
+  # The last assertion that actually RULED, rather than the last assertion of any
+  # kind.
+  #
+  # This read `current_claim` — the latest assertion whatever it was — so
+  # anything else recorded about a step silently erased its verdict. Nothing had
+  # exercised it, because until now only the Sentinel ever wrote to a transition.
+  # `StepValueJudge` writes what a flagged step protects, and its first spec
+  # found a step judged unearned reporting itself undetermined a moment later.
+  #
+  # A challenge, a note, a disposition, or anything added later would have done
+  # the same. The verdict is what the last thing to give one said.
+  def ruling(at: Time.current)
+    established_assertions(at: at).reverse.find { it.claim.key?("verdict") }
   end
 
   def unearned?(at: Time.current) = verdict(at: at) == "unearned"

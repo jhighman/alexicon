@@ -35,6 +35,34 @@ RSpec.describe Transition do
     expect(described_class.new(source: a, target: a)).not_to be_valid
   end
 
+  # The verdict read "the latest assertion, whatever it was", so anything else
+  # recorded about a step erased it. Nothing had exercised it, because until
+  # StepValueJudge only the Sentinel ever wrote to a transition.
+  describe "a verdict beside other assertions" do
+    it "survives an assertion that is not a ruling" do
+      a, b = claim(1, "one"), claim(2, "two")
+      t = transition(a, b)
+      t.record_verdict!("unearned", asserter: sentinel)
+
+      Assertion.create!(asserter: sentinel, subject: t, act: "assert",
+                        claim: { "inference" => "step value", "protects" => "something" })
+
+      expect(t.reload.verdict).to eq "unearned"
+      expect(t).to be_unearned
+    end
+
+    it "is still replaced by a later ruling" do
+      a, b = claim(1, "one"), claim(2, "two")
+      t = transition(a, b)
+      t.record_verdict!("unearned", asserter: sentinel)
+      Assertion.create!(asserter: sentinel, subject: t, act: "assert",
+                        claim: { "note" => "not a ruling" })
+      t.record_verdict!("earned", asserter: sentinel)
+
+      expect(t.reload.verdict).to eq "earned"
+    end
+  end
+
   describe "#category_change?" do
     it "is true when the claims carry different categories" do
       observation = category("observation", 1)

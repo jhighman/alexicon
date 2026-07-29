@@ -296,6 +296,18 @@ Referent.find_or_initialize_by(key: "value-priority-judge").update!(
          "Interpretive, never a hierarchy: a hierarchy is a claim about what a model is."
 )
 
+# The third level. Classification asks what kind of claim; the Governance
+# Sentinel asks whether the step was earned; this asks the question underneath a
+# step that was not. A separate actor from the Sentinel, because the thing that
+# ruled on the step must not also read what lies beneath it.
+Referent.find_or_initialize_by(key: "step-value-judge").update!(
+  name: "Step Value Judge", subject: "System", role: "Judge", primitive: "system",
+  notes: "Proposes what an unearned step puts first, and what it sets aside. Its " \
+         "assertions are about the TRANSITION, never about a person: it cannot name " \
+         "somebody as a subject, so it cannot make a claim about one. Interpretive, " \
+         "abstains readily, always carries a confidence."
+)
+
 # --- Cross-cutting policies --------------------------------------------------
 anti_discrimination = Policy.find_or_initialize_by(key: "anti-discrimination")
 anti_discrimination.update!(
