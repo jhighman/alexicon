@@ -33,11 +33,20 @@
 #     actor — the separation the Sentinel keeps from the classifier, kept again
 #     here.
 #
-#   * It is the least measurable thing in this system, and should look it. There
-#     is no baseline that can validate an inferred value; it is weaker than the
-#     correctness gap, because a category at least has an answer somebody could
-#     argue for. So it abstains readily, always carries its confidence, and is
-#     superseded by the author's own account of the move if one is ever given.
+#   * It is the weakest thing in this system, and a shuffle control says how
+#     weak. Presented with claim pairs from unrelated parts of a document — same
+#     category pair, no argumentative relation — it still recorded a reading 61%
+#     of the time, against 93% on real unearned steps. The difference is real
+#     (3.08 standard errors, interval excluding zero), so it is reading the step
+#     and not merely answering the question. But three times in five it invents a
+#     commitment where none exists.
+#
+#     WORSE, AND THIS DEFEATS THE DESIGN: the confidence is identical in both
+#     arms — 0.9 to 1.0, median 0.9. It was supposed to be the thing that made
+#     this layer visibly weaker than the rest, and it carries no information about
+#     whether there was anything to read. Raising the floor would cut both arms
+#     equally. Do not present a reading's confidence as though it meant something,
+#     and do not treat a single reading as a finding. See baseline v3.
 class StepValueJudge
   ACTION = "judge-step-value".freeze
   JUDGE = "step-value-judge".freeze

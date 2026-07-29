@@ -9,7 +9,7 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 2 code revisions** — `9831dc6`, `91dee52`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
+> **Taken across 3 code revisions** — `9831dc6`, `91dee52`, `376b990`. Figures within this baseline were not all measured against the same instrument, so a difference between two of them may be a difference in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2` ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** — each was taken under its own conditions, and `Baseline.compare` refuses a pair whose conditions diverged rather than reporting a difference that may be the instrument.
 
@@ -141,6 +141,42 @@ The specific result underneath it is sharper than the rate. Only 4 of the 12 dis
 - Only 4 of the 12 disagreements involve normative at all. The other 8 are the boundaries that were already unstable — objective against interpretive, observation against interpretive.
 - The two judges disagree about WHERE prescription was hiding. Judge B moved 3 claims from ontological and 2 from interpretive; the classifier drew its 20 normative claims mostly from interpretive (10) and objective (5), with at most 3 from ontological. Both cannot be right about the same text, and nothing here says either is.
 
+## 4. Value inference discrimination (shuffle control) — 92.9% on real steps, 60.7% on unrelated ones
+
+*Asking what a move protects presupposes there is something to find. Is the layer reading the step, or answering the question it was asked?*
+
+| | |
+|---|---|
+| rate | 92.9% |
+| difference | 32.1% |
+| real pairs | 28 |
+| real recorded | 26 |
+| shuffled rate | 60.7% |
+| shuffled pairs | 28 |
+| confidence real | 0.9-1.0, median 0.9 |
+| standard errors | 3.08 |
+| shuffled recorded | 17 |
+| confidence shuffled | 0.9-1.0, median 0.9 |
+
+Whether the value layer is reading the step or answering the question it was asked. Asking a model what a move protects presupposes there is something to find, which is a question shape that produces an answer either way.
+
+**It reads the step — and invents three times in five.** 92.9% on real unearned steps against 60.7% on pairs from unrelated parts of the same document, a gap of 0.321 at 3.08 standard errors with an interval excluding zero. So it is not pure confabulation, which was the thing worth ruling out.
+
+**But the confidence is worthless, and that defeats the design.** Both arms report 0.9 to 1.0, median 0.9. A reading at 0.9 on a real step and one at 0.9 on a random pair are indistinguishable. The confidence was supposed to be what made this layer visibly weaker than everything around it; it carries no information about whether there was anything to read. Raising the floor would cut both arms equally.
+
+This was run because the layer's own author flagged a 25-of-28 hit rate as too high for something designed to abstain readily. It was.
+
+**Sample:** document 30, shuffled same category pair as each real step, source and target drawn at least 20 positions apart, so no argumentative relation exists, unearned steps 28  
+**Conditions:** note both arms run through the same prompt and parser on the same day; nothing was written to the record, judge step-value-judge via gemini-2.5-pro, persisted no, categories 5, confidence floor 85.0%  
+**Code:** `376b990`
+
+**What this cannot tell you.**
+- It DOES discriminate: 92.9% against 60.7%, a difference of 0.321 at 3.08 standard errors, with a 95% interval of +0.117 to +0.526 that excludes zero. The layer is not pure confabulation.
+- But the false-positive rate is 61%. On claim pairs with no inferential relation at all, it invents a commitment three times in five. Any single reading is far weaker evidence than it looks.
+- AND THE CONFIDENCE IS USELESS. Both arms report 0.9 to 1.0, median 0.9. A reading at 0.9 on a real step and one at 0.9 on a random pair are indistinguishable. The design intended the confidence to be the signal that made this layer visibly weaker than the rest; it carries no information about whether there was anything to read, so it cannot do that job.
+- Raising the confidence floor would not help. It would cut both arms equally, because both sit in the same narrow band.
+- One document, 28 pairs each arm, one model. The shuffled arm preserves the category pair but nothing else, so it does not control for two claims happening to be relatable by coincidence — some of the 61% may be real readings of accidental relations rather than invention.
+
 ---
 
 ## Comparing a later reading
@@ -156,7 +192,7 @@ number cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 3 figures. 2 of them are the system agreeing or disagreeing with itself; 1 compares it against a second judge, which is agreement between two readers and not evidence that either is right.
+- **Correctness.** 4 figures. 3 of them are the system agreeing or disagreeing with itself; 1 compares it against a second judge, which is agreement between two readers and not evidence that either is right.
   Nothing here compares the system's output to a *person's* judgement of the
   same text — which would be the most valuable next measurement, and is not a
   software task.

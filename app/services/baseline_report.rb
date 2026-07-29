@@ -51,6 +51,9 @@ class BaselineReport
     "category adoption (normative)" =>
       "A category added to the framework — is it used at all, and what does it take " \
       "claims away from?",
+    "value inference discrimination (shuffle control)" =>
+      "Asking what a move protects presupposes there is something to find. Is the " \
+      "layer reading the step, or answering the question it was asked?",
     "v3/inter-judge agreement (argumentative prose)" =>
       "Both judges now have somewhere to put prescription. Did giving them one " \
       "reduce their disagreement where prescription lives?"
@@ -164,6 +167,18 @@ class BaselineReport
       "to an observation. \"A man's purpose is one thing\" reads to a classifier as someone " \
       "assigning meaning, not as a claim about what exists. The category the framework was " \
       "least worried about was the one absorbing the missing one.",
+    "value inference discrimination (shuffle control)" =>
+      "**It reads the step — and invents three times in five.** 92.9% on real unearned steps " \
+      "against 60.7% on pairs from unrelated parts of the same document, a gap of 0.321 at " \
+      "3.08 standard errors with an interval excluding zero. So it is not pure confabulation, " \
+      "which was the thing worth ruling out.\n\n" \
+      "**But the confidence is worthless, and that defeats the design.** Both arms report 0.9 " \
+      "to 1.0, median 0.9. A reading at 0.9 on a real step and one at 0.9 on a random pair are " \
+      "indistinguishable. The confidence was supposed to be what made this layer visibly " \
+      "weaker than everything around it; it carries no information about whether there was " \
+      "anything to read. Raising the floor would cut both arms equally.\n\n" \
+      "This was run because the layer's own author flagged a 25-of-28 hit rate as too high " \
+      "for something designed to abstain readily. It was.",
     "v3/inter-judge agreement (argumentative prose)" =>
       "**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for " \
       "adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% " \
@@ -208,6 +223,8 @@ class BaselineReport
       "%{typed} of %{claims} typed, %{unstably_read} unstably",
     "category adoption (normative)" =>
       "%{normative_claims} of %{typed} typed claims",
+    "value inference discrimination (shuffle control)" =>
+      "%{rate} on real steps, %{shuffled_rate} on unrelated ones",
     "v3/inter-judge agreement (argumentative prose)" =>
       "%{rate}, down from %{four_category_rate} under four categories",
     "finding-set churn (three-reading passes)" =>
