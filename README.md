@@ -194,6 +194,30 @@ comparing an actor's recent decisions against its own earlier ones, since a
 covert policy arrives as a slow shift across many defensible commands rather than
 as one suspicious one.
 
+### Reading the graph
+
+`POST /api/v1/graphql` — **queries only.** The record is recursive by
+construction: everything is an assertion, including assertions about assertions,
+and REST answers *"this document, then its claims, then every assertion about
+each, then the challenges to those"* in as many round trips as there are levels.
+
+```graphql
+{ assertion(id: 114) {
+    act subjectLabel asserter { name }
+    assertions { act asserter { name primitive } assertions { act } } } }
+```
+
+There is **no mutation root** — not an empty one, none. Writing goes through
+REST, where the delegation gate lives, and a second write path would be a second
+thing to keep in step with it. The recursion that makes the layer worth building
+is also unbounded by nature, so `max_depth 12` and `max_complexity 400` are
+load-bearing rather than boilerplate: a query that asks for too much is told so
+rather than truncated into a plausible-looking partial answer.
+
+Same token, same Referent, same policies. The schema exposes what a viewer may
+already read in the browser; the one capability question inside it is a baseline
+measurement, which needs the role that may see the model registry.
+
 ### The command line
 
 `bin/alexicon` is a thin HTTP client over the same endpoints. It boots no Rails —

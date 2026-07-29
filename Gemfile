@@ -28,6 +28,12 @@ gem "bcrypt", "~> 3.1.7"
 # Authorisation policies
 gem "pundit"
 
+# A read-only query layer over the assertion graph. REST answers "this document,
+# then its claims, then the assertions about each" in as many round trips as
+# there are levels; the graph is recursive by design and this is the surface that
+# suits it. Queries only — writes stay on REST, where the delegation gate lives.
+gem "graphql"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

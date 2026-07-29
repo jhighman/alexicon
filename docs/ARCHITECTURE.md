@@ -328,6 +328,14 @@ no second authorisation path for machines.
 | `auditor` | read + the model registry and every invocation |
 | `admin` | everything, including certifying and revoking models |
 
+### Reading the graph
+
+The recursion is the point and the problem. `POST /api/v1/graphql` is a
+**query-only** surface with no mutation root — writing stays on REST where the
+delegation gate is, because two write paths would be two things to keep in step
+with one gate. `max_depth 12` bounds `assertions { assertions { … } }`, which is
+otherwise unbounded by construction.
+
 ### An agent acts as itself
 
 A token belongs to a **Referent**, not to a User. Whatever drives the API

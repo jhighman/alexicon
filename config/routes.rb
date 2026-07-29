@@ -46,6 +46,9 @@ Rails.application.routes.draw do
 
       resources :flags, only: :update
 
+      # Reading only. Writing stays on REST, where the delegation gate lives.
+      post "graphql", to: "graphql#execute"
+
       resources :llm_models, only: :index do
         member do
           post :certify
