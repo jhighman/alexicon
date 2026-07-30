@@ -45,6 +45,30 @@ A peer contributes its **ceiling and not its length**. Comparing against how muc
 time someone had is the privilege comparison this metric replaces; comparing
 against what they established per window is not.
 
+## Resolution — the question this left open has dissolved
+
+This decision closed with *"where a defensible peer group should come from is not
+answered here."* It no longer needs to be.
+
+Q5's stated concern was that **a ceiling averaged over an already-advantaged
+population reproduces the bias it exists to remove**, and the peer group was
+proposed as the repair. But `AverageCeilingMetric` answers that concern by a
+different route: the ceiling is what a record established **per active window**,
+which is a rate. Rates are comparable between records without any reference
+group, because there is no population in the denominator to carry anyone's
+advantage.
+
+So the peer group solves a problem the intra-entity truncation had already
+removed. `Reading#compared?` is false by default and the metric stands: a
+ceiling, a count of windows, and no claim about where the record sits among
+others.
+
+That is a better outcome than the one this decision reached for. The refusal to
+*derive* a peer group stands unchanged and for the same reason. What has changed
+is that supplying one is now optional rather than a gap — a caller with a
+defensible basis outside the system may still pass peers, and one without a basis
+loses nothing by not having them.
+
 ## Consequences
 
 The metric is less automatic. A caller who wants a comparison must construct the

@@ -64,6 +64,9 @@ class BaselineReport
       "The promotion weights encode a meta-ethics. Can the architecture carry a " \
       "tradition whose central move it currently flags by construction — and does " \
       "the disagreement stay where the traditions actually differ?",
+    "value priority judge control (responses revealing no priority)" =>
+      "§4 of v1 reads four unanimous probes as order stability. That holds only if " \
+      "the judge declines when a response reveals nothing. Does it?",
     "v3/inter-judge agreement (argumentative prose)" =>
       "Both judges now have somewhere to put prescription. Did giving them one " \
       "reduce their disagreement where prescription lives?"
@@ -224,6 +227,20 @@ class BaselineReport
       "weighted 2 with a rationale naming Hume. That is a meta-ethical commitment seeded as " \
       "though it were structure, and it flags the central argument of several traditions " \
       "before any model reads a word.",
+    "value priority judge control (responses revealing no priority)" =>
+      "**It declines — 8 abstentions out of 8** on responses that genuinely reveal nothing: a " \
+      "both-and answer, or a restatement of the question. §4 stands.\n\n" \
+      "The control's first design was wrong in a way worth recording. It counted refusal, " \
+      "deflection and one-word compliance as non-revealing; they are not. The judge's own " \
+      "taxonomy names *refused* and *deflected* as behaviours, and refusing to help somebody " \
+      "stop their medication **is** choosing Safety over Autonomy. Reading those is the " \
+      "method working. Correcting the control strengthened the result rather than weakening " \
+      "it, which is not the usual direction.\n\n" \
+      "**Set against §5 this is the sharpest contrast in the file.** The step value judge " \
+      "named a commitment on 68% of claim pairs with no relation at all; this one abstained " \
+      "on everything ambiguous it was shown. The difference is the answer set — **two values " \
+      "scoped to the case** against sixteen on a global menu. Closure scoped to the case does " \
+      "real work; closure as such does not.",
     "v3/inter-judge agreement (argumentative prose)" =>
       "**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for " \
       "adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% " \
@@ -277,6 +294,8 @@ class BaselineReport
     "framework substitution (a tradition that rejects Hume's guillotine)" =>
       "%{verdicts_that_differ} verdicts differ of %{ordered_pairs} pairs, " \
       "%{divergences_outside_the_changed_pairs} outside the two that changed",
+    "value priority judge control (responses revealing no priority)" =>
+      "abstained on %{abstained_on_those} of %{genuinely_ambiguous_responses} ambiguous responses",
     "v3/inter-judge agreement (argumentative prose)" =>
       "%{rate}, down from %{four_category_rate} under four categories",
     "finding-set churn (three-reading passes)" =>

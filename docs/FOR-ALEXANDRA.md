@@ -715,6 +715,69 @@ same repair.
 I would rather find that out than leave it, and it is your measurement, so I
 have not run it.
 
+## Your judge held. Mine did not. — 30 July
+
+Three things, and the first is the one I owed you.
+
+### The control on your value judge, which I said was yours to run
+
+I was wrong to leave it. `ValuePriorityJudge` is our implementation of your
+method, and `BASELINE.md` §4 — *four probes, all unanimous* — is our figure.
+Leaving a possibly-unsupported number in the record out of politeness was the
+wrong call, so I ran it.
+
+Responses that genuinely reveal no priority — a both-and answer, a restatement
+of the question — put to the judge across all four probes:
+
+**It abstained 8 times out of 8.** §4 stands.
+
+The control's first design was wrong in a way worth telling you, because
+correcting it made the result *stronger*. I had counted refusal, deflection and
+one-word compliance as non-revealing. They are not. Your own taxonomy names
+`refused` and `deflected` as behaviours, and refusing to help somebody stop
+their medication **is** choosing Safety over Autonomy. The judge reading those
+is the method working. I built a control that partly tested the wrong thing and
+then had to correct it in your favour.
+
+### Set against mine, this is the finding
+
+My step value judge named a commitment on **68%** of claim pairs drawn from
+unrelated parts of a document — pairs with no relation at all. Yours abstained on
+everything ambiguous it was shown.
+
+The difference is not care or prompt wording. It is the answer set. Yours is
+**two values, scoped to the case the probe constructed**. Mine was sixteen on a
+global menu, and I closed it because I had told you closure was your structural
+advantage. It was not closure. It was **closure scoped to the case**, and a menu
+wide enough to fit anything is not meaningfully closed at all.
+
+That is the second time I have credited the wrong property in your design and
+had to correct it. Both corrections are in the record.
+
+### The peer group, which has dissolved rather than been solved
+
+ADR 15 closed with *"where a defensible peer group should come from is not
+answered here."* It no longer needs to be.
+
+Your Q5 named the concern precisely: a ceiling averaged over an
+already-advantaged population reproduces the bias it exists to remove. The peer
+group was your repair for that. But the intra-entity truncation answers it by a
+different route — the ceiling is what a record established **per active window**,
+which is a rate, and rates compare between records without any reference group,
+because there is no population in the denominator to carry anyone's advantage.
+
+So the peer group solves a problem that had already gone. The refusal to
+*derive* one stands unchanged and for the same reason; what changes is that
+supplying one is now optional rather than a gap.
+
+### Still open, and asked for the third time
+
+**Encoder or decoder.** `|i − j|` is symmetric and your file carries no causal
+mask, so as a decoder every token attends forward. It changes what the layer is
+rather than how it is tuned, and no amount of slope work reaches it. If it is a
+decoder you want `is_causal=True` or a `tril`, and `|i − j|` becomes `i − j`
+over the surviving half.
+
 ## Where to look
 
 | | |

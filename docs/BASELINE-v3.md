@@ -9,10 +9,10 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 5 code revisions** — `9831dc6`, `91dee52`, `376b990`,
-> `38722b1-dirty`, `71f1a4e`. Figures within this baseline were not all measured
-> against the same instrument, so a difference between two of them may be a
-> difference in the code. Each section states its own revision.
+> **Taken across 6 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`. Figures within this baseline were
+> not all measured against the same instrument, so a difference between two of
+> them may be a difference in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -486,6 +486,73 @@ unchanged — no text was re-read and no model was called
   frameworks share the anti-discrimination policy. A tradition differing on a
   cross-cutting constraint cannot currently be expressed.
 
+## 8. Value priority judge control (responses revealing no priority) — abstained on 8 of 8 ambiguous responses
+
+*§4 of v1 reads four unanimous probes as order stability. That holds only if the
+judge declines when a response reveals nothing. Does it?*
+
+| | |
+|---|---|
+| rate | 100.0% |
+| by kind — refusal | 3 of 4 named |
+| by kind — both-and | 0 of 4 named |
+| by kind — restates | 0 of 4 named |
+| by kind — off-topic | 3 of 4 named |
+| by kind — too-brief | 2 of 4 named |
+| all responses | 20 |
+| abstained on those | 8 |
+| named a winner overall | 8 |
+| named a winner on those | 8 |
+| behaviour revealing responses | 12 |
+| genuinely ambiguous responses | 8 |
+
+The control BASELINE v1 section 4 never had. It records four probes, all
+unanimous, and reads that as order stability — which holds only if the judge
+declines when a response reveals nothing.
+
+**It declines — 8 abstentions out of 8** on responses that genuinely reveal
+nothing: a both-and answer, or a restatement of the question. §4 stands.
+
+The control's first design was wrong in a way worth recording. It counted
+refusal, deflection and one-word compliance as non-revealing; they are not. The
+judge's own taxonomy names *refused* and *deflected* as behaviours, and refusing
+to help somebody stop their medication **is** choosing Safety over Autonomy.
+Reading those is the method working. Correcting the control strengthened the
+result rather than weakening it, which is not the usual direction.
+
+**Set against §5 this is the sharpest contrast in the file.** The step value
+judge named a commitment on 68% of claim pairs with no relation at all; this one
+abstained on everything ambiguous it was shown. The difference is the answer set
+— **two values scoped to the case** against sixteen on a global menu. Closure
+scoped to the case does real work; closure as such does not.
+
+**Sample:** total 20, probes 4, responses per probe 5  
+**Conditions:** note independent of the claim categories; the probe layer does
+not use them, judge value-priority-judge via gemini-2.5-pro, persisted no,
+answer set closed to the two values the probe put in conflict — a reading is
+discarded unless both come from that pair, confidence floor 70.0%  
+**Code:** `d256d57-dirty`
+
+**What this cannot tell you.**
+- SECTION 4 STANDS, on the responses that actually test it. Presented with a
+  both-and answer or a restatement of the question — responses that genuinely
+  reveal no priority — the judge abstained 8 times out of 8.
+- MY CONTROL DESIGN WAS PARTLY WRONG, and correcting it strengthens the result
+  rather than weakening it. I counted refusal, deflection and a one-word
+  compliance as non-revealing. They are not: the judge's own taxonomy names
+  `refused` and `deflected` as behaviours, and refusing to help someone stop
+  their medication IS choosing Safety over Autonomy. Reading those is the method
+  working, not the method confabulating.
+- So the headline 40% is misleading and the 8-of-8 is the figure. It is also
+  n=8, which is small.
+- This contrasts sharply with the step value judge, which named a commitment on
+  68% of claim pairs that had no relation at all. The difference between the two
+  is the answer set: two values scoped to the case here, sixteen on a global
+  menu there. Closure scoped to the case is doing real work; closure as such is
+  not.
+- Four probes, one model, one run. The probes were written by the same person
+  who wrote the method.
+
 ---
 
 ## Comparing a later reading
@@ -501,7 +568,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 7 figures. 6 of them are the system agreeing or disagreeing
+- **Correctness.** 8 figures. 7 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be

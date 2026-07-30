@@ -22,6 +22,26 @@ The recursive question the system exists to answer:
 
 > **"What kind of statement is this, and has it earned the right to become the next kind of statement?"**
 
+### What the scoring layer is, and is not
+
+`EquitableBaseline`, `AverageCeilingMetric`, `GapInvariance` and `Timeline` score
+a **record of relationships**, not claims, and nothing in the application invokes
+them — no controller, view, job or task. That is correct, and is worth stating so
+it is not mistaken for an unfinished feature.
+
+Their job is to be **the thing the anti-discrimination policy is audited
+against**. `GapInvariance` states the policy's one enforceable claim as a
+property a scorer either has or does not; a property needs a scorer to check;
+`EquitableBaseline` is that scorer, and `PolicyAudit` records the result as an
+assertion, pass or fail. Without them the policy would be a statement of intent.
+
+So it is a proof of implementability with real stakes, not a product surface.
+This system does not score people, has never claimed to, and gains nothing by
+being wired to do so. It follows that `Policy` is deliberately **not** scoped to
+a framework, unlike categories, promotions, values and domains: the policy is a
+constraint on the implementation rather than a claim within a framework's
+epistemology, and it binds whatever framework is current.
+
 ## 2. Problem Statement
 
 Reasoning — human or machine — slides between claim types without announcing it:
