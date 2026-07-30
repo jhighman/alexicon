@@ -631,6 +631,86 @@ Sentinel Principle applied to the framework's own layers.
 
 ---
 
+## 7b. Ascent, descent, and the traffic upward
+
+> *A mature theory should be able to ascend into abstraction and descend into
+> practice without becoming a different theory.* — Jeff Highman
+
+The criterion is worth holding this framework to, and the record is long enough
+now to test it rather than agree with it.
+
+### Where it holds
+
+**Inference must not become evidence** appears at four levels as the same
+sentence, restated nowhere:
+
+| level | form |
+|---|---|
+| epistemology | a claim about meaning must not be smuggled into a claim about what exists |
+| the record | `Claim#category` is derived at read time, never stored |
+| identity | nothing may be predicated of a name until somebody has said what it refers to |
+| fairness | a peer group is **supplied, never derived** — deriving one recovers the sensitive attribute by inference, inside the mechanism meant to forbid it ([ADR 15](decisions/0015-the-peer-group-is-supplied.md)) |
+
+The stronger case is the framework's other central claim, **things that differ
+in kind must not be merged**. It caught a defect in its own implementation, in
+its own words: `Claim#machine_agreement` was tallying two judges' readings into
+one majority — two instruments reported as one measurement. The theory found the
+bug. That is about as much as the criterion can ask.
+
+### Where it fails, and there are two kinds
+
+**Honest relocation.** §6 records the framework moving off transformer-internal
+layers, because the policy is implementable at the application level and the
+layer-level clamp is not. The theory could not descend there, so the level of
+application changed. That is the criterion failing, handled by saying so rather
+than by producing a second theory under the first one's name.
+
+**A parameter the theory cannot supply.** *Beneath judgement lie values* ascends
+cleanly and descends into `StepValueJudge`. The descent went badly — the judge
+reads unrelated claim pairs 68% of the time — but the instructive part is not
+the failure rate. Substituting Rand's cardinal values and virtues for the
+framework's own changed the readings substantively
+([`BASELINE-v3.md`](BASELINE-v3.md) §6). **The theory says values decide which
+arguments feel reasonable. It does not say which values, and that turns out to
+matter enormously.** At the bottom of the descent it requires a commitment about
+people that it has no way to license, and marking half the vocabulary `proposed`
+is an admission rather than a solution.
+
+### The amendment
+
+The criterion as stated is one-directional — ascend, descend, remain itself. On
+this project's evidence, almost everything load-bearing travelled the other way.
+
+- **`normative` exists** because measurement showed prescription had nowhere to
+  go, and it earned its place on a document that had never informed the
+  framework — 20 of 254 typed claims ([v3 §2](BASELINE-v3.md)).
+- **A stable count is not a stable set** is nowhere in this document as a
+  prediction. It came from a Jaccard of 0.51 against a count that had moved
+  20.9% ([v1 §7](BASELINE.md)).
+- **Coverage is itself unstable** — the same classifier leaving 30 claims unread
+  on one pass and 51 on the next ([v1 §12](BASELINE.md)) — was not anticipated
+  by anything here, and it silently inflated a churn figure that had already
+  been recorded.
+- **Closing a vocabulary can destroy discrimination.** It was proposed here as
+  the fix for a judge that invented, and the control falsified it: the gap fell
+  from 3.08 standard errors to 0.29 ([v3 §5](BASELINE-v3.md)).
+
+Each of those was absorbed. None of them left the framework unrecognisable. So:
+
+> **A mature theory can ascend and descend without becoming a different theory,
+> and must be able to survive what the descent sends back up.**
+
+That is the harder test, because the first can be satisfied by a theory abstract
+enough to be compatible with anything, and the second cannot. A theory that only
+descends is applied; a theory that is also revised by what it finds down there
+is alive, and the risk it runs is dissolution rather than irrelevance.
+
+This one has been rewritten by its own measurements four times in a fortnight
+and is still recognisably itself. That is the claim, and unlike the others in
+this document it is one the record can be checked against.
+
+---
+
 ## 8. Sources
 
 Full citations accompany the manuscript in `docs/private/`. Primary references: Winnicott (1965), *Ego Distortion in Terms of True and False Self*; Bion (1959), *Attacks on Linking*, and *Learning from Experience*; Polanyi, *Personal Knowledge* and *The Tacit Dimension*; Lacan, *Écrits*; Freud (1925), *Die Verneinung*; Mahler, separation–individuation; Klein, object relations; Festinger (1957), cognitive dissonance; Eide & Eide, *The Dyslexic Advantage*; Acevedo et al. (2021), *Neuropsychobiology* 80(2).
