@@ -102,6 +102,78 @@ RSpec.describe "agreement across readings" do
     end
   end
 
+  # A person's reading is not a vote among the MACHINE's. It was also treated as
+  # exempt from being disagreed with by another person: the last human reading
+  # won and reported itself as `1 of 1`, so a second reader's answer vanished and
+  # the sample size denied they had read it at all.
+  #
+  # The strict majority the machine is held to now applies to people too. That is
+  # not a new rule — it is the existing one, finally applied on both sides.
+  describe "two people who disagree" do
+    let(:other) { Referent.create!(name: "Bo", subject: "Person", role: "Reviewer", primitive: "person") }
+
+    it "leaves the claim untyped rather than taking whoever read last" do
+      read("interpretive", by: person)
+      read("ontological", by: other)
+
+      expect(claim.category).to be_nil
+      expect(claim).to be_contested
+    end
+
+    it "reports both readings in the sample rather than claiming one" do
+      read("interpretive", by: person)
+      read("ontological", by: other)
+
+      expect(claim.agreement.readings).to eq 2
+      expect(claim.agreement.to_s).to eq "2 readings, no majority"
+    end
+
+    it "does not fall back to the machine's answer when people are split" do
+      3.times { read("observation") }
+      read("interpretive", by: person)
+      read("ontological", by: other)
+
+      expect(claim.category).to be_nil
+    end
+
+    it "types it once a third reader breaks the tie" do
+      third = Referent.create!(name: "Cy", subject: "Person", role: "Reviewer", primitive: "person")
+      read("interpretive", by: person)
+      read("ontological", by: other)
+      read("interpretive", by: third)
+
+      expect(claim.reload.category.key).to eq "interpretive"
+      expect(claim.agreement.to_s).to eq "2 of 3"
+      expect(claim).not_to be_contested
+    end
+
+    it "counts one person who read twice as one position, not two" do
+      read("interpretive", by: person)
+      read("ontological", by: person)
+
+      expect(claim.reload.category.key).to eq "ontological"
+      expect(claim.agreement.readings).to eq 1
+      expect(claim).not_to be_contested
+    end
+
+    it "does not call a lone reader contested" do
+      read("interpretive", by: person)
+
+      expect(claim).not_to be_contested
+      expect(claim.category.key).to eq "interpretive"
+    end
+
+    # An abstention records that somebody could not tell. It is a reading and
+    # not a judgement, so it neither types the claim nor contests it.
+    it "does not treat an abstention as a competing answer" do
+      read("interpretive", by: person)
+      claim.classifications.create!(asserter: other, act: "classify", claim: { "abstained" => true })
+
+      expect(claim.reload.category.key).to eq "interpretive"
+      expect(claim).not_to be_contested
+    end
+  end
+
   # Nothing is overwritten; a second opinion is added beside the first.
   it "keeps every reading, so disagreement survives in the record" do
     read("interpretive")

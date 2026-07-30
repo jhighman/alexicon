@@ -63,6 +63,13 @@ framework rather than newest-wins.**
   can only be observed. `record_verdict!("contested")` raises.
 - `Assertion#disposition` does the same for people: one position per reviewer,
   and a split across reviewers is reported as a split.
+- `Claim#agreement` does the same for readers. A person's judgement still wins
+  over the machine's; it is no longer exempt from being disagreed with by another
+  person. Two readers who name different categories leave the claim **untyped**,
+  which is the rule the machine was already held to. This mattered most for the
+  measurement not yet taken: the forty claims are typed by people, and until now
+  a second reader's answer would have overwritten the first's while reporting
+  `1 of 1` — hiding both the disagreement and the fact that two people read.
 - `GovernanceSentinel` takes a framework and translates categories by key, so a
   claim classified under one framework can be judged under another. A framework
   with no word for a category has not priced the move, and the Sentinel declines

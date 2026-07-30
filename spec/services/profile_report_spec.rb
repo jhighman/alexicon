@@ -237,6 +237,40 @@ RSpec.describe ProfileReport do
     end
   end
 
+  # A claim two people typed differently is not settled by whoever read last,
+  # and the report has to say the disagreement happened rather than showing a
+  # category as though it had been agreed.
+  describe "a claim two readers disagreed about" do
+    let(:ana) { Referent.create!(name: "Ana", subject: "Person", role: "Reviewer", primitive: "person") }
+    let(:bo)  { Referent.create!(name: "Bo", subject: "Person", role: "Reviewer", primitive: "person") }
+
+    it "counts it and says a further reading is what settles it" do
+      c = claim("Contested.", "interpretive")
+      c.classify!(category("interpretive"), asserter: ana, confidence: 0.9)
+      c.classify!(category("ontological"), asserter: bo, confidence: 0.9)
+
+      report = flat(described_class.render(document))
+
+      expect(c.reload).to be_contested
+      expect(report).to include "| two readers disagreed | 1 |"
+      expect(report).to include "a further independent reading"
+    end
+
+    it "does not count it among the claims that are typed" do
+      c = claim("Contested.", "interpretive")
+      c.classify!(category("interpretive"), asserter: ana, confidence: 0.9)
+      c.classify!(category("ontological"), asserter: bo, confidence: 0.9)
+
+      expect(flat(described_class.render(document))).to include "| claims typed | 0 of 1 |"
+    end
+
+    it "says nothing about disagreement when there is none" do
+      claim("Plain.", "observation")
+
+      expect(flat(described_class.render(document))).not_to include "a further independent reading"
+    end
+  end
+
   describe "templates" do
     it "renders only the sections a template names" do
       claim("A claim.", "observation")

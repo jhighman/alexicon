@@ -235,13 +235,26 @@ class ProfileReport
       | claims typed | #{typed.size} of #{claims.size} |
       | no reading at all | #{unread} |
       | read unstably (1 or 2 of 3) | #{unstable} |
+      | two readers disagreed | #{contested_claims.size} |
       | steps judged | #{transitions.count { it.verdict.to_s != 'undetermined' }} of #{transitions.size} |
 
       A claim the classifier declined every time is usually not a claim — a heading,
       a fragment, a line of a table. An unstably read one is a claim it typed
       differently on different readings, which is a fact about the difficulty of the
       sentence as much as about the reader.
+      #{contested_claims_note}
     MD
+  end
+
+  def contested_claims = @contested_claims ||= claims.select(&:contested?)
+
+  def contested_claims_note
+    return "" if contested_claims.empty?
+
+    "A **disagreed** one is different from both: two people read it and named " \
+      "different categories, so it is left untyped rather than typed by whoever " \
+      "read last. Nothing resolves that by showing either of them the other's " \
+      "answer — what settles it is a further independent reading."
   end
 
   def steps

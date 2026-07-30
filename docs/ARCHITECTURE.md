@@ -660,6 +660,20 @@ Three states are now distinguished, and never merged:
 `CONTESTED` sits deliberately outside `VERDICTS`. Nothing can assert it — it is
 observed, never recorded, and `record_verdict!("contested")` raises.
 
+The same three states apply to claims. `Claim#agreement` preferred a person's
+reading over the machine's, which is right, and treated it as exempt from being
+disagreed with by another *person*, which is not: the last human reading won and
+reported itself as `1 of 1`, so a second reader's answer vanished and the sample
+size denied they had read it at all. People now get the strict majority the
+machine is held to — one position each, latest — and a split leaves the claim
+**untyped** rather than typed by whoever read last. Once a person has read, the
+machine no longer speaks, including when the people are split; falling back there
+would type a claim by machine majority while `agreement` reported no majority.
+
+A contested claim cannot be resolved through `Review`, which never serves a claim
+classification. What settles it is a further **independent** reading — the same
+reason the blind surface exists.
+
 ### Premises are data, and a ruling names its own
 
 A ruling carries `framework_id`. `Transition#verdict(framework:)` reads one

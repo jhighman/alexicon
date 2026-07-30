@@ -52,8 +52,14 @@ class Claim < ApplicationRecord
   # applied to its own output.
   def classification
     candidates = classifications.includes(:asserter).to_a
-    human = candidates.select { it.human? && it.object }.last
-    return human if human
+    people = human_agreement(candidates)
+    # Once a person has read it the machine no longer speaks — including when the
+    # people are split. Falling back there would type the claim by machine
+    # majority while `agreement` reported no majority at all, so `category` and
+    # the figure explaining it would disagree.
+    if people.readings.positive?
+      return people.category && candidates.reverse.find { it.human? && it.object == people.category }
+    end
 
     # Among machine readings, the one that agrees with the majority. Any of them
     # will do as the representative: they name the same category.
@@ -66,14 +72,42 @@ class Claim < ApplicationRecord
   # How firmly this claim is typed, and on how many readings.
   def agreement
     candidates = classifications.includes(:asserter).to_a
-    # An abstention is a reading, but it is not a judgement: a person saying
-    # "I cannot tell" records that they could not, and leaves whatever the
-    # machine agreed on standing rather than blanking it.
-    human = candidates.select { it.human? && it.object }.last
-    # A person's judgement is not a vote among others; it settles the question.
-    return Agreement.new(category: human.object, agreeing: 1, readings: 1) if human
+    people = human_agreement(candidates)
+    # A person's judgement is not a vote among the machine's; it settles the
+    # question. It is not exempt from being disagreed with by another person.
+    return people if people.readings.positive?
 
     machine_agreement(candidates)
+  end
+
+  # What the PEOPLE who read this claim concluded — one position each, latest,
+  # and the same strict majority the machine's readings are held to.
+  #
+  # This took the last human reading and reported it as `1 of 1`. Two people
+  # reading the same claim and disagreeing produced whichever went second, with
+  # a sample size that said only one person had read it at all: the disagreement
+  # discarded and the fact that it happened erased along with it.
+  #
+  # No majority now leaves the claim untyped, exactly as it does for the
+  # machine. That is not a new rule, it is the existing one finally applied to
+  # people — a claim two readers cannot agree on is not typed by picking one.
+  #
+  # An abstention is a reading but not a judgement: somebody recording that they
+  # could not tell leaves whatever the machine agreed on standing rather than
+  # blanking it, so readings with no object are not counted here.
+  def human_agreement(candidates = classifications.includes(:asserter).to_a)
+    positions = candidates.select { it.human? && it.object }
+                          .group_by(&:asserter_id).transform_values(&:last)
+
+    agreement_among(positions.values)
+  end
+
+  # Two people read this claim and named different categories. Not resolvable by
+  # showing either of them the other's answer — see `Review`, which never serves
+  # a claim classification. What settles it is a further independent reading.
+  def contested?
+    people = human_agreement
+    people.readings > 1 && people.category.nil?
   end
 
   # What the classification pass concluded, ignoring every third-party reading.

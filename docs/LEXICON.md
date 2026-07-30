@@ -379,16 +379,18 @@ See also: Lead-in, Claim.
 
 *concept*
 
-Two asserters reaching different conclusions about the same step under the
-**same** premises. Reported instead of a verdict, never as one: it sits outside
-`VERDICTS`, so nothing can assert it and no sentinel can record it. The system
-saying it does not know. `Transition#contested?`
+Two asserters reaching different conclusions about the same thing under the
+**same** premises. On a step it is reported instead of a verdict, never as one:
+it sits outside `VERDICTS`, so nothing can assert it and no sentinel can record
+it. On a claim it means two people typed it differently, which leaves it untyped
+rather than typed by whoever read last. Either way, the system saying it does
+not know. `Transition#contested?`, `Claim#contested?`
 
 **Distinct from **Drift**, which is one asserter changing its own answer, and
 from a **premise difference**, which is two frameworks priced differently and is
 not disagreement at all.**
 
-See also: Position, Drift, Premise.
+See also: Position, Drift, Premise, Agreement.
 
 ### Drift
 
