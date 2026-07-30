@@ -596,6 +596,36 @@ carries none: 0.9 to 1.0 whatever it is shown.
 
 ---
 
+## Two surfaces, and why they must not merge
+
+`BlindReading` is a **measurement**: the answer is withheld, so a reader's
+agreement means something. `Review` is a **correction**: the system's conclusion
+is shown, and a person disposes of it.
+
+The boundary is enforced rather than remembered. **The review queue never serves
+a claim classification**, however unsettled — if it did, a reviewer would see the
+machine's category for the same claims the blind surface needs them naïve for,
+and the only measurement in this system that is not the system checking itself
+would stop being worth taking. Claims are typed blind or not at all. Judgements
+are reviewed.
+
+It follows that nothing recorded through review can be used as a correctness
+baseline. An informed reader agreeing with the system is not evidence the system
+was right, and a spec asserts the queue's contents rather than trusting anyone to
+remember.
+
+The order is by how little the system knows: value readings first, because three
+controls say that layer cannot distinguish a real step from an unrelated pair;
+then unearned steps. Each item carries its own warning — the value readings say
+*reject freely, that is what this queue is for*.
+
+**Accepting an unearned step is not overruling the Sentinel.** The flag stays,
+the verdict is undisturbed, and a named person is recorded saying it may stand
+anyway. That is a different claim from saying it was earned, and it is the shape
+costly obedience has here.
+
+---
+
 ## Reports
 
 `ProfileReport` renders a document's epistemic structure as markdown, from the

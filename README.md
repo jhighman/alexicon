@@ -215,6 +215,33 @@ comparing an actor's recent decisions against its own earlier ones, since a
 covert policy arrives as a slow shift across many defensible commands rather than
 as one suspicious one.
 
+### Reviewing what it concluded
+
+```sh
+bin/alexicon review 30      # y let it stand · n set it aside · s skip · q stop
+```
+
+The counterpart to `type`, and deliberately a different command. There the
+answer is withheld, because the point is an independent reading. Here it is
+shown, because the point is correction — so **nothing recorded through this can
+measure whether the system was right.** An informed reader agreeing with it is
+not evidence.
+
+It **never serves a claim classification**, however unsettled. If it did, a
+reviewer would see the machine's category for the same claims the blind surface
+needs them naïve for, and the only measurement here that is not the system
+checking itself would stop being worth taking. Claims are typed blind or not at
+all; judgements are reviewed here.
+
+Weakest first: value readings before step verdicts, because three controls say
+that layer cannot tell a real step from an unrelated pair, and a person's
+disposal is the only filter that works. Each one carries that warning where the
+reviewer will read it.
+
+Accepting an unearned step does not overrule the Sentinel. The flag stays, the
+verdict is undisturbed, and a named person is on the record saying it may stand
+anyway — which is a different thing from saying it was earned.
+
 ### Profiles
 
 An end-to-end report on a document's epistemic structure, from the recorded

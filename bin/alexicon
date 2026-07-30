@@ -253,6 +253,117 @@ module Alexicon
     end
   end
 
+  # Reviewing what the system concluded, one judgement at a time.
+  #
+  # The opposite posture to `type`, and deliberately a different command. There
+  # the answer is withheld because the point is an independent reading; here it
+  # is shown because the point is correction. Nothing recorded through this can
+  # measure whether the system was right — an informed reader agreeing with it
+  # is not evidence.
+  class Wizard
+    QUIT = %w[q  ].freeze
+
+    def initialize(client, document_id)
+      @client = client
+      @document_id = document_id
+    end
+
+    def run
+      loop do
+        state = client.get(path)
+        return finished(state) if state["item"].nil?
+
+        render(state)
+        break unless answer(state)
+      end
+      true
+    end
+
+    private
+
+    attr_reader :client, :document_id
+
+    def path = "/api/v1/documents/#{document_id}/review"
+
+    def finished(state)
+      puts
+      puts Style.green("Nothing left to review — #{state['reviewed']} of #{state['total']}.")
+      true
+    end
+
+    def render(state)
+      item = state["item"]
+      puts "\n#{Style.dim('─' * 72)}"
+      puts "  #{Style.dim("#{state['reviewed']} of #{state['total']} reviewed")}  " \
+           "#{Style.cyan(item['kind'])}"
+      puts
+      item["context"].each { puts "  #{Style.dim(truncate(it))}" }
+      puts
+      puts "  #{Style.bold(item['question'])}"
+      # No Rails here, so no `present?`. This one only showed at runtime.
+      detail = item["detail"].to_s.strip
+      puts "  #{Style.dim(detail)}" unless detail.empty?
+      puts
+      puts Style.dim(wrap(item["caveat"]))
+      puts
+    end
+
+    def answer(state)
+      item = state["item"]
+
+      loop do
+        print "  #{Style.dim('y let it stand · n set it aside · s skip · q stop')} > "
+        key = read_key
+        puts
+
+        return false if QUIT.include?(key)
+
+        case key
+        when "y" then return dispose(item, "accept")
+        when "n" then return dispose(item, "reject")
+        when "s" then return skip
+        else puts Style.dim("  y, n, s or q.")
+        end
+      end
+    end
+
+    # Skipping is not a decision and records nothing, so the item stays in the
+    # queue. It exists because a reviewer who cannot tell should not be made to
+    # pick, and the session ends rather than looping on it.
+    def skip
+      puts Style.dim("  left open.")
+      false
+    end
+
+    def dispose(item, verdict)
+      print "  #{Style.dim('why, if it is worth saying')} > "
+      rationale = $stdin.gets.to_s.strip
+      client.post(path, { id: item["id"], verdict: verdict, rationale: rationale }.compact)
+      true
+    rescue NotDelegated => e
+      puts Style.red("  #{e.message}")
+      false
+    end
+
+    def read_key
+      $stdin.getch
+    rescue Errno::ENOTTY, IOError
+      loop do
+        char = $stdin.getc
+        return "q" if char.nil?
+        return char unless char.strip.empty?
+      end
+    end
+
+    def wrap(text, width = 70)
+      text.to_s.scan(/\S.{0,#{width - 1}}(?:\s|$)/).map { "  #{it.strip}" }.join("\n")
+    end
+
+    def truncate(text, width = 68)
+      text.to_s.length > width ? "#{text[0, width - 1]}…" : text.to_s
+    end
+  end
+
   class CLI
     def self.run(argv) = new.run(argv)
 
@@ -288,6 +399,7 @@ module Alexicon
       when "ground"     then ground(client(options), require_id(args, "ground"), options)
       when "ignore"     then ignore(client(options), require_id(args, "ignore"))
       when "profile"    then profile(client(options), require_id(args, "profile"), options)
+      when "review"     then Wizard.new(client(options), require_id(args, "review")).run
       else raise Error, "Unknown command #{command.inspect}. Try `alexicon help`."
       end
     end
@@ -440,6 +552,7 @@ module Alexicon
           type ID          type a document's claims blind, one keystroke each
           comparison ID    agreement with the classifier, and where you part
           profile ID       the document's epistemic structure, --template= to choose one
+          review ID        review what the system concluded, and correct it
           documents        list documents
           show ID          one document
           ingest FILE      submit a text (or - for stdin), --title= to name it

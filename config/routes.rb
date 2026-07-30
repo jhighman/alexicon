@@ -36,6 +36,10 @@ Rails.application.routes.draw do
         resource :blind_reading, only: %i[show create], controller: "blind_readings" do
           get :comparison
         end
+
+        # Reviewing a judgement, which is the opposite posture to typing one
+        # blind: here the system's conclusion is shown. It never serves a claim.
+        resource :review, only: %i[show create], controller: "reviews"
       end
 
       resources :mentions, only: [] do
