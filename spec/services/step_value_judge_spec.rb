@@ -27,6 +27,19 @@ RSpec.describe StepValueJudge do
     t
   end
 
+  # Two commitments in conflict, as the proposer would have found them.
+  def tension(first: "generality", second: "coherence")
+    StepTensionProposer::Tension.new(
+      first: FrameworkValue.find_by!(key: first), second: FrameworkValue.find_by!(key: second),
+      rationale: "the second sentence widens the scope", none: false
+    )
+  end
+
+  def rule_on(step, adapter_for: nil, **opts)
+    described_class.call(step, tension: opts.fetch(:tension, tension()),
+                               client: adapter_for || adapter)
+  end
+
   # A stubbed adapter, so the guards can be tested without a model.
   def adapter(protects: "generality", confidence: 0.9)
     payload = { protects: protects, confidence: confidence,
@@ -51,14 +64,14 @@ RSpec.describe StepValueJudge do
   # protection.
   describe "what it is a claim about" do
     it "asserts about the step, never about a person" do
-      assertion = described_class.call(step("interpretive", "ontological"), client: adapter)
+      assertion = rule_on(step("interpretive", "ontological"))
 
       expect(assertion.subject).to be_a Transition
       expect(assertion.subject).not_to be_a Referent
     end
 
     it "cannot name a person as a subject, because it never chooses one" do
-      assertion = described_class.call(step("observation", "normative"), client: adapter)
+      assertion = rule_on(step("observation", "normative"))
 
       expect(Referent).not_to eq assertion.subject.class
       expect(assertion.claim.keys).to include "protects", "subordinates", "confidence", "rationale"
@@ -66,14 +79,14 @@ RSpec.describe StepValueJudge do
     end
 
     it "records the move it was reading, so the claim can be checked against it" do
-      assertion = described_class.call(step("interpretive", "normative"), client: adapter)
+      assertion = rule_on(step("interpretive", "normative"))
 
       expect(assertion.claim["move"]).to eq "interpretive -> normative"
     end
 
     # A value already knows what it is put before, so the model is not asked.
     it "takes what was subordinated from the vocabulary, not from the model" do
-      assertion = described_class.call(step("interpretive", "ontological"), client: adapter)
+      assertion = rule_on(step("interpretive", "ontological"))
       value = FrameworkValue.find_by!(key: "generality")
 
       expect(assertion.claim["protects"]).to eq value.name
@@ -83,7 +96,7 @@ RSpec.describe StepValueJudge do
 
   describe "where it runs" do
     it "reads a step that was judged unearned" do
-      expect(described_class.call(step("interpretive", "ontological"), client: adapter)).to be_present
+      expect(rule_on(step("interpretive", "ontological"))).to be_present
     end
 
     # It sits beneath a finding, not instead of one. Where an argument holds
@@ -91,14 +104,14 @@ RSpec.describe StepValueJudge do
     it "refuses a step that was earned" do
       earned = step("interpretive", "objective", verdict: "earned")
 
-      expect { described_class.call(earned, client: adapter) }
+      expect { rule_on(earned) }
         .to raise_error(described_class::NotFlagged, /not judged unearned/)
     end
 
     it "refuses a step nothing has ruled on" do
       unjudged = step("interpretive", "ontological", verdict: nil)
 
-      expect { described_class.call(unjudged, client: adapter) }
+      expect { rule_on(unjudged) }
         .to raise_error described_class::NotFlagged
     end
 
@@ -107,7 +120,7 @@ RSpec.describe StepValueJudge do
       t = step("interpretive", "ontological", verdict: nil)
       t.record_verdict!("unearned", asserter: judge)
 
-      expect { described_class.call(t, client: adapter) }
+      expect { rule_on(t) }
         .to raise_error(described_class::NotIndependent, /may not also read it/)
     end
   end
@@ -116,21 +129,21 @@ RSpec.describe StepValueJudge do
     it "records nothing when the move reveals no commitment" do
       t = step("interpretive", "ontological")
 
-      expect { described_class.call(t, client: adapter(protects: "none")) }
+      expect { rule_on(t, adapter_for: adapter(protects: "none")) }
         .not_to change { t.assertions.count }
     end
 
     it "records nothing below the confidence floor" do
       t = step("interpretive", "ontological")
 
-      expect(described_class.call(t, client: adapter(confidence: 0.8))).to be_nil
+      expect(rule_on(t, adapter_for: adapter(confidence: 0.8))).to be_nil
     end
 
     # The whole point of closing the list: it can pick or decline, never invent.
     it "discards a value that is not in the vocabulary" do
       t = step("interpretive", "ontological")
 
-      expect(described_class.call(t, client: adapter(protects: "the will to power"))).to be_nil
+      expect(rule_on(t, adapter_for: adapter(protects: "the will to power"))).to be_nil
     end
 
     # Higher than the classifier's: a weak reading of a category is still a
@@ -153,24 +166,41 @@ RSpec.describe StepValueJudge do
                              name: "Productiveness", definition: "Creating value.",
                              subordinates: "Consuming without creating.", provenance: "proposed")
 
+      second = FrameworkValue.create!(framework: other, domain: domain, key: "prudence",
+                                      name: "Prudence", definition: "Weighing before acting.",
+                                      subordinates: "Speed.", provenance: "proposed")
+      other_tension = StepTensionProposer::Tension.new(
+        first: FrameworkValue.find_by!(framework: other, key: "productiveness"),
+        second: second, rationale: "the move trades one for the other", none: false
+      )
+
       assertion = described_class.call(step("interpretive", "ontological"),
-                                       client: adapter(protects: "productiveness"),
-                                       vocabulary: FrameworkValue.where(framework: other))
+                                       tension: other_tension,
+                                       client: adapter(protects: "productiveness"))
 
       expect(assertion.claim["protects"]).to eq "Productiveness"
       expect(assertion.claim["vocabulary"]).to eq "other-fw"
+      expect(assertion.claim["against"]).to eq "Prudence"
     end
 
-    it "refuses to read against an empty one" do
-      expect {
-        described_class.new(step("interpretive", "ontological"), vocabulary: FrameworkValue.none)
-      }.to raise_error described_class::EmptyVocabulary
+    # The precondition the whole repair turns on: no conflict, no ruling.
+    it "refuses to rule where nothing was found in conflict" do
+      none = StepTensionProposer::Tension.new(first: nil, second: nil,
+                                              rationale: "an aside", none: true)
+
+      expect { described_class.call(step("interpretive", "ontological"), tension: none) }
+        .to raise_error(described_class::NoTension, /nothing was found in conflict/)
+    end
+
+    it "refuses to rule with no tension at all" do
+      expect { described_class.call(step("interpretive", "ontological"), tension: nil) }
+        .to raise_error described_class::NoTension
     end
   end
 
   describe "the reading it records" do
     it "carries its confidence, always" do
-      assertion = described_class.call(step("observation", "normative"), client: adapter)
+      assertion = rule_on(step("observation", "normative"))
 
       expect(assertion.claim["confidence"]).to eq 0.9
       expect(assertion.claim["rationale"]).to be_present
@@ -178,7 +208,7 @@ RSpec.describe StepValueJudge do
     end
 
     it "is attributed to a judge separate from the Sentinel and the classifier" do
-      assertion = described_class.call(step("interpretive", "ontological"), client: adapter)
+      assertion = rule_on(step("interpretive", "ontological"))
 
       expect(assertion.asserter).to eq judge
       expect(assertion.asserter).not_to eq sentinel
@@ -187,17 +217,29 @@ RSpec.describe StepValueJudge do
 
     it "does not disturb the verdict it was asked about" do
       t = step("interpretive", "ontological")
-      described_class.call(t, client: adapter)
+      rule_on(t)
 
       expect(t.reload.verdict.to_s).to eq "unearned"
     end
   end
 
   describe "across a document" do
+    # A step where no conflict is found is passed over entirely, which is the
+    # expected outcome for most of them.
+    it "passes over a step with no tension, without asking the judge at all" do
+      step("interpretive", "ontological")
+      none = StepTensionProposer::Tension.new(first: nil, second: nil, rationale: "-", none: true)
+      allow(StepTensionProposer).to receive(:call).and_return(none)
+
+      expect(described_class.for_document(document.reload, client: adapter)).to be_empty
+    end
+
     it "reads every unearned step and leaves the others alone" do
       step("interpretive", "ontological")
       step("observation", "normative")
       step("interpretive", "objective", verdict: "earned")
+
+      allow(StepTensionProposer).to receive(:call).and_return(tension)
 
       readings = described_class.for_document(document.reload, client: adapter)
 
@@ -205,6 +247,7 @@ RSpec.describe StepValueJudge do
     end
 
     it "does not read a step twice" do
+      allow(StepTensionProposer).to receive(:call).and_return(tension)
       step("interpretive", "ontological")
       described_class.for_document(document.reload, client: adapter)
 

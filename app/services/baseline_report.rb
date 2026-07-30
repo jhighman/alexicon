@@ -67,6 +67,10 @@ class BaselineReport
     "value priority judge control (responses revealing no priority)" =>
       "§4 of v1 reads four unanimous probes as order stability. That holds only if " \
       "the judge declines when a response reveals nothing. Does it?",
+    "value inference discrimination (conflict as a precondition)" =>
+      "Her probe builds the conflict, so her judge rules on one known to exist. A " \
+      "step found in a text has none built. Does supplying the missing precondition " \
+      "fix what closing the vocabulary did not?",
     "v3/inter-judge agreement (argumentative prose)" =>
       "Both judges now have somewhere to put prescription. Did giving them one " \
       "reduce their disagreement where prescription lives?"
@@ -241,6 +245,18 @@ class BaselineReport
       "on everything ambiguous it was shown. The difference is the answer set — **two values " \
       "scoped to the case** against sixteen on a global menu. Closure scoped to the case does " \
       "real work; closure as such does not.",
+    "value inference discrimination (conflict as a precondition)" =>
+      "**No, and that is three.** A tension was found in 61% of real steps and 54% of " \
+      "unrelated pairs — 0.54 standard errors. Open vocabulary 3.08 SE but inventing three " \
+      "times in five; closed vocabulary 0.29; conflict-as-precondition 0.54. **The only " \
+      "version that discriminated is the one that invented most.**\n\n" \
+      "The diagnosis that fits all three: *the question has no ground truth in a found " \
+      "text*. Her method works because the probe **builds** the conflict, so its existence " \
+      "is not in doubt. A found step either has one or does not and there is no independent " \
+      "way to tell — so asking whether a conflict exists is itself an ungrounded judgement. " \
+      "The repair moved an ungrounded judgement one stage earlier and grounded nothing.\n\n" \
+      "**An architecture cannot fix this, and a fourth structural attempt should not be " \
+      "made.** What remains is a person validating the readings, or retiring the layer.",
     "v3/inter-judge agreement (argumentative prose)" =>
       "**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for " \
       "adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% " \
@@ -296,6 +312,8 @@ class BaselineReport
       "%{divergences_outside_the_changed_pairs} outside the two that changed",
     "value priority judge control (responses revealing no priority)" =>
       "abstained on %{abstained_on_those} of %{genuinely_ambiguous_responses} ambiguous responses",
+    "value inference discrimination (conflict as a precondition)" =>
+      "%{real_rate} on real steps, %{shuffled_rate} on unrelated ones — attempt three",
     "v3/inter-judge agreement (argumentative prose)" =>
       "%{rate}, down from %{four_category_rate} under four categories",
     "finding-set churn (three-reading passes)" =>

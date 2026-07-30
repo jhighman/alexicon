@@ -9,10 +9,11 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 6 code revisions** — `9831dc6`, `91dee52`, `376b990`,
-> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`. Figures within this baseline were
-> not all measured against the same instrument, so a difference between two of
-> them may be a difference in the code. Each section states its own revision.
+> **Taken across 7 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`, `a28a1c2-dirty`. Figures within
+> this baseline were not all measured against the same instrument, so a
+> difference between two of them may be a difference in the code. Each section
+> states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -553,6 +554,76 @@ discarded unless both come from that pair, confidence floor 70.0%
 - Four probes, one model, one run. The probes were written by the same person
   who wrote the method.
 
+## 9. Value inference discrimination (conflict as a precondition) — 60.7% on real steps, 53.6% on unrelated ones — attempt three
+
+*Her probe builds the conflict, so her judge rules on one known to exist. A step
+found in a text has none built. Does supplying the missing precondition fix what
+closing the vocabulary did not?*
+
+| | |
+|---|---|
+| rate | 7.1% |
+| real rate | 60.7% |
+| real found | 17 |
+| shuffled rate | 53.6% |
+| pairs each arm | 28 |
+| shuffled found | 15 |
+| standard errors | 54.0% |
+| attempt 3 two stage | 54.0% |
+| attempt 1 open vocabulary | 3.08 |
+| attempt 2 closed vocabulary | 29.0% |
+
+The third repair. Alexandra Krížová's probe CONSTRUCTS a conflict, so her judge
+rules on a dilemma known to exist; a step found in a text has no such
+construction. Making the conflict a precondition was meant to supply what was
+missing.
+
+**No, and that is three.** A tension was found in 61% of real steps and 54% of
+unrelated pairs — 0.54 standard errors. Open vocabulary 3.08 SE but inventing
+three times in five; closed vocabulary 0.29; conflict-as-precondition 0.54.
+**The only version that discriminated is the one that invented most.**
+
+The diagnosis that fits all three: *the question has no ground truth in a found
+text*. Her method works because the probe **builds** the conflict, so its
+existence is not in doubt. A found step either has one or does not and there is
+no independent way to tell — so asking whether a conflict exists is itself an
+ungrounded judgement. The repair moved an ungrounded judgement one stage earlier
+and grounded nothing.
+
+**An architecture cannot fix this, and a fourth structural attempt should not be
+made.** What remains is a person validating the readings, or retiring the layer.
+
+**Sample:** document 30, shuffled same category pair, source and target at least
+20 positions apart, unearned steps 28  
+**Conditions:** design two stage — StepTensionProposer asks whether two
+commitments are in conflict at all and may answer none; only then does
+StepValueJudge rule on which came first, as a binary with a refusal, persisted
+no, categories 5, measured at stage 1, which is the gate  
+**Code:** `a28a1c2-dirty`
+
+**What this cannot tell you.**
+- IT FAILED TOO. A tension was found in 61% of real steps and 54% of unrelated
+  pairs — 0.54 standard errors, indistinguishable from none. Three attempts now:
+  open vocabulary 3.08 SE but inventing three times in five, closed vocabulary
+  0.29, conflict-as-precondition 0.54. The only version that discriminated is
+  the one that invented most.
+- THE DIAGNOSIS THAT FITS ALL THREE: the question has no ground truth in a found
+  text. Her method works because the probe builds the conflict, so its existence
+  is not in doubt. A found step either has one or does not, and there is no
+  independent way to tell — so asking a model whether a conflict exists is
+  itself an ungrounded judgement. The repair moved an ungrounded judgement one
+  stage earlier rather than grounding anything.
+- An architecture cannot fix this. A fourth structural attempt should not be
+  made on the evidence of three; the remaining options are that a person
+  validates the readings, or the layer is retired.
+- The two-stage design was kept despite showing no gain, and that is a judgement
+  rather than a finding. It reads fewer steps, splits proposing from ruling as
+  the Sentinel Principle asks, and costs one extra call per step. None of that
+  is measured improvement.
+- One document, 28 pairs an arm, one model, one run — and the judge's own read
+  rate moves about ten points between runs on identical input, which is most of
+  the gap being reported.
+
 ---
 
 ## Comparing a later reading
@@ -568,7 +639,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 8 figures. 7 of them are the system agreeing or disagreeing
+- **Correctness.** 9 figures. 8 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be

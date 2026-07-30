@@ -561,32 +561,38 @@ so *"this author values X"* is not a sentence it can express. Inferring what
 somebody values from the points where their reasoning failed is a short walk
 from psychologising them, and a promise in a system prompt is not a guard.
 
-### And it does not currently work
+### And it does not work. Three repairs have failed.
 
-Two controls, both recorded in [v3](BASELINE-v3.md).
+Given claim pairs from **unrelated parts of the same document** — no
+argumentative relation at all — it treats them almost exactly as it treats real
+steps. All three attempts are recorded in [v3](BASELINE-v3.md) §§4–6, 9.
 
-Presented with claim pairs from **unrelated parts of the same document** — no
-argumentative relation at all — the judge reads them almost as readily as real
-steps:
-
-| vocabulary | real steps | shuffled pairs | gap |
+| design | real steps | shuffled pairs | gap |
 |---|---|---|---|
-| open | 92.9% | 60.7% | 3.08 SE |
-| closed, 16 values | 71.4% | 67.9% | **0.29 SE** |
+| open vocabulary | 92.9% | 60.7% | 3.08 SE |
+| closed, 16 values | 71.4% | 67.9% | 0.29 SE |
+| conflict required first | 60.7% | 53.6% | 0.54 SE |
 
-The open vocabulary discriminated while inventing three times in five. Closing
-it bought the abstention it was meant to and **lost the discrimination**. The
-likely mechanism is untested: sixteen broad values can be read into almost any
-pair of claims, so a menu that wide makes invention easier rather than harder.
+**The only version that told real from random is the one that invented most.**
 
-Which also means Alexandra Krížová's model-facing judge does not transfer the
-way it was first described. Its closed set is **two** values — the pair the
-probe itself put in conflict. The defence is not closure, it is closure **scoped
-to the case**.
+Each repair had a reason and each reason was wrong in the same way. Closing the
+vocabulary was meant to stop invention, and a menu of sixteen broad values turns
+out to fit almost any pair of claims. Requiring a conflict to be *established*
+first was meant to supply what Alexandra Krížová's probe supplies by
+construction — her scenario **builds** the tension, so her judge rules on one
+known to exist. But a found step either has a conflict or does not, and there is
+no independent way to tell, so asking whether one exists is itself an ungrounded
+judgement. The repair moved the ungrounded judgement one stage earlier and
+grounded nothing.
 
-So the layer stays, its output is presented as prompts for a person rather than
-findings, and its confidence is not used as a filter because it carries no
-information: 0.9 to 1.0 in both arms.
+The diagnosis that fits all three: **the question has no ground truth in a found
+text**, and that is not something an architecture can supply. A fourth
+structural attempt should not be made. What remains is a person validating the
+readings, or retiring the layer.
+
+Meanwhile the layer stays, its output is presented as prompts for a person
+rather than findings, and its confidence is not used as a filter because it
+carries none: 0.9 to 1.0 whatever it is shown.
 
 ---
 

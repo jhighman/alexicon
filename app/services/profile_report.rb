@@ -236,18 +236,19 @@ class ProfileReport
       |---|---|---|
       #{rows.join("\n")}#{truncation}
 
-      > **This section does not currently distinguish signal from noise, and here
-      > are the numbers.** Presented with claim pairs from unrelated parts of a
-      > document — no argumentative relation at all — the judge produced a confident
-      > reading **67.9%** of the time, against **71.4%** on real steps. That gap is
-      > 0.29 standard errors: indistinguishable from none. An earlier version with an
-      > open vocabulary did discriminate (92.9% against 60.7%, 3.08 standard errors)
-      > while inventing three times in five; closing the vocabulary bought abstention
-      > on real steps and lost the discrimination.
+      > **This section does not distinguish signal from noise, and three attempts to
+      > make it have failed.** Given claim pairs from unrelated parts of a document —
+      > no argumentative relation at all — it treats them almost exactly as it treats
+      > real steps. An open vocabulary discriminated at 3.08 standard errors while
+      > inventing a commitment three times in five; closing the vocabulary to sixteen
+      > values gave 0.29; requiring a conflict to be established first gave 0.54. The
+      > only version that told real from random is the one that invented most.
       >
-      > So treat these rows as prompts for a person to look at the step themselves,
-      > not as findings. Their confidence carries no information — it is 0.9 to 1.0
-      > in both arms. Recorded in baseline v3.
+      > The reason appears to be that the question has no ground truth in a found
+      > text, which is not something an architecture can supply. So treat these rows
+      > as **prompts for a person to look at the step themselves**, never as findings,
+      > and do not read anything into their confidence — it is 0.9 to 1.0 whatever
+      > they are shown. Recorded in baseline v3.
     MD
   end
 

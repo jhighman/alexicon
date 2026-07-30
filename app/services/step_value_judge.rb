@@ -59,7 +59,7 @@ class StepValueJudge
 
   ABSTAIN = "none".freeze
 
-  Reading = Data.define(:protects, :subordinates, :confidence, :rationale, :abstained) do
+  Reading = Data.define(:protects, :subordinates, :confidence, :rationale, :abstained, :chosen) do
     def abstained? = abstained
     def priority = abstained? ? nil : "#{protects} over #{subordinates}"
   end
@@ -77,12 +77,22 @@ class StepValueJudge
   # A closed vocabulary with nothing in it is an open one.
   class EmptyVocabulary < StandardError; end
 
+  # Raised when asked to rule on a step where nothing was found in conflict. The
+  # question "which of these came first" presupposes two, and presupposing is
+  # what produced a 68% invention rate the first time.
+  class NoTension < StandardError; end
+
   def self.call(transition, **) = new(transition, **).call
 
-  # Every unearned step in a document, skipping any already read.
-  def self.for_document(document, **)
-    document.transitions.select(&:unearned?).reject { already_read?(it) }
-            .filter_map { call(it, **) }
+  # Every unearned step in a document, skipping any already read. A step where
+  # no tension is found is passed over, which is the expected outcome for most.
+  def self.for_document(document, client: nil, vocabulary: FrameworkValue.vocabulary)
+    document.transitions.select(&:unearned?).reject { already_read?(it) }.filter_map do |t|
+      tension = StepTensionProposer.call(t, client: client, vocabulary: vocabulary)
+      next if tension.none?
+
+      call(t, tension: tension, client: client)
+    end
   end
 
   def self.already_read?(transition)
@@ -93,13 +103,19 @@ class StepValueJudge
   # values, and asking what a step protects only means something relative to a
   # list of things it could have protected — so the list travels with the
   # reading rather than being assumed.
-  def initialize(transition, client: nil, confidence_floor: DEFAULT_CONFIDENCE_FLOOR,
-                 vocabulary: FrameworkValue.vocabulary)
+  # A `tension` is required. `StepTensionProposer` establishes that two
+  # commitments were actually in conflict here; this rules on which came first.
+  # Without it the judge was asked what every step protects, including steps
+  # that protect nothing, and answered anyway.
+  def initialize(transition, tension:, client: nil,
+                 confidence_floor: DEFAULT_CONFIDENCE_FLOOR)
     @transition = transition
+    @tension = tension
     @client = client
     @confidence_floor = confidence_floor
-    @vocabulary = vocabulary.to_a
-    raise EmptyVocabulary, "nothing to choose from" if @vocabulary.empty?
+    raise NoTension, "nothing was found in conflict here" if tension.nil? || tension.none?
+
+    @vocabulary = tension.pair
   end
 
   def call
@@ -119,7 +135,7 @@ class StepValueJudge
 
   private
 
-  attr_reader :transition, :confidence_floor, :vocabulary
+  attr_reader :transition, :confidence_floor, :vocabulary, :tension
 
   def judge = @judge ||= Referent.find_by!(key: JUDGE)
 
@@ -166,7 +182,9 @@ class StepValueJudge
                    "protects" => reading.protects, "subordinates" => reading.subordinates,
                    "confidence" => reading.confidence, "rationale" => reading.rationale,
                    "vocabulary" => vocabulary.first.framework.key,
-                   "vocabulary_size" => vocabulary.size }
+                   "against" => (vocabulary - [ reading.chosen ]).first&.name,
+                   "tension" => tension.to_s,
+                   "tension_rationale" => tension.rationale }
         )
       end
     end
@@ -208,9 +226,9 @@ class StepValueJudge
 
     Reading.new(protects: chosen&.name, subordinates: chosen&.subordinates,
                 confidence: confidence, rationale: payload["rationale"].to_s.strip,
-                abstained: abstained)
+                abstained: abstained, chosen: chosen)
   rescue JSON::ParserError, TypeError, NoMethodError
-    Reading.new(protects: nil, subordinates: nil, confidence: 0.0,
+    Reading.new(protects: nil, subordinates: nil, confidence: 0.0, chosen: nil,
                 rationale: "judge returned unparseable output", abstained: true)
   end
 
@@ -233,7 +251,9 @@ class StepValueJudge
       move from the first to the second was judged UNEARNED — the second claims
       more than the first supports.
 
-      Say what that MOVE puts first, choosing from this list and nothing else:
+      Two commitments have already been found in tension here by somebody else.
+      Your only question is which of the two the move put FIRST. There are two
+      answers and a refusal, and nothing else:
 
       #{vocabulary.map { "- #{it.key}: #{it.name} — #{it.definition} Put before: #{it.subordinates}" }.join("\n")}
 
@@ -248,13 +268,13 @@ class StepValueJudge
       different question underneath it: what would have to matter to somebody
       for this step to feel warranted?
 
-      Answer "#{ABSTAIN}" if the move does not clearly put one of those before
-      what it sets aside — because it is a turn of phrase, an aside, a change of
-      subject, too slight to read, or because what it protects is not on the
-      list. Abstaining is correct and is preferred over a guess. Most steps do
-      not reveal a commitment, and a value nobody could see is not a value.
+      Answer "#{ABSTAIN}" if the move does not clearly put one of those two
+      before the other — because it honours both, because the tension proposed
+      is not really there, or because the step is too slight to tell. You are
+      not obliged to agree that a conflict exists just because you were handed
+      one. Abstaining is correct and is preferred over a guess.
 
-      Do not answer with anything that is not one of the keys above.
+      Do not answer with anything that is not one of the two keys above.
 
       Give a confidence between 0 and 1 and a one-sentence rationale naming the
       feature of the two statements that decided it.
