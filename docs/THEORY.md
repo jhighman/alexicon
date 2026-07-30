@@ -347,6 +347,64 @@ applied globally — and it lets certification ask a second question beyond *did
 someone vouch for this model?*: **is this ordering appropriate for the domain we
 are routing it to?**
 
+### Can a value set be relatively ranked?
+
+The natural next question, and the answer differs sharply between the two layers
+that produce value judgements.
+
+A ranking needs three things: a **shared vocabulary**, a **connected graph** of
+pairwise comparisons over it, and **transitivity**.
+
+**From found text — no, and not marginally.** The step-value readings in the
+record fail the first condition outright:
+
+```
+readings:                                  25
+distinct terms named:      50 out of 50 slots
+terms used more than once:                  0
+terms matching the 16-value vocabulary:     0
+```
+
+Fifty distinct phrases in fifty slots. The graph is twenty-five disconnected
+edges over fifty nodes, no node with a degree above one. There is no value *set*
+to rank, because every reading invented its own vocabulary — which is the open
+vocabulary's known failure mode showing up as a structural fact rather than as a
+rate.
+
+Closing the vocabulary fixes that condition and not the others. Sixteen values
+give 120 unordered pairs against 25 readings, so the graph stays sparse and most
+of any ordering would be interpolation. Worse, the underlying comparisons do not
+discriminate: 0.29 standard errors closed, 0.54 with conflict as a precondition.
+**Aggregation does not average that away — it launders it.** A ranking is more
+authoritative-looking than the pairwise judgements it is built from, so noise
+that is visibly noise at the pair level becomes an ordered list of a person's
+commitments. That is the most dangerous possible output of a layer measured not
+to work.
+
+**Transitivity should not be assumed either, and a cycle is information.** If
+Truth beats Kindness, Kindness beats Loyalty, and Loyalty beats Truth, that is
+not necessarily an error to be smoothed into a total order. It can be a real
+property of a value system: priority that is context-dependent rather than
+hierarchical. Forcing a ranking destroys exactly the finding. Any ranking that
+gets built should report its cycles rather than resolve them — the same
+discipline as `CONTESTED`, which is reported instead of a verdict.
+
+**From constructed probes — yes, and this is where it belongs.** Alexandra
+Krížová's method builds the conflict, so the comparison is grounded: the dilemma
+is known to exist before anything rules on it. That layer behaves: four probes
+unanimous, and the judge abstained 8 times out of 8 when a response genuinely
+revealed no priority ([v3 §4](BASELINE-v3.md)). A ranking assembled from probes
+is a claim about **a subject under probing**, which is a thing that can be
+re-probed and checked.
+
+So the honest form of the question is not *can we rank what this document
+values* but *can we rank what this subject prioritises under repeated probing,
+and does the ordering hold still between runs*. The second is measurable, and
+the measurement is **order stability**, not the order itself. Nothing should be
+ranked until it is shown to hold still — a hierarchy that moves between runs is
+not a hierarchy, and the model in the registry already answers the same input two
+different ways on separate runs.
+
 ---
 
 ## 5b. Sentinel decision-making — a developing line

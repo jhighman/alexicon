@@ -747,6 +747,48 @@ to settle any.
 
 ---
 
+## The value worksheet
+
+Three architectural repairs to the value layer failed, and the recorded
+diagnosis — that the question has no ground truth in a found text — rests
+entirely on three models failing to answer it. Those are different claims. A
+question a model cannot answer may still be one a person can, and nobody had
+been asked.
+
+`ValueWorksheet` is the control that was never run, with the machine taken out
+of it. Real unearned steps are interleaved with **shuffled pairs**: two claims
+from the same document, matched on category pair and at least twenty positions
+apart, with no argumentative relation. That is the same decoy condition the three
+machine runs were scored against, so the resulting figure sits directly beside
+3.08, 0.29 and 0.54.
+
+The sheet shows two statements and asks two questions. It shows **no machine
+reading of any pair** — displaying what the judge concluded would measure
+agreement with the judge, which is the trap `BlindReading` exists to avoid — and
+it says plainly that most pairs have no conflict in them, because the failure
+being investigated is a judge that named a commitment on 68% of unrelated pairs.
+
+The key is recorded as an assertion **before anybody answers**, so a sheet cannot
+be scored against a key invented afterwards. An unanswered item is dropped from
+both arms rather than read as "no": a blank is not a judgement.
+
+```sh
+rake 'alexicon:worksheet[30,24]'                        # writes to docs/private/
+rake 'alexicon:worksheet_score[7278,"1y 2n 3y …"]'
+```
+
+Worksheets are written to `docs/private/`, which is excluded from git twice
+over: a sheet carries the document's text verbatim and some documents in this
+record are not publishable.
+
+**What it decides.** A person who discriminates well says the question has ground
+truth in the text and the machine is what failed — the layer is a model problem
+and worth another attempt. A person who cannot discriminate either says the
+recorded diagnosis holds, and the layer should be retired. That would be the
+first evidence for retiring it that is not itself a model's failure.
+
+---
+
 ## Reports
 
 `ProfileReport` renders a document's epistemic structure as markdown, from the

@@ -91,6 +91,45 @@ namespace :alexicon do
          "#{lexicon.collisions.size} word(s) carried by more than one."
   end
 
+  desc "Blind value worksheet for a person: rake 'alexicon:worksheet[30,24]'"
+  task :worksheet, [ :document_id, :size, :seed ] => :environment do |_t, args|
+    document = Document.find(args[:document_id])
+    sheet = ValueWorksheet.generate!(document, size: (args[:size] || 24).to_i,
+                                               seed: (args[:seed] || 1).to_i)
+
+    # docs/private is excluded from git twice over. A worksheet carries the
+    # document's text verbatim, and some documents in this record are not
+    # publishable.
+    dir = Rails.root.join("docs/private")
+    dir.mkpath
+    path = dir.join("worksheet-#{sheet.assertion.id}.md")
+    File.write(path, "#{ValueWorksheetReport.render(sheet)}\n")
+
+    puts "Wrote #{path.relative_path_from(Rails.root)} — #{sheet.items.size} pairs " \
+         "(#{sheet.real_items.size} real, #{sheet.decoys.size} decoy)."
+    puts "The key is assertion #{sheet.assertion.id}, recorded before you answer."
+    puts "Which are which is deliberately not printed here."
+  end
+
+  desc "Score a filled worksheet: rake 'alexicon:worksheet_score[123,\"1y 2n 3y\"]'"
+  task :worksheet_score, [ :assertion_id, :answers ] => :environment do |_t, args|
+    assertion = Assertion.find(args[:assertion_id])
+    answers = args.fetch(:answers).to_s.scan(/(\d+)\s*([yn])/i)
+                  .to_h { |number, mark| [ number.to_i, mark.casecmp?("y") ] }
+    score = ValueWorksheet.score(assertion, answers: answers)
+
+    puts "Answered #{score.answered} of #{assertion.claim['items'].size}."
+    puts format("  conflict found in a REAL step:  %d of %d (%.1f%%)",
+                score.real_found, score.real_total, score.real_rate * 100)
+    puts format("  conflict found in a DECOY pair: %d of %d (%.1f%%)",
+                score.decoy_found, score.decoy_total, score.decoy_rate * 100)
+    puts format("  discrimination: %.2f standard errors", score.standard_errors)
+    puts
+    puts "For comparison, the three machine attempts scored 3.08 (open vocabulary,"
+    puts "inventing three times in five), 0.29 (closed vocabulary) and 0.54"
+    puts "(conflict as a precondition). See BASELINE-v3."
+  end
+
   desc "Judge a document's steps under another framework: rake 'alexicon:premise[30,lewisian-1.0]'"
   task :premise, [ :document_id, :framework ] => :environment do |_t, args|
     document = Document.find(args[:document_id])
