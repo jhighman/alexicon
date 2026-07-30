@@ -30,7 +30,10 @@ class GroundMention
     # Every occurrence of the name, not just the one asked about: answering the
     # same question once per occurrence is the same answer typed again.
     resolved = Mention.where(text: mention.text).to_a
-    resolved.each { IdentitySentinel.verify!(it) }
+    # Attributed to whoever decided, not to the Sentinel that checked them. Every
+    # occurrence carries the same attribution because they are all consequences
+    # of the one decision.
+    resolved.each { IdentitySentinel.verify!(it, by: by) }
 
     Result.new(referent: referent, mention: mention.reload, resolved: resolved)
   end

@@ -399,19 +399,47 @@ class ProfileReport
     return nil if names.empty?
 
     resolutions = document.mentions.flat_map { it.assertions.standing.select { |x| x.act == "resolve" } }
-    inferred = resolutions.count(&:inferred?)
+    # Three states, not two. Every resolution used to be asserted by the Sentinel
+    # whoever actually decided it, so this line reported "N of N inferred" and
+    # could report nothing else however many names a person grounded by hand.
+    matched = resolutions.select { it.claim["grounded"] == false }
+    grounded = resolutions.select { it.claim["grounded"] == true }
+    unattributed = resolutions.reject { it.claim.key?("grounded") }
 
     <<~MD.strip
       ## Who and what it names
 
       #{names.size} distinct names, #{document.open_stops.count} still unanswered.
-      #{inferred} of #{resolutions.size} answers were **inferred by an agent** rather
-      than decided by a person, and are marked as such in the record.
+      #{identity_note(matched, grounded, unattributed)}
 
       Nothing may be predicated of a name until somebody has said what it refers to.
       That lock guards predication, not description: a claim can be typed while its
       names are unresolved, but no step through it can be judged.
     MD
+  end
+
+  # Who answered, rather than what the answer was. A name matched automatically
+  # and a name somebody was asked about are different kinds of fact, and an agent
+  # grounding under delegation is neither the Sentinel nor a person.
+  def identity_note(matched, grounded, unattributed)
+    total = matched.size + grounded.size + unattributed.size
+    return "No name here has been answered yet." if total.zero?
+
+    was = ->(n) { n == 1 ? "was" : "were" }
+    parts = []
+    parts << "#{matched.size} #{was.call(matched.size)} **matched by the resolver** without " \
+             "anyone being asked" if matched.any?
+    people, agents = grounded.partition { !it.inferred? }
+    parts << "#{people.size} #{was.call(people.size)} **grounded by a person** answering a " \
+             "STOP" if people.any?
+    parts << "#{agents.size} #{was.call(agents.size)} **grounded by an agent** acting under " \
+             "delegation" if agents.any?
+    parts << "#{unattributed.size} #{was.call(unattributed.size)} recorded before resolutions " \
+             "named their decider, so whether anyone was asked is not in the record" if
+      unattributed.any?
+
+    "Of #{total} answers, #{parts.to_sentence}. Nothing may be predicated of a name " \
+      "until somebody has answered for it."
   end
 
   # Generated rather than written, so it cannot drift from what is actually true

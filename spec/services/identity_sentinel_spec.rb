@@ -21,6 +21,61 @@ RSpec.describe IdentitySentinel do
 
   def mention(text) = claim.mentions.create!(text: text)
 
+  # Every resolution in the database — all 422 of them — was asserted by the
+  # Sentinel, including the ones somebody answered a STOP to make. `Mention#
+  # resolution` prefers a person's resolution over a system's and that branch
+  # could not fire, because no resolution was ever asserted by a person.
+  #
+  # Identity precedes reasoning: nothing may be predicated of an ungrounded
+  # subject, so who says a name refers to something is load-bearing for every
+  # judgement downstream of it.
+  describe "who the record says decided" do
+    it "attributes an automatic match to the Sentinel" do
+      Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
+      m = mention("Wednesday")
+
+      described_class.verify!(m)
+
+      expect(m.resolution.asserter).to eq identity_sentinel
+      expect(m.resolution).to be_inferred
+      expect(m.resolution.claim["grounded"]).to be false
+    end
+
+    it "attributes a grounding to whoever decided it, not to the Sentinel" do
+      Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
+      m = mention("Wednesday")
+
+      described_class.verify!(m, by: reviewer)
+
+      expect(m.resolution.asserter).to eq reviewer
+      expect(m.resolution).not_to be_inferred
+    end
+
+    it "marks a grounded answer, so an agent's decision is not read as a match" do
+      agent = Referent.create!(name: "Identity Grounder", subject: "System", role: "Reviewer",
+                               primitive: "system")
+      Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
+      m = mention("Wednesday")
+
+      described_class.verify!(m, by: agent)
+
+      expect(m.resolution.claim["grounded"]).to be true
+      expect(m.resolution).to be_inferred
+    end
+
+    # The branch that could never fire.
+    it "lets a person's resolution win over the Sentinel's, as the model always said it would" do
+      Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
+      m = mention("Wednesday")
+      described_class.verify!(m)
+      theirs = Referent.create!(name: "Wednesday Adams", subject: "Person", role: "Character")
+      Assertion.create!(asserter: reviewer, subject: m, object: theirs, act: "resolve", claim: {})
+
+      expect(m.reload.resolution.asserter).to eq reviewer
+      expect(m.referent).to eq theirs
+    end
+  end
+
   it "records a resolution as an inference when the subject is grounded" do
     Referent.create!(name: "Wednesday", subject: "Family", role: "Sister")
     m = mention("Wednesday")

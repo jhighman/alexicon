@@ -271,6 +271,52 @@ RSpec.describe ProfileReport do
     end
   end
 
+  # This line read "N of M answers were inferred by an agent rather than decided
+  # by a person" and could report nothing else: every resolution in the database
+  # was asserted by the Sentinel whoever actually decided it.
+  describe "who answered for a name" do
+    let(:ana) { Referent.create!(name: "Ana", subject: "Person", role: "Reviewer", primitive: "person") }
+    let(:agent) { Referent.create!(name: "Grounder", subject: "System", role: "Reviewer", primitive: "system") }
+    let(:sentinel_ref) { Referent.find_by!(key: "identity-sentinel") }
+
+    def resolve(text, by:, grounded:)
+      m = claim("#{text} left.", "observation").mentions.create!(text: text)
+      target = Referent.create!(name: text, subject: "Person", role: "Subject", primitive: "person")
+      Assertion.create!(asserter: by, subject: m, object: target, act: "resolve",
+                        claim: { "grounded" => grounded })
+    end
+
+    it "separates an automatic match from a person's decision" do
+      resolve("Ada", by: sentinel_ref, grounded: false)
+      resolve("Bea", by: ana, grounded: true)
+
+      report = flat(described_class.render(document))
+
+      expect(report).to include "1 was **matched by the resolver** without anyone being asked"
+      expect(report).to include "1 was **grounded by a person** answering a STOP"
+    end
+
+    it "distinguishes an agent grounding under delegation from both" do
+      resolve("Cyd", by: agent, grounded: true)
+
+      expect(flat(described_class.render(document)))
+        .to include "1 was **grounded by an agent** acting under delegation"
+    end
+
+    # A resolution predating the fix cannot say whether anybody was asked, and
+    # reporting it as an automatic match would be inventing the answer.
+    it "refuses to claim nobody was asked when the record does not say" do
+      m = claim("Dee left.", "observation").mentions.create!(text: "Dee")
+      target = Referent.create!(name: "Dee", subject: "Person", role: "Subject", primitive: "person")
+      Assertion.create!(asserter: sentinel_ref, subject: m, object: target, act: "resolve", claim: {})
+
+      report = flat(described_class.render(document))
+
+      expect(report).to include "recorded before resolutions named their decider"
+      expect(report).not_to include "without anyone being asked"
+    end
+  end
+
   describe "templates" do
     it "renders only the sections a template names" do
       claim("A claim.", "observation")

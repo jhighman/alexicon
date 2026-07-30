@@ -13,10 +13,14 @@
 class IdentitySentinel
   RESOLVER = "ReferentResolver"
 
-  def self.verify!(mention) = new(mention).verify!
+  # `by` is whoever DECIDED, when somebody did. Verification at ingest is the
+  # Sentinel's own inference and passes nothing; answering a STOP by grounding a
+  # name is a decision, and it belongs to the person or agent who made it.
+  def self.verify!(mention, by: nil) = new(mention, by: by).verify!
 
-  def initialize(mention)
+  def initialize(mention, by: nil)
     @mention = mention
+    @by = by
   end
 
   def verify!
@@ -33,18 +37,47 @@ class IdentitySentinel
 
   private
 
-  attr_reader :mention
+  attr_reader :mention, :by
 
-  # A resolution is an assertion: the Sentinel claiming this mention refers to
-  # that referent. Recorded as an inference, never as a finding -- and a person
-  # may later resolve it differently without erasing this.
+  # Who the record says decided this. Every resolution in the database was
+  # attributed to the Sentinel — all 422 of them — including the ones somebody
+  # answered a STOP to make. `Mention#resolution` prefers a person's resolution
+  # over a system's, and that branch could not fire, because no resolution was
+  # ever asserted by a person. The profile reported "N of N inferred by an agent
+  # rather than decided by a person" and would have gone on reporting it however
+  # many names a person grounded by hand.
+  #
+  # Identity precedes reasoning here: nothing may be predicated of an ungrounded
+  # subject, so the answer to "who says this name refers to that" is load-bearing
+  # for every judgement downstream of it. Recording the Sentinel as the author of
+  # a decision it did not make is the misattribution this system exists to catch,
+  # committed at the layer everything else stands on.
+  def decider = by || sentinel_referent
+
+  # A resolution is an assertion: someone claiming this mention refers to that
+  # referent. Recorded as an inference when the Sentinel made it and as a
+  # decision when somebody did -- and a person may later resolve it differently
+  # without erasing this.
   def record_resolution(result)
+    claim = { "confidence" => 1.0, "rationale" => result.reason, "resolver" => RESOLVER }
+    # Distinguishes a name somebody answered a STOP to ground from one the
+    # resolver matched on its own. Both may be asserted by a system — an agent
+    # grounding under delegation is not a person — so `inferred?` alone cannot
+    # tell them apart, and the difference is what a reader needs.
+    # Always written, both ways. If only the true case were recorded, a
+    # resolution from before this distinction existed would be indistinguishable
+    # from an automatic match — and 422 of those are in the record, some of which
+    # somebody did answer a STOP to make. An absent key means "recorded before
+    # resolutions named their decider", which is a different thing from "nobody
+    # was asked" and must not be reported as it.
+    claim["grounded"] = by.present?
+
     Assertion.create!(
-      asserter: sentinel_referent,
+      asserter: decider,
       subject: mention,
       object: result.referent,
       act: "resolve",
-      claim: { "confidence" => 1.0, "rationale" => result.reason, "resolver" => RESOLVER },
+      claim: claim,
       supersedes: mention.standing_judgement
     )
   end

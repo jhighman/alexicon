@@ -674,6 +674,44 @@ A contested claim cannot be resolved through `Review`, which never serves a clai
 classification. What settles it is a further **independent** reading — the same
 reason the blind surface exists.
 
+### A resolution names who decided it
+
+Identity precedes reasoning: nothing may be predicated of an ungrounded subject,
+so the answer to *who says this name refers to that* is load-bearing for every
+judgement downstream of it.
+
+Every resolution in the record — all 422 — was asserted by the **Identity
+Sentinel**, including the ones somebody answered a STOP to make. `GroundMention`
+created the referent and then called `IdentitySentinel.verify!`, which recorded
+the resolution under its own name. Two consequences:
+
+- `Mention#resolution` prefers a person's resolution over a system's, and that
+  branch **could not fire** — no resolution had ever been asserted by a person.
+- `ProfileReport` reported *"N of N answers were inferred by an agent rather than
+  decided by a person"* and would have gone on reporting it however many names a
+  person grounded by hand.
+
+Recording the Sentinel as the author of a decision it did not make is the
+misattribution this system exists to catch, committed at the layer everything
+else stands on.
+
+`IdentitySentinel.verify!(mention, by:)` now takes whoever decided. Verification
+at ingest passes nothing and stays the Sentinel's inference; grounding passes the
+person or agent who answered, and every occurrence of the name carries that same
+attribution because they are all consequences of one decision. The resolution
+also records `grounded` either way, so three states are distinguishable:
+
+| | |
+|---|---|
+| `grounded: false` | the resolver matched it; nobody was asked |
+| `grounded: true` | somebody answered a STOP — a person, or an agent under delegation |
+| key absent | recorded before resolutions named their decider |
+
+**The 422 are not rewritten.** An assertion records that a claim *was made*, and
+those were made by the Sentinel — a faithful record of a flawed process. Erasing
+them to make the record look better is precisely what immutability forbids, so
+the report says the attribution is missing rather than guessing at it.
+
 ### Premises are data, and a ruling names its own
 
 A ruling carries `framework_id`. `Transition#verdict(framework:)` reads one
