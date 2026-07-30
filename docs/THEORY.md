@@ -676,6 +676,53 @@ matter enormously.** At the bottom of the descent it requires a commitment about
 people that it has no way to license, and marking half the vocabulary `proposed`
 is an admission rather than a solution.
 
+### The weights are a commitment, not furniture
+
+One consequence of the descent had gone unnoticed until the question was asked
+directly: *can an architecture of judgement survive contact with fundamentally
+different moral premises?*
+
+`CategoryPromotion` weights `ontological → normative` at 2, symmetrically, with
+a rationale naming Hume. **That is a meta-ethical commitment sitting in the
+architecture as though it were structure**, and it is precisely the move Lewis's
+moral argument makes and that natural law makes. As seeded, the framework flags
+the central argument of several traditions as unearned *before any model reads a
+word*.
+
+Everything is framework-scoped, so this is expressible rather than fatal. A
+`lewisian-1.0` framework was seeded differing in exactly two of twenty ordered
+pairs — the is/ought crossing, in both directions, weighted 0 — and the same
+classifications run against both weight tables:
+
+| | steps | unearned, alexicon | unearned, lewisian | differing |
+|---|---|---|---|---|
+| a letter | 104 | 28 | 25 | 3 |
+| an essay | 223 | 55 | 54 | 1 |
+
+**Every differing verdict is one of the two pairs that changed. Zero
+divergences elsewhere.** A tradition can be swapped in and the disagreement
+stays legible instead of diffusing through the whole judgement, which is the
+property the question was really about.
+
+Four of 327 steps is small, and that is a fact about a letter and an essay
+rather than evidence of robustness — a text arguing *for* objective morality
+would diverge far more, and none has been run. The test also covers governance
+only: the classifications are shared, so nothing here says the **category
+boundaries** are tradition-neutral, and §10 of [v1](BASELINE.md) shows two
+readers of the same text do not agree on them. ([v3 §7](BASELINE-v3.md).)
+
+**Bonhoeffer is the case that needs no re-weighting**, and it is the better
+result. Responsible action that may be genuinely unjustifiable and is taken
+anyway, in one's own name, bearing the guilt rather than dissolving it, has no
+promotion weight — but it already has a shape here: a step flagged unearned, and
+a named person who **accepts** it with a rationale. The flag stands, the verdict
+is undisturbed, and somebody signs for it. That is the disposition layer doing
+what it was built for rather than a workaround for it.
+
+One gap the test exposed: `Policy` is the only framework object *not* scoped to
+a framework, so traditions differing on a cross-cutting constraint cannot
+currently be expressed at all.
+
 ### The amendment
 
 The criterion as stated is one-directional — ascend, descend, remain itself. On

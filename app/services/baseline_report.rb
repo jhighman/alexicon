@@ -60,6 +60,10 @@ class BaselineReport
     "vocabulary substitution (a second account of what is protected)" =>
       "Is the value vocabulary a parameter of the framework, or one worldview " \
       "seeded and called structure?",
+    "framework substitution (a tradition that rejects Hume's guillotine)" =>
+      "The promotion weights encode a meta-ethics. Can the architecture carry a " \
+      "tradition whose central move it currently flags by construction — and does " \
+      "the disagreement stay where the traditions actually differ?",
     "v3/inter-judge agreement (argumentative prose)" =>
       "Both judges now have somewhere to put prescription. Did giving them one " \
       "reduce their disagreement where prescription lives?"
@@ -204,6 +208,22 @@ class BaselineReport
       "values were written hours earlier by reading this document's own value readings. It " \
       "fits this letter because it was fitted to it, so 82% against 39% says nothing about " \
       "which account of what people protect is better.",
+    "framework substitution (a tradition that rejects Hume's guillotine)" =>
+      "**It localises exactly.** Two weights changed of twenty ordered pairs — the is/ought " \
+      "crossing in both directions, from 2 to 0 — and every one of the four differing " \
+      "verdicts across 327 steps is one of those two pairs. Zero divergences elsewhere. A " \
+      "tradition can be swapped in and the disagreement stays legible rather than diffusing " \
+      "through the whole judgement.\n\n" \
+      "**What this does not show is more interesting than what it does.** Four of 327 steps " \
+      "is a fact about a personal letter and an essay, neither of which argues the point; a " \
+      "text arguing *for* objective morality would diverge far more and none has been run. " \
+      "And it tests governance only — the classifications are shared, so nothing here says " \
+      "the **category boundaries** are tradition-neutral, and §3 already shows two readers " \
+      "of the same text do not agree on them.\n\n" \
+      "The finding that prompted it stands on its own: `ontological → normative` was " \
+      "weighted 2 with a rationale naming Hume. That is a meta-ethical commitment seeded as " \
+      "though it were structure, and it flags the central argument of several traditions " \
+      "before any model reads a word.",
     "v3/inter-judge agreement (argumentative prose)" =>
       "**No — agreement fell, 75.8% to 61.3%.** That is the direction against the case for " \
       "adding the category, and it is 1.26 standard errors at these sample sizes, with a 95% " \
@@ -254,6 +274,9 @@ class BaselineReport
       "%{real_rate} on real steps, %{shuffled_rate} on unrelated ones",
     "vocabulary substitution (a second account of what is protected)" =>
       "%{alexicon_read} of %{steps} read against one list, %{objectivist_read} against another",
+    "framework substitution (a tradition that rejects Hume's guillotine)" =>
+      "%{verdicts_that_differ} verdicts differ of %{ordered_pairs} pairs, " \
+      "%{divergences_outside_the_changed_pairs} outside the two that changed",
     "v3/inter-judge agreement (argumentative prose)" =>
       "%{rate}, down from %{four_category_rate} under four categories",
     "finding-set churn (three-reading passes)" =>

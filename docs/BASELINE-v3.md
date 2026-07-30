@@ -1,6 +1,6 @@
 # Baseline v3
 
-**Gemini 2.5 Pro · July 29, 2026**
+**Gemini 2.5 Pro · July 30, 2026**
 
 *Generated from the recorded measurements — do not edit by hand. Re-render with
 `rake "alexicon:baseline[v3]"`.*
@@ -9,10 +9,10 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 4 code revisions** — `9831dc6`, `91dee52`, `376b990`,
-> `38722b1-dirty`. Figures within this baseline were not all measured against
-> the same instrument, so a difference between two of them may be a difference
-> in the code. Each section states its own revision.
+> **Taken across 5 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> `38722b1-dirty`, `71f1a4e`. Figures within this baseline were not all measured
+> against the same instrument, so a difference between two of them may be a
+> difference in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -412,6 +412,80 @@ objectivist-1.0, 11 values — Rand's three cardinal values and seven virtues
 - Both arms are single runs, and the judge's read rate moves about ten points
   between runs on identical input.
 
+## 7. Framework substitution (a tradition that rejects hume's guillotine) — 4 verdicts differ of 20 pairs, 0 outside the two that changed
+
+*The promotion weights encode a meta-ethics. Can the architecture carry a
+tradition whose central move it currently flags by construction — and does the
+disagreement stay where the traditions actually differ?*
+
+| | |
+|---|---|
+| rate | 100.0% |
+| essay steps | 223 |
+| letter steps | 104 |
+| ordered pairs | 20 |
+| differing moves — normative->ontological | 2 |
+| differing moves — ontological->normative | 2 |
+| weights changed | 2 |
+| verdicts that differ | 4 |
+| essay unearned alexicon | 55 |
+| essay unearned lewisian | 54 |
+| letter unearned alexicon | 28 |
+| letter unearned lewisian | 25 |
+| divergences outside the changed pairs | 0 |
+
+Whether the architecture can carry a tradition whose central move it currently
+flags by construction, and whether the resulting disagreement localises where
+the traditions actually differ.
+
+**It localises exactly.** Two weights changed of twenty ordered pairs — the
+is/ought crossing in both directions, from 2 to 0 — and every one of the four
+differing verdicts across 327 steps is one of those two pairs. Zero divergences
+elsewhere. A tradition can be swapped in and the disagreement stays legible
+rather than diffusing through the whole judgement.
+
+**What this does not show is more interesting than what it does.** Four of 327
+steps is a fact about a personal letter and an essay, neither of which argues
+the point; a text arguing *for* objective morality would diverge far more and
+none has been run. And it tests governance only — the classifications are
+shared, so nothing here says the **category boundaries** are tradition-neutral,
+and §3 already shows two readers of the same text do not agree on them.
+
+The finding that prompted it stands on its own: `ontological → normative` was
+weighted 2 with a rationale naming Hume. That is a meta-ethical commitment
+seeded as though it were structure, and it flags the central argument of several
+traditions before any model reads a word.
+
+**Sample:** documents 30, 27, judgeable steps 327  
+**Conditions:** persisted no, categories 5, framework a alexicon-2.0 —
+ontological <-> normative weighted 2 in both directions, rationale naming Hume,
+framework b lewisian-1.0 — identical in all 20 ordered pairs except those two,
+which are 0: what a thing is determines what it is for, and an obligation
+experienced as objective points beyond preference, classifications shared and
+unchanged — no text was re-read and no model was called  
+**Code:** `71f1a4e`
+
+**What this cannot tell you.**
+- IT LOCALISES EXACTLY. Every one of the four differing verdicts is one of the
+  two pairs that were changed; zero divergences elsewhere. That is the property
+  being tested — a tradition can be swapped in and the disagreement stays
+  legible instead of diffusing through the whole judgement.
+- THE EFFECT IS SMALL BECAUSE THESE DOCUMENTS BARELY ARGUE THE POINT. Four of
+  327 judgeable steps. That is a fact about a personal letter and an essay, not
+  evidence of robustness. A text that argues FOR objective morality would
+  diverge far more, and none has been run.
+- This tests the GOVERNANCE layer only. The classifications are shared, so
+  nothing here says the category boundaries are themselves tradition-neutral —
+  and sections 3 and 4 of this baseline already show those boundaries are
+  underdetermined between two readers of the same text.
+- Two weights were changed, deliberately, to isolate the variable. A fuller
+  Lewisian framework would likely differ in more than two — justification_rank
+  for ontological, at least — so this establishes that a two-weight difference
+  localises, not that the architecture can carry Lewis.
+- Policy is the only framework object NOT scoped to a framework, so both
+  frameworks share the anti-discrimination policy. A tradition differing on a
+  cross-cutting constraint cannot currently be expressed.
+
 ---
 
 ## Comparing a later reading
@@ -427,7 +501,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 6 figures. 5 of them are the system agreeing or disagreeing
+- **Correctness.** 7 figures. 6 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be
