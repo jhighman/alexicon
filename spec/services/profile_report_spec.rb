@@ -104,7 +104,7 @@ RSpec.describe ProfileReport do
 
       expect(flat(report)).to include "three attempts to make it have failed"
       expect(flat(report)).to include "the one that invented most"
-      expect(flat(report)).to include "never as findings"
+      expect(flat(report)).to include "never as a finding"
     end
 
     it "counts how many steps it actually read, against how many were flagged" do
@@ -113,6 +113,64 @@ RSpec.describe ProfileReport do
       value_reading(first)
 
       expect(described_class.render(document)).to match(/Read at 1 of the 2 unearned steps/)
+    end
+  end
+
+  # A disposal is recorded beside a judgement rather than over it, so a rejected
+  # reading is still standing and nothing but this filters it out. Rendering one
+  # would be the report contradicting the record it is generated from.
+  describe "what a reviewer decided" do
+    let(:reviewer) { Referent.create!(name: "Ana", subject: "Person", role: "Reviewer", primitive: "person") }
+
+    def dispose(assertion, verdict)
+      Assertion.create!(asserter: reviewer, subject: assertion, act: verdict, claim: {})
+    end
+
+    it "does not show a reading a reviewer rejected" do
+      kept = value_reading(unearned_step, protects: "the kept one")
+      dispose(value_reading(unearned_step, protects: "the rejected one"), "reject")
+
+      report = described_class.render(document)
+
+      expect(report).to include "the kept one"
+      expect(report).not_to include "the rejected one"
+      expect(kept.reload.disposition).to eq "open"
+    end
+
+    it "still counts a rejected reading among those taken, and says it is not shown" do
+      value_reading(unearned_step)
+      dispose(value_reading(unearned_step), "reject")
+
+      report = flat(described_class.render(document))
+
+      expect(report).to match(/Read at 2 of the 2 unearned steps/)
+      expect(report).to include "1 was rejected by a reviewer and is not shown"
+    end
+
+    it "marks a reading a reviewer let stand differently from one nobody has read" do
+      dispose(value_reading(unearned_step, protects: "the reviewed one"), "accept")
+      value_reading(unearned_step, protects: "the untouched one")
+
+      report = described_class.render(document)
+
+      expect(report).to match(/the reviewed one.*\*\*let stand\*\*/)
+      expect(report).to match(/the untouched one.*unreviewed/)
+      expect(flat(report)).to include "1 was reviewed and let stand and 1 has not been looked at"
+    end
+
+    it "puts what a person confirmed above what nobody has looked at" do
+      value_reading(unearned_step, protects: "the untouched one")
+      dispose(value_reading(unearned_step, protects: "the reviewed one"), "accept")
+
+      report = described_class.render(document)
+
+      expect(report.index("the reviewed one")).to be < report.index("the untouched one")
+    end
+
+    it "renders no section at all when every reading was rejected" do
+      dispose(value_reading(unearned_step), "reject")
+
+      expect(described_class.render(document)).not_to include "What the unearned steps put first"
     end
   end
 

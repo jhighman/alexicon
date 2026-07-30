@@ -242,6 +242,13 @@ Accepting an unearned step does not overrule the Sentinel. The flag stays, the
 verdict is undisturbed, and a named person is on the record saying it may stand
 anyway — which is a different thing from saying it was earned.
 
+What you decide here reaches the reports. A disposal is recorded beside a
+judgement rather than over it, so a rejected reading is still *standing* —
+`ProfileReport` filters on disposition itself, dropping what a reviewer rejected,
+marking what they let stand, and sorting it above what nobody has looked at. Run
+`bin/alexicon profile 30` after a review session and the difference is on the
+page.
+
 ### Profiles
 
 An end-to-end report on a document's epistemic structure, from the recorded

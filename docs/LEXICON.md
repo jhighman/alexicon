@@ -1,6 +1,6 @@
 # Lexicon
 
-**The vocabulary of the Alexicon, from the record · 114 terms · July 29, 2026**
+**The vocabulary of the Alexicon, from the record · 114 terms · July 30, 2026**
 
 *Generated. Re-render with `rake alexicon:lexicon`.*
 

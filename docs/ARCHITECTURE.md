@@ -624,6 +624,21 @@ the verdict is undisturbed, and a named person is recorded saying it may stand
 anyway. That is a different claim from saying it was earned, and it is the shape
 costly obedience has here.
 
+### What a disposal has to reach
+
+A disposal is recorded *beside* what it disposes of, never over it — nothing is
+superseded, so a rejected value reading is still standing and every query that
+asks for standing assertions still returns it. That is correct for the record and
+wrong for a report, so `ProfileReport` filters on disposition explicitly: a
+rejected reading is not shown, one a person let stand is marked and sorted first,
+and the section states how many fall in each state. Without that the report would
+have contradicted the record it is generated from, showing a reading as though it
+had survived review on the same page that describes the review.
+
+The general rule: **anything that presents standing assertions to a person has to
+decide what a disposal means to it.** Standing and undisputed are different
+properties, and only one of them is a scope.
+
 ---
 
 ## Reports

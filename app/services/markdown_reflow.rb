@@ -89,9 +89,23 @@ module MarkdownReflow
 
   # A blockquote keeps its marker on every line, so it is stripped, wrapped, and
   # put back.
+  #
+  # A bare `>` is a paragraph break inside the quote, and it does not survive
+  # `blocks` — nothing there is blank, so the whole quote arrives as one block.
+  # Joining across it ran two paragraphs of a caveat into one, which is the same
+  # data loss the list preamble had: the text is still there, but the reader is
+  # told two separate things as though they were one.
   def quote(lines, width)
-    body = lines.map { it.sub(/\A\s*>\s?/, "") }.join(" ")
-    fill(body, width - 2).map { "> #{it}".rstrip }.join("\n")
+    wrapped = paragraphs(lines.map { it.sub(/\A\s*>\s?/, "") })
+                .map { |para| fill(para.join(" "), width - 2).map { "> #{it}".rstrip } }
+
+    wrapped.flat_map.with_index { |para, i| i.zero? ? para : [ ">", *para ] }.join("\n")
+  end
+
+  def paragraphs(lines)
+    lines.chunk_while { |a, b| !a.strip.empty? && !b.strip.empty? }
+         .map { |chunk| chunk.reject { it.strip.empty? } }
+         .reject(&:empty?)
   end
 
   # Each item is its own paragraph, wrapped with a hanging indent so the

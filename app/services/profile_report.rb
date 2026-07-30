@@ -84,11 +84,19 @@ class ProfileReport
   def transitions = @transitions ||= document.transitions.to_a
   def unearned = @unearned ||= transitions.select(&:unearned?)
 
+  # A reading a person rejected is still standing — a disposal is recorded beside
+  # a judgement, never over it — so nothing filters it out unless this does.
+  # Rendering one as though it had survived review would be the report saying the
+  # opposite of what the record says.
   def value_readings
     @value_readings ||= transitions.flat_map do |t|
       t.assertions.standing.select { it.claim["inference"] == "step value" }
     end
   end
+
+  def reviewed = @reviewed ||= value_readings.select { it.disposition == "accepted" }
+  def rejected = @rejected ||= value_readings.select { it.disposition == "rejected" }
+  def unreviewed = @unreviewed ||= value_readings.select { it.disposition == "open" }
 
   def header
     <<~MD.strip
@@ -214,13 +222,22 @@ class ProfileReport
   end
 
   # The weakest section, and it says so with a number rather than a hedge.
+  #
+  # Ordered by what a person has done with each reading rather than by the
+  # judge's confidence, because the confidence carries no information and a
+  # person's disposal is the only filter measured to work. Rejected readings do
+  # not appear at all: they stay in the record, and a report is not the record.
   def commitments
-    return nil if value_readings.empty?
+    candidates = reviewed + unreviewed
+    return nil if candidates.empty?
 
-    shown = value_readings.sort_by { -it.claim["confidence"].to_f }.first(SHOWN)
-    rows = shown.map { "| #{it.claim['move']} | #{it.claim['protects']} | #{it.claim['subordinates']} |" }
-    truncation = if value_readings.size > shown.size
-                   "\n\nShowing #{shown.size} of #{value_readings.size}, highest confidence first. " \
+    shown = candidates.first(SHOWN)
+    rows = shown.map do |a|
+      mark = reviewed.include?(a) ? "**let stand**" : "unreviewed"
+      "| #{a.claim['move']} | #{a.claim['protects']} | #{a.claim['subordinates']} | #{mark} |"
+    end
+    truncation = if candidates.size > shown.size
+                   "\n\nShowing #{shown.size} of #{candidates.size}, reviewed first. " \
                      "The rest are in the record."
     else
                    ""
@@ -229,13 +246,19 @@ class ProfileReport
     <<~MD.strip
       ## What the unearned steps put first
 
-      Read at #{value_readings.size} of the #{unearned.size} unearned steps. Each row
-      is a claim about **that step**, not about whoever wrote it.
+      Read at #{value_readings.size} of the #{unearned.size} unearned steps.
+      #{review_state} Each row is a claim about **that step**, not about whoever
+      wrote it.
 
-      | Move | Puts first | Sets aside |
-      |---|---|---|
+      | Move | Puts first | Sets aside | |
+      |---|---|---|---|
       #{rows.join("\n")}#{truncation}
 
+      > **A row that was let stand and a row nobody has looked at are not the same
+      > kind of thing.** A person read the first against the two claims it was drawn
+      > from and let it stand. Nothing has been established about the second beyond a
+      > judge saying it, and that judge is described directly below.
+      >
       > **This section does not distinguish signal from noise, and three attempts to
       > make it have failed.** Given claim pairs from unrelated parts of a document —
       > no argumentative relation at all — it treats them almost exactly as it treats
@@ -245,11 +268,26 @@ class ProfileReport
       > only version that told real from random is the one that invented most.
       >
       > The reason appears to be that the question has no ground truth in a found
-      > text, which is not something an architecture can supply. So treat these rows
-      > as **prompts for a person to look at the step themselves**, never as findings,
-      > and do not read anything into their confidence — it is 0.9 to 1.0 whatever
-      > they are shown. Recorded in baseline v3.
+      > text, which is not something an architecture can supply. So treat an
+      > unreviewed row as a **prompt for a person to look at the step themselves**,
+      > never as a finding, and do not read anything into its confidence — it is 0.9
+      > to 1.0 whatever is shown. Recorded in baseline v3.
     MD
+  end
+
+  # Stated in the section rather than left to the marks in the table, because a
+  # reader who skims will take a count at face value.
+  def review_state
+    was = ->(n) { n == 1 ? "was" : "were" }
+    parts = []
+    parts << "#{reviewed.size} #{was.call(reviewed.size)} reviewed and let stand" if reviewed.any?
+    parts << "#{rejected.size} #{was.call(rejected.size)} rejected by a reviewer and " \
+             "#{rejected.size == 1 ? 'is' : 'are'} not shown" if rejected.any?
+    parts << "#{unreviewed.size} #{unreviewed.size == 1 ? 'has' : 'have'} not been looked at" if
+      unreviewed.any?
+    return "" if parts.empty?
+
+    "Of those, #{parts.to_sentence}."
   end
 
   def identity

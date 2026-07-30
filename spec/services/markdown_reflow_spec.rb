@@ -75,6 +75,24 @@ RSpec.describe MarkdownReflow do
 
       expect(reflow(quote).lines.map(&:chomp).map(&:length).max).to be <= 40
     end
+
+    # A bare `>` never reaches `blocks` as a blank line, so the whole quote
+    # arrives as one block and the break has to survive here or nowhere. It did
+    # not: two paragraphs of a report caveat were being run into one sentence.
+    it "keeps a paragraph break inside the quote" do
+      quote = "> first thing said here\n>\n> second thing said here"
+
+      result = reflow(quote)
+
+      expect(result).to include "here\n>\n> second"
+      expect(result).not_to include "first thing said here second"
+    end
+
+    it "keeps every paragraph of a three-paragraph quote apart" do
+      quote = "> one\n>\n> two\n>\n> three"
+
+      expect(reflow(quote)).to eq "> one\n>\n> two\n>\n> three"
+    end
   end
 
   describe "lists" do
