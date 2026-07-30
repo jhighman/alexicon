@@ -43,14 +43,14 @@ class Review
     @reviewer = reviewer
   end
 
-  def queue = value_readings + unearned_steps
+  def queue = contested_steps + value_readings + unearned_steps
 
   def next_item = queue.first
 
   def total = queue.size
 
   def reviewed_count
-    (value_reading_assertions + step_verdicts).count { it.disposition != "open" }
+    disposable.count { it.disposition != "open" }
   end
 
   # Recorded beside what it disposes of, never over it. The reviewed assertion
@@ -82,9 +82,43 @@ class Review
     @step_verdicts ||= transitions.select(&:unearned?).filter_map { it.ruling }
   end
 
-  def reviewable?(assertion)
-    (value_reading_assertions + step_verdicts).any? { it.id == assertion.id }
+  # A step where two asserters disagree under the same premises is neither
+  # earned nor unearned, so it falls out of `unearned?` and out of every list
+  # built from it — including this queue, which is where a disagreement most
+  # needs a person. Nothing else in the system would have noticed.
+  #
+  # These come FIRST. Everything else here is one judgement waiting to be
+  # checked; this is the system reporting that it does not know, which is the
+  # scarcest thing it produces and the most expensive to leave sitting.
+  def contested_transitions = @contested_transitions ||= transitions.select(&:contested?)
+
+  def contested_steps
+    contested_transitions.filter_map do |step|
+      positions = step.positions.values
+      next if positions.all? { it.disposition != "open" }
+
+      Item.new(
+        kind: "contested step", assertion: positions.last, subject: step,
+        question: "Two judges disagree about this step. Which reading stands?",
+        detail: positions.map { "#{it.asserter.name}: #{it.claim['verdict']} — #{it.claim['rationale']}" }
+                         .join("\n"),
+        context: [ step.source.text, step.target.text ],
+        caveat: "Both rulings are standing and both will remain in the record. " \
+                "Disposing of one does not delete the other — it records that you " \
+                "read the disagreement and which way you came down."
+      )
+    end
   end
+
+  # Every position on a contested step is disposable, not just the one the item
+  # happens to point at — a reviewer who sides with the earlier judge has to be
+  # able to say so.
+  def disposable
+    @disposable ||= value_reading_assertions + step_verdicts +
+                    contested_transitions.flat_map { it.positions.values }
+  end
+
+  def reviewable?(assertion) = disposable.any? { it.id == assertion.id }
 
   def value_readings
     value_reading_assertions.select { it.disposition == "open" }.map do |a|

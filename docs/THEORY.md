@@ -723,6 +723,48 @@ One gap the test exposed: `Policy` is the only framework object *not* scoped to
 a framework, so traditions differing on a cross-cutting constraint cannot
 currently be expressed at all.
 
+### The order of the questions, and what it exposed
+
+The comparison above was run and then **thrown away** — `persisted: false` in
+[v3](BASELINE-v3.md). That was not caution. It was forced, and the reason turned
+out to be the more important finding.
+
+Asked in order — *what are the components; what do they do; how do they fail;
+can two incompatible moral premises be held at once; and only then, is one of
+them better* — the fourth question failed. Not because the framework was too
+narrow, but because **a ruling did not name the premises it was made under**.
+`Transition#verdict` returned the last ruling of any origin. So a Lewisian
+verdict written beside a Humean one would have been read as the Humean sentinel
+changing its mind, and the system would have reported a single answer with the
+disagreement destroyed at the point of reading while sitting intact in storage.
+
+The record already showed the same failure without any second tradition: 201
+transitions carried more than one ruling and 6 carried two contradictory ones,
+each reported as whichever came second, with no surface anywhere saying a
+contradiction existed.
+
+So the architecture could *compute* under two premises and could not *hold*
+them. The fix is [ADR 18](decisions/0018-a-ruling-names-its-premises.md): a
+ruling carries its framework, verdicts are read per framework, and the states
+are distinguished — **contested** when two judges disagree under the same
+premises, **unstable** when one judge changed its own answer. Both frameworks
+now stand on the same steps, and the Lewisian verdicts are persisted rather than
+discarded.
+
+The general form, which is a claim about theories and not only about this one:
+
+> **An architecture must be able to preserve disagreement before it can be asked
+> to adjudicate disagreement.** A system that resolves competing judgements by
+> recency has not adjudicated anything — it has hidden the competition and
+> reported the survivor as consensus. Whether one set of premises produces more
+> truthful outcomes than another is a real question, and it cannot even be
+> *posed* to a system that cannot hold both long enough to compare them.
+
+This reorders the open questions rather than answering them. Nothing here says
+Hume or Lewis reads a text better; the reports refuse to rank them, and the
+system holds no evidence that would support ranking them. What changed is that
+the question is now expressible, which it was not.
+
 ### The amendment
 
 The criterion as stated is one-directional — ascend, descend, remain itself. On

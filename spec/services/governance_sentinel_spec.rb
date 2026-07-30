@@ -173,4 +173,71 @@ RSpec.describe GovernanceSentinel do
       expect(results.map(&:verdict)).to contain_exactly("earned", "unearned")
     end
   end
+
+  # The same step, judged under different premises, is a different question.
+  # `alexicon-2.0` charges 2 for `ontological → normative`, with a rationale
+  # naming Hume; `lewisian-1.0` charges 0, holding that a claim about what ought
+  # to be is a claim about what is. Both may rule, and both rulings stand.
+  describe "judging under a named framework" do
+    let(:rival) { Framework.create!(key: "rival-fw", name: "Rival", version: "0", current: false) }
+
+    # The rival speaks the same vocabulary and prices one move differently —
+    # matched by key, which is what makes a claim classified under one framework
+    # judgeable under another.
+    before do
+      %w[objective observation interpretive ontological].each_with_index do |key, i|
+        ClaimCategory.create!(framework: rival, key: key, name: key.capitalize, position: i + 1,
+                              justification_rank: 1, definition: "…", confidence_source: "…")
+      end
+      rivals = ClaimCategory.where(framework: rival).index_by(&:key)
+      ClaimCategory.where(framework: framework).find_each do |mine|
+        ClaimCategory.where(framework: framework).find_each do |theirs|
+          next if mine == theirs
+
+          CategoryPromotion.create!(framework: rival, from_category: rivals[mine.key],
+                                    to_category: rivals[theirs.key], weight: 0)
+        end
+      end
+    end
+
+    it "reaches a different verdict from the same step when the premises differ" do
+      t = transition_between(observation, ontological)
+
+      described_class.review!(t, framework: framework)
+      described_class.review!(t, framework: rival)
+
+      expect(t.verdict(framework: framework)).to eq "unearned"
+      expect(t.verdict(framework: rival)).to eq "earned"
+    end
+
+    it "leaves both premises standing rather than the later overwriting the earlier" do
+      t = transition_between(observation, ontological)
+
+      described_class.review!(t, framework: framework)
+      described_class.review!(t, framework: rival)
+
+      expect(t.verdicts.transform_keys(&:key)).to eq("test-fw" => "unearned", "rival-fw" => "earned")
+    end
+
+    it "does not report a disagreement between premises as a contested step" do
+      t = transition_between(observation, ontological)
+
+      described_class.review!(t, framework: framework)
+      described_class.review!(t, framework: rival)
+
+      expect(t).not_to be_contested(framework: framework)
+      expect(t).not_to be_contested(framework: rival)
+    end
+
+    # A framework that has not priced the move has not said it is free.
+    it "declines to rule under a framework that does not speak the vocabulary" do
+      silent = Framework.create!(key: "silent-fw", name: "Silent", version: "0", current: false)
+      t = transition_between(observation, ontological)
+
+      result = described_class.review!(t, framework: silent)
+
+      expect(result).not_to be_judged
+      expect(t.verdict(framework: silent)).to eq "undetermined"
+    end
+  end
 end

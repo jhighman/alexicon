@@ -249,6 +249,36 @@ marking what they let stand, and sorting it above what nobody has looked at. Run
 `bin/alexicon profile 30` after a review session and the difference is on the
 page.
 
+### Judging the same text under different premises
+
+```sh
+rake 'alexicon:premise[30,lewisian-1.0]'
+```
+
+What a move costs is a **commitment**, not structure. `alexicon-2.0` charges 2
+for `ontological → normative` with a rationale naming Hume — you cannot get an
+ought from an is without paying. `lewisian-1.0` charges 0, holding that a claim
+about what ought to be is a claim about what is.
+
+Every ruling names the framework it was made under, so both can judge the same
+steps and **both sets stand**. On document 30 they agree on 90 of 93 and differ
+on 3, all of them `ontological ↔ normative` — the two pairs whose weights differ
+and nothing else:
+
+```
+{"alexicon-2.0" => "unearned", "lewisian-1.0" => "earned"}
+```
+
+A difference here is a fact about the premises, not about the text, and nothing
+in the system ranks them.
+
+This also separates two things that used to look identical. **Contested** is two
+judges disagreeing under the same premises — reported instead of a verdict, and
+queued first for review, because it is the system saying it does not know.
+**Drift** is one judge changing its own answer, which says something about the
+instrument rather than the step. Six steps in this record turned out to be drift
+and had been quietly resolving to whichever ruling came second.
+
 ### Profiles
 
 An end-to-end report on a document's epistemic structure, from the recorded

@@ -641,6 +641,60 @@ properties, and only one of them is a scope.
 
 ---
 
+## Preserving disagreement
+
+`Assertion` has always claimed to "preserve disagreement rather than resolving it
+prematurely". That was true of storage and false of every derived read: `verdict`
+returned the last ruling, `disposition` the last disposing act, `agreement` let
+one person settle the question. Each resolved by recency, and the losing side
+stayed in the database, standing and attributable, invisible to every surface.
+
+Three states are now distinguished, and never merged:
+
+| State | Meaning | Reported as |
+|---|---|---|
+| **agreement** | every standing position says the same thing | the verdict |
+| **contested** | two asserters disagree under the **same** premises | `CONTESTED`, no verdict |
+| **unstable** | one asserter changed **its own** answer | drift; latest stands, and the change is reported |
+
+`CONTESTED` sits deliberately outside `VERDICTS`. Nothing can assert it — it is
+observed, never recorded, and `record_verdict!("contested")` raises.
+
+### Premises are data, and a ruling names its own
+
+A ruling carries `framework_id`. `Transition#verdict(framework:)` reads one
+framework's answer; `#verdicts` returns all of them.
+
+This is what makes two incompatible moral premises hold at once. `alexicon-2.0`
+charges 2 for `ontological → normative`, with a rationale naming Hume;
+`lewisian-1.0` charges 0, holding that a claim about what ought to be is a claim
+about what is. Before rulings named their framework, a second premise's verdicts
+were indistinguishable from the first premise's sentinel changing its mind — so
+the Lewisian run was computed and thrown away (`persisted: false`, baseline v3).
+
+Both now stand. On document 30 they agree on 90 of 93 steps and differ on 3, all
+of them `ontological ↔ normative` — the two pairs whose weights differ, and no
+others:
+
+```
+{"alexicon-2.0" => "unearned", "lewisian-1.0" => "earned"}
+```
+
+`GovernanceSentinel.review!(step, framework:)` translates categories by key, so a
+claim classified under one framework is judgeable under another. A framework with
+no word for a category has not priced the move and the Sentinel declines, rather
+than reading the absence as free. Run it with
+`rake 'alexicon:premise[30,lewisian-1.0]'`, which judges only what that framework
+has not already judged — re-running would record a second ruling and manufacture
+drift.
+
+**None of this adjudicates.** A difference between premises is a fact about the
+premises, not about the text, and the profile says so rather than ranking them.
+The architecture had to learn to preserve disagreement before it could be asked
+to settle any.
+
+---
+
 ## Reports
 
 `ProfileReport` renders a document's epistemic structure as markdown, from the

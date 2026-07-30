@@ -33,16 +33,25 @@ class GovernanceSentinel
 
   class NotIndependent < StandardError; end
 
-  def self.review!(transition) = new(transition).review!
-
-  # Reviews every transition in a document, skipping none silently.
-  def self.review_document!(document)
-    document.require_executable!
-    document.transitions.map { review!(it) }
+  def self.review!(transition, framework: Framework.current_or_none)
+    new(transition, framework: framework).review!
   end
 
-  def initialize(transition)
+  # Reviews every transition in a document, skipping none silently.
+  def self.review_document!(document, framework: Framework.current_or_none)
+    document.require_executable!
+    document.transitions.map { review!(it, framework: framework) }
+  end
+
+  # The framework is a parameter because the same step, judged under different
+  # premises, is a different question — and the answers have to be able to
+  # coexist rather than overwrite each other. `alexicon-2.0` charges 2 for
+  # `ontological → normative` with a rationale naming Hume; `lewisian-1.0`
+  # charges 0, holding that a claim about what ought to be is a claim about what
+  # is. Both may now rule on the same transition, and both rulings stand.
+  def initialize(transition, framework: Framework.current_or_none)
     @transition = transition
+    @framework = framework
   end
 
   def review!
@@ -63,7 +72,23 @@ class GovernanceSentinel
 
   private
 
-  attr_reader :transition
+  attr_reader :transition, :framework
+
+  # A claim is classified under whichever framework was current when it was
+  # read, so judging it under another means finding that framework's word for
+  # the same category. Matched by key, which is the stable identifier across
+  # versions — `ontological` means the same thing to Hume and to Lewis, and what
+  # differs is only what the move between kinds costs.
+  #
+  # nil when the framework has no such category. That is not a licence to fall
+  # back to the claim's own framework: a framework that does not speak this
+  # vocabulary has not said what the move costs, and `weighted?` will decline.
+  def counterpart(category)
+    return nil if category.blank?
+    return category if category.framework_id == framework&.id
+
+    ClaimCategory.find_by(framework: framework, key: category.key)
+  end
 
   def from_classification = transition.from_claim&.classification
   def to_classification   = transition.to_claim&.classification
@@ -92,7 +117,9 @@ class GovernanceSentinel
   # every step of an unweighted framework "earned" — silently permissive, in the
   # one place this system is supposed to refuse rather than guess.
   def promotion_weight
-    @promotion_weight ||= CategoryPromotion.weight_for(from: from_category, to: to_category)
+    @promotion_weight ||= CategoryPromotion.weight_for(
+      from: counterpart(from_category), to: counterpart(to_category), framework: framework
+    )
   end
 
   def weighted? = !promotion_weight.nil?
@@ -130,18 +157,19 @@ class GovernanceSentinel
   end
 
   def record(verdict, reason)
-    transition.record_verdict!(verdict, asserter: sentinel, rationale: reason)
+    transition.record_verdict!(verdict, asserter: sentinel, rationale: reason, framework: framework)
     Result.new(transition: transition, verdict: verdict, reason: reason, flag: nil)
   end
 
   def flag_unearned
     reason = "#{from_category.name} → #{to_category.name}: the confidence of the statement " \
              "now exceeds the evidence class presented"
-    transition.record_verdict!("unearned", asserter: sentinel, rationale: reason)
+    transition.record_verdict!("unearned", asserter: sentinel, rationale: reason, framework: framework)
     flag = Assertion.create!(
       asserter: sentinel,
       subject: transition,
       act: "flag",
+      framework: framework,
       claim: { "severity" => SEVERITY, "message" => message(reason) }
     )
     Result.new(transition: transition, verdict: "unearned", reason: reason, flag: flag)

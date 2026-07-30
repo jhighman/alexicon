@@ -147,6 +147,98 @@ RSpec.describe Transition do
     end
   end
 
+  # The architecture must preserve disagreement before it is asked to adjudicate
+  # disagreement. `verdict` took the latest ruling of any origin, so a second set
+  # of premises could not be recorded without impersonating the first changing
+  # its mind — which is why the Lewisian run was computed and discarded rather
+  # than stored.
+  describe "judgements made under different premises" do
+    let(:rival) { Framework.create!(key: "rival-fw", name: "Rival", version: "0", current: false) }
+    let(:other_sentinel) do
+      Referent.create!(name: "Second Sentinel", subject: "System", role: "Sentinel", primitive: "system")
+    end
+
+    it "keeps one framework's verdict out of another's" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      t.record_verdict!("unearned", asserter: sentinel, framework: framework)
+      t.record_verdict!("earned", asserter: sentinel, framework: rival)
+
+      expect(t.verdict(framework: framework)).to eq "unearned"
+      expect(t.verdict(framework: rival)).to eq "earned"
+    end
+
+    it "reports both premises standing, neither overwritten" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      t.record_verdict!("unearned", asserter: sentinel, framework: framework)
+      t.record_verdict!("earned", asserter: sentinel, framework: rival)
+
+      expect(t.verdicts.transform_keys(&:key)).to eq("test-fw" => "unearned", "rival-fw" => "earned")
+      expect(t.frameworks_ruling).to contain_exactly(framework, rival)
+    end
+
+    it "stamps the framework on the ruling rather than leaving it to be inferred" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+
+      expect(t.record_verdict!("earned", asserter: sentinel, framework: rival).framework).to eq rival
+    end
+
+    it "does not let a ruling under one framework answer for a framework that never ruled" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      t.record_verdict!("unearned", asserter: sentinel, framework: framework)
+
+      expect(t.verdict(framework: rival)).to eq "undetermined"
+    end
+
+    # Two judges disagreeing is the thing the system must not resolve on its own.
+    it "reports contested when two asserters disagree under the same premises" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      t.record_verdict!("unearned", asserter: sentinel, framework: framework)
+      t.record_verdict!("earned", asserter: other_sentinel, framework: framework)
+
+      expect(t.verdict(framework: framework)).to eq described_class::CONTESTED
+      expect(t).to be_contested(framework: framework)
+    end
+
+    it "will not let contested be asserted as though it were a verdict" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+
+      expect { t.record_verdict!("contested", asserter: sentinel) }.to raise_error(ArgumentError)
+      expect(described_class::VERDICTS).not_to include described_class::CONTESTED
+    end
+
+    # One judge changing its own answer is drift, not disagreement, and merging
+    # the two would hide that the instrument moved.
+    it "calls one asserter changing its own answer drift, not disagreement" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      t.record_verdict!("earned", asserter: sentinel, framework: framework)
+      t.record_verdict!("unearned", asserter: sentinel, framework: framework)
+
+      expect(t).to be_unstable(framework: framework)
+      expect(t).not_to be_contested(framework: framework)
+      expect(t.verdict(framework: framework)).to eq "unearned"
+    end
+
+    it "counts a judge that ruled three times as one position, not three" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      3.times { t.record_verdict!("earned", asserter: sentinel, framework: framework) }
+
+      expect(t.positions(framework: framework).size).to eq 1
+      expect(t.rulings(framework: framework).size).to eq 3
+      expect(t).not_to be_unstable(framework: framework)
+    end
+
+    it "does not treat drift under one framework as agreement with another" do
+      t = transition(claim(1, "a"), claim(2, "b"))
+      t.record_verdict!("earned", asserter: sentinel, framework: framework)
+      t.record_verdict!("unearned", asserter: sentinel, framework: framework)
+      t.record_verdict!("earned", asserter: sentinel, framework: rival)
+
+      expect(t.verdict(framework: framework)).to eq "unearned"
+      expect(t.verdict(framework: rival)).to eq "earned"
+      expect(t).not_to be_unstable(framework: rival)
+    end
+  end
+
   it "belongs to the document of its endpoints" do
     a, b = claim(1, "a"), claim(2, "b")
     t = transition(a, b)

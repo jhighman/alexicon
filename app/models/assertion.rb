@@ -19,6 +19,10 @@ class Assertion < ApplicationRecord
   ACTS = %w[assert amend revoke challenge delegate flag accept reject classify resolve].freeze
   DISPOSING = %w[accept reject].freeze
   SEVERITIES = %w[notice concern stop].freeze
+  # Not a disposition anyone can record — no `dispose!(as: "contested")`. It is
+  # what two standing disposals by different people amount to, and only ever
+  # observed.
+  CONTESTED = "contested".freeze
 
   belongs_to :asserter, class_name: "Referent"
 
@@ -30,6 +34,13 @@ class Assertion < ApplicationRecord
   belongs_to :object, polymorphic: true, optional: true
 
   belongs_to :supersedes, class_name: "Assertion", optional: true
+
+  # The premises this judgement was made under, when its ANSWER depends on them.
+  # Optional because most assertions have no such dependence: a classification
+  # names a category that already belongs to a framework, and a person's
+  # disposal is theirs rather than a premise's. A governance ruling does depend
+  # on them, and `Transition#record_verdict!` stamps it.
+  belongs_to :framework, optional: true
 
   # The call this inference came from, when a model produced it.
   belongs_to :llm_invocation, optional: true
@@ -105,14 +116,34 @@ class Assertion < ApplicationRecord
 
   # Derived from the standing disposition assertions about this flag. Absence
   # of one means open -- nobody has answered it yet.
+  #
+  # Two reviewers who disagree are not resolved by whoever went second. This
+  # took the latest disposal of any kind, so one person accepting after another
+  # had rejected made the rejection vanish from every read while remaining in
+  # the record -- the disagreement preserved in storage and destroyed at the
+  # only place anybody looks.
+  #
+  # One position per reviewer, latest wins, because a person revising their own
+  # answer is not two people disagreeing. Across reviewers, a split is reported
+  # AS a split. Nothing here decides which of them was right.
   def disposition
-    latest = assertions.standing.chronological.select { it.act.in?(DISPOSING) }.last
-    return "open" if latest.nil?
+    values = disposals.values.map { it.act }.uniq
+    return "open" if values.empty?
+    return CONTESTED if values.size > 1
 
-    latest.act == "accept" ? "accepted" : "rejected"
+    values.first == "accept" ? "accepted" : "rejected"
   end
 
   def open? = disposition == "open"
+
+  # Two reviewers, two answers, no ground here for choosing between them.
+  def contested? = disposition == CONTESTED
+
+  # Who currently says what: one standing position per reviewer.
+  def disposals
+    assertions.standing.chronological.select { it.act.in?(DISPOSING) }
+              .group_by(&:asserter_id).transform_values(&:last)
+  end
 
   # Agency is preserved: a person may accept or reject any flag. Their
   # judgement is recorded ALONGSIDE the flag rather than overwriting it, and

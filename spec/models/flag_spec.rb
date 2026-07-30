@@ -89,6 +89,52 @@ RSpec.describe "flags as assertions" do
     it "refuses an unknown disposition" do
       expect { flag!.dispose!(as: "ignored", by: person) }.to raise_error(ArgumentError)
     end
+
+    # Two reviewers are not resolved by whichever of them went second. This took
+    # the latest disposal of any kind, so one person accepting after another had
+    # rejected made the rejection vanish from every read while remaining in the
+    # record — disagreement preserved in storage and destroyed where anyone looks.
+    describe "when two people disagree" do
+      let(:other) { Referent.create!(name: "Ana", subject: "Person", role: "Reviewer", primitive: "person") }
+
+      it "reports the split rather than the later answer" do
+        flag = flag!
+        flag.dispose!(as: "rejected", by: person)
+        flag.dispose!(as: "accepted", by: other)
+
+        expect(flag.disposition).to eq Assertion::CONTESTED
+        expect(flag).to be_contested
+        expect(flag).not_to be_open
+      end
+
+      it "keeps both positions standing and attributable" do
+        flag = flag!
+        flag.dispose!(as: "rejected", by: person)
+        flag.dispose!(as: "accepted", by: other)
+
+        by_referent = flag.disposals.values.to_h { [ it.asserter.name, it.act ] }
+
+        expect(by_referent).to eq("Jeff" => "reject", "Ana" => "accept")
+      end
+
+      it "does not call one person changing their own mind a disagreement" do
+        flag = flag!
+        flag.dispose!(as: "rejected", by: person)
+        flag.dispose!(as: "accepted", by: person)
+
+        expect(flag.disposition).to eq "accepted"
+        expect(flag).not_to be_contested
+      end
+
+      it "clears once the dissenter comes round" do
+        flag = flag!
+        flag.dispose!(as: "rejected", by: person)
+        flag.dispose!(as: "accepted", by: other)
+        flag.dispose!(as: "accepted", by: person)
+
+        expect(flag.disposition).to eq "accepted"
+      end
+    end
   end
 
   it "is reachable from the subject it concerns" do

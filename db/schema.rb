@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_29_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,6 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_140000) do
     t.bigint "asserter_id", null: false
     t.jsonb "claim", default: {}, null: false
     t.datetime "created_at", null: false
+    t.bigint "framework_id"
     t.bigint "llm_invocation_id"
     t.bigint "object_id"
     t.string "object_type"
@@ -50,6 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_140000) do
     t.datetime "valid_until"
     t.index ["act"], name: "index_assertions_on_act"
     t.index ["asserter_id"], name: "index_assertions_on_asserter_id"
+    t.index ["framework_id"], name: "index_assertions_on_framework_id"
     t.index ["llm_invocation_id"], name: "index_assertions_on_llm_invocation_id"
     t.index ["object_type", "object_id"], name: "index_assertions_on_object"
     t.index ["subject_type", "subject_id", "asserted_at"], name: "idx_on_subject_type_subject_id_asserted_at_f9911a1d7d"
@@ -417,6 +419,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_140000) do
   add_foreign_key "api_tokens", "referents"
   add_foreign_key "api_tokens", "referents", column: "issued_by_id"
   add_foreign_key "assertions", "assertions", column: "supersedes_id"
+  add_foreign_key "assertions", "frameworks"
   add_foreign_key "assertions", "llm_invocations"
   add_foreign_key "assertions", "referents", column: "asserter_id"
   add_foreign_key "category_promotions", "claim_categories", column: "from_category_id"

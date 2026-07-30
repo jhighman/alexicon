@@ -134,6 +134,41 @@ class Lexicon
            "and the descent is free, and nothing about an ought is firmer ground for " \
            "an is. ADR 17.",
            see_also: [ "Promotion" ]),
+      term("position", "Position", "step", "concept",
+           "What one asserter currently says about a step under one framework — the " \
+           "latest of however many times it ruled. A judge that ruled three times " \
+           "holds one position, not three, so repetition cannot outvote a second " \
+           "judge. `Transition#positions`",
+           distinct_from: "**Ruling**, which is a single recorded assertion. A " \
+                          "position is the standing one among an asserter's rulings.",
+           see_also: %w[Verdict Contested Drift]),
+      term("contested", "Contested", "step", "concept",
+           "Two asserters reaching different conclusions about the same step under " \
+           "the **same** premises. Reported instead of a verdict, never as one: it " \
+           "sits outside `VERDICTS`, so nothing can assert it and no sentinel can " \
+           "record it. The system saying it does not know. `Transition#contested?`",
+           distinct_from: "**Drift**, which is one asserter changing its own answer, " \
+                          "and from a **premise difference**, which is two frameworks " \
+                          "priced differently and is not disagreement at all.",
+           see_also: %w[Position Drift Premise]),
+      term("drift", "Drift", "step", "concept",
+           "One asserter giving different answers to the same question under the same " \
+           "premises. A fact about the instrument rather than about the step; the " \
+           "latest position stands and the change is reported rather than hidden. " \
+           "`Transition#unstable?`",
+           distinct_from: "**Contested**, which is two asserters disagreeing. Drift " \
+                          "is a single judge that moved.",
+           see_also: %w[Contested Position]),
+      term("premise", "Premise", "step", "concept",
+           "What a framework charges for a move, and therefore what it holds about " \
+           "warrant. `alexicon-2.0` prices `ontological → normative` at 2 with a " \
+           "rationale naming Hume; `lewisian-1.0` prices it at 0. Every ruling names " \
+           "the premises it was made under, so two of them coexist rather than one " \
+           "overwriting the other. `Assertion#framework`",
+           distinct_from: "**Framework**, which is the whole versioned object — " \
+                          "categories, stages, values. A premise is what its weights " \
+                          "commit it to.",
+           see_also: [ "Framework", "Promotion", "Is/ought crossing", "Contested" ]),
       term("retroactive-audit", "Retroactive audit", "step", "concept",
            "When a step is judged unearned, looking back at what it stood on. Four " \
            "unearned steps in a row are one failure with three consequences, and the " \

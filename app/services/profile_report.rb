@@ -28,9 +28,9 @@ class ProfileReport
   # Named profiles. Data rather than code paths: a new profile is a list of
   # section keys, and every key is checked against SECTIONS before rendering.
   TEMPLATES = {
-    "epistemic-structure" => %w[composition authority coverage steps commitments identity limits],
+    "epistemic-structure" => %w[composition authority coverage steps premises commitments identity limits],
     "brief" => %w[composition steps limits],
-    "governance" => %w[coverage steps identity limits]
+    "governance" => %w[coverage steps premises identity limits]
   }.freeze
 
   # A table nobody can scroll is not more honest than a shorter one, but a table
@@ -70,6 +70,7 @@ class ProfileReport
     "authority" => :authority,
     "coverage" => :coverage,
     "steps" => :steps,
+    "premises" => :premises,
     "commitments" => :commitments,
     "identity" => :identity,
     "limits" => :limits
@@ -83,6 +84,52 @@ class ProfileReport
   def typed = @typed ||= claims.select { it.category.present? }
   def transitions = @transitions ||= document.transitions.to_a
   def unearned = @unearned ||= transitions.select(&:unearned?)
+
+  def framework = @framework ||= Framework.current!
+
+  # Frameworks other than the current one that have ruled on this document.
+  def rival_frameworks
+    @rival_frameworks ||= transitions.flat_map { it.frameworks_ruling }.uniq - [ framework ]
+  end
+
+  def ruled_count(of) = transitions.count { it.verdict(framework: of) != "undetermined" }
+
+  # Contested and unstable are different failures and are never merged. Two
+  # judges disagreeing is disagreement; one judge changing its own answer is
+  # drift, which says something about the instrument rather than the step.
+  def contested = @contested ||= transitions.select(&:contested?)
+  def unstable = @unstable ||= transitions.select(&:unstable?)
+
+  def disagreement_note
+    parts = []
+    if contested.any?
+      parts << "**#{contested.size} #{contested.size == 1 ? 'step is' : 'steps are'} contested** — two " \
+               "judges reached different conclusions under these same premises, and no verdict is " \
+               "reported for #{contested.size == 1 ? 'it' : 'them'} because there is no ground here " \
+               "for choosing between them"
+    end
+    if unstable.any?
+      parts << "#{unstable.size} #{unstable.size == 1 ? 'was' : 'were'} ruled on more than once by the " \
+               "same judge with different answers, which is drift rather than disagreement — the " \
+               "latest stands and the earlier is still in the record"
+    end
+    return "" if parts.empty?
+
+    "#{parts.to_sentence.upcase_first}."
+  end
+
+  def divergence_detail
+    moves = rival_frameworks.flat_map do |rival|
+      transitions.select { it.verdict(framework: rival) != it.verdict(framework: framework) }
+                 .map { "#{it.source.category&.key} → #{it.target.category&.key}" }
+    end
+    return "The frameworks agreed on every step in this document." if moves.empty?
+
+    tally = moves.tally.sort_by { -it.last }
+    "The disagreement is confined to #{tally.size == 1 ? 'one kind of move' : 'these moves'}: " \
+      "#{tally.map { |move, n| "**#{move}** (#{n})" }.to_sentence}. That localisation is itself " \
+      "the finding — a change of premise moved the verdicts it should have moved and nothing else."
+  end
 
   # A reading a person rejected is still standing — a disposal is recorded beside
   # a judgement, never over it — so nothing filters it out unless this does.
@@ -218,6 +265,50 @@ class ProfileReport
       What a move costs is set by the framework, not by this report: a lateral move
       between two kinds of equal warrant costs nothing, and a retreat to firmer
       ground costs nothing. Only a promotion does.
+
+      **These verdicts are #{framework.name}'s**, not the record's — every figure in
+      this section is what one set of premises concluded. #{disagreement_note}
+    MD
+  end
+
+  # Renders only when more than one framework has actually ruled here, which is
+  # the honest condition: a document judged under one set of premises has no
+  # disagreement to report, and a section saying "none found" would imply a
+  # comparison nobody ran.
+  #
+  # This is the section the architecture was rebuilt to make possible. Before a
+  # ruling named its framework, a second premise's verdicts were
+  # indistinguishable from the first premise's sentinel changing its mind, so
+  # the Lewisian run was computed and thrown away — `persisted: false` in
+  # baseline v3. Both now stand, and where they part is a fact about the
+  # premises rather than about the text.
+  def premises
+    return nil if rival_frameworks.empty?
+
+    rows = rival_frameworks.map do |rival|
+      differing = transitions.select { it.verdict(framework: rival) != it.verdict(framework: framework) }
+      "| #{rival.name} | #{ruled_count(rival)} | #{differing.size} |"
+    end
+
+    <<~MD.strip
+      ## Where different premises reach different verdicts
+
+      Every step here has been judged under more than one framework. The verdicts
+      **coexist** — neither overwrites the other, and this section reports the
+      disagreement rather than resolving it.
+
+      | Framework | Steps ruled on | Verdicts differing from #{framework.name} |
+      |---|---|---|
+      | #{framework.name} *(current)* | #{ruled_count(framework)} | — |
+      #{rows.join("\n")}
+
+      #{divergence_detail}
+
+      > A difference here is a fact about the **premises**, not about the text. Two
+      > frameworks disagreeing does not mean one of them read the document wrong; it
+      > means they charge different prices for the same move, which is what having a
+      > moral premise consists of. Nothing in this system adjudicates between them,
+      > and nothing here should be read as ranking them.
     MD
   end
 

@@ -174,6 +174,69 @@ RSpec.describe ProfileReport do
     end
   end
 
+  # The section the architecture was rebuilt to make possible. Before a ruling
+  # named its framework, a second premise's verdicts were indistinguishable from
+  # the first premise's sentinel changing its mind, so the Lewisian run was
+  # computed and thrown away rather than stored.
+  describe "where different premises reach different verdicts" do
+    let(:rival) { Framework.create!(key: "rival-fw", name: "Rival", version: "0", current: false) }
+
+    it "says nothing at all when only one framework has ruled" do
+      unearned_step
+
+      expect(described_class.render(document)).not_to include "Where different premises"
+    end
+
+    it "reports both verdicts when two frameworks have ruled" do
+      step = unearned_step
+      step.record_verdict!("earned", asserter: sentinel, framework: rival)
+
+      report = flat(described_class.render(document))
+
+      expect(report).to include "Where different premises reach different verdicts"
+      expect(report).to include "Rival"
+      expect(report).to match(/interpretive → ontological/)
+    end
+
+    it "names the framework whose verdicts the step counts are" do
+      unearned_step
+
+      expect(flat(described_class.render(document))).to match(/These verdicts are .+'s\*\*, not the record's/)
+    end
+
+    it "refuses to rank the premises it reports" do
+      step = unearned_step
+      step.record_verdict!("earned", asserter: sentinel, framework: rival)
+
+      report = flat(described_class.render(document))
+
+      expect(report).to include "a fact about the **premises**, not about the text"
+      expect(report).to include "Nothing in this system adjudicates between them"
+    end
+
+    it "reports a contested step rather than counting it as unearned" do
+      other = Referent.create!(name: "Second", subject: "System", role: "Sentinel", primitive: "system")
+      step = unearned_step
+      step.record_verdict!("earned", asserter: other)
+
+      report = flat(described_class.render(document))
+
+      expect(step).to be_contested
+      expect(report).to include "1 step is contested"
+      expect(report).to include "no ground here for choosing between them"
+    end
+
+    it "calls one judge changing its own answer drift, not disagreement" do
+      step = unearned_step
+      step.record_verdict!("earned", asserter: sentinel)
+
+      report = flat(described_class.render(document))
+
+      expect(report).to include "drift rather than disagreement"
+      expect(report).not_to include "is contested"
+    end
+  end
+
   describe "templates" do
     it "renders only the sections a template names" do
       claim("A claim.", "observation")

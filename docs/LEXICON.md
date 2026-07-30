@@ -1,6 +1,6 @@
 # Lexicon
 
-**The vocabulary of the Alexicon, from the record · 114 terms · July 30, 2026**
+**The vocabulary of the Alexicon, from the record · 118 terms · July 30, 2026**
 
 *Generated. Re-render with `rake alexicon:lexicon`.*
 
@@ -19,7 +19,7 @@ which is the same distinction the framework draws everywhere else.
 | [The record](#the-record) | 18 | One record type, and what can be said with it. |
 | [Identity](#identity) | 13 | Who or what a name refers to, and what may be said of it. |
 | [Kinds of claim](#kinds-of-claim) | 11 | What a statement DOES, never how true it is. |
-| [Steps between claims](#steps-between-claims) | 7 | The unit of governance is the move, not the claim. |
+| [Steps between claims](#steps-between-claims) | 11 | The unit of governance is the move, not the claim. |
 | [What a step protects](#what-a-step-protects) | 21 | Beneath judgement: the commitments a move puts first. |
 | [Who decides](#who-decides) | 20 | Attribution, capability, and delegated judgement. |
 | [Measurement](#measurement) | 6 | What the system has established about itself. |
@@ -375,6 +375,35 @@ See also: Lead-in, Claim.
 
 *The unit of governance is the move, not the claim.*
 
+### Contested
+
+*concept*
+
+Two asserters reaching different conclusions about the same step under the
+**same** premises. Reported instead of a verdict, never as one: it sits outside
+`VERDICTS`, so nothing can assert it and no sentinel can record it. The system
+saying it does not know. `Transition#contested?`
+
+**Distinct from **Drift**, which is one asserter changing its own answer, and
+from a **premise difference**, which is two frameworks priced differently and is
+not disagreement at all.**
+
+See also: Position, Drift, Premise.
+
+### Drift
+
+*concept*
+
+One asserter giving different answers to the same question under the same
+premises. A fact about the instrument rather than about the step; the latest
+position stands and the change is reported rather than hidden.
+`Transition#unstable?`
+
+**Distinct from **Contested**, which is two asserters disagreeing. Drift is a
+single judge that moved.**
+
+See also: Contested, Position.
+
 ### Earned
 
 *verdict*
@@ -390,6 +419,35 @@ weighted **symmetrically**: everywhere else the ascent costs and the descent is
 free, and nothing about an ought is firmer ground for an is. ADR 17.
 
 See also: Promotion.
+
+### Position
+
+*concept*
+
+What one asserter currently says about a step under one framework — the latest
+of however many times it ruled. A judge that ruled three times holds one
+position, not three, so repetition cannot outvote a second judge.
+`Transition#positions`
+
+**Distinct from **Ruling**, which is a single recorded assertion. A position is
+the standing one among an asserter's rulings.**
+
+See also: Verdict, Contested, Drift.
+
+### Premise
+
+*concept*
+
+What a framework charges for a move, and therefore what it holds about warrant.
+`alexicon-2.0` prices `ontological → normative` at 2 with a rationale naming
+Hume; `lewisian-1.0` prices it at 0. Every ruling names the premises it was made
+under, so two of them coexist rather than one overwriting the other.
+`Assertion#framework`
+
+**Distinct from **Framework**, which is the whole versioned object — categories,
+stages, values. A premise is what its weights commit it to.**
+
+See also: Framework, Promotion, Is/ought crossing, Contested.
 
 ### Promotion
 
@@ -989,7 +1047,7 @@ below names the other and says what separates them.
 | | |
 |---|---|
 | read from the framework's data or a code constant | 69 |
-| authored, because nothing in the system holds them | 45 |
+| authored, because nothing in the system holds them | 49 |
 
 A generated term cannot drift from what the system does, because it is what the
 system does. An authored one can, so each names the file it describes and is

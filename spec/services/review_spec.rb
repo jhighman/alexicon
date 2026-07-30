@@ -62,6 +62,64 @@ RSpec.describe Review do
     end
   end
 
+  # A contested step is neither earned nor unearned, so it falls out of
+  # `unearned?` and out of every list built from it — including this queue,
+  # which is where a disagreement most needs a person. Nothing else in the
+  # system would have noticed it had gone.
+  describe "a step two judges disagree about" do
+    let(:second_sentinel) do
+      Referent.create!(name: "Second Sentinel", subject: "System", role: "Sentinel", primitive: "system")
+    end
+
+    def contested_step
+      t = Transition.create!(source: claim("From.", "interpretive"), target: claim("To.", "ontological"))
+      t.record_verdict!("unearned", asserter: sentinel)
+      t.record_verdict!("earned", asserter: second_sentinel)
+      t
+    end
+
+    it "queues it, though it is neither earned nor unearned" do
+      step = contested_step
+
+      expect(step).to be_contested
+      expect(step).not_to be_unearned
+      expect(review.queue.map(&:kind)).to include "contested step"
+    end
+
+    it "puts it before everything else — the system reporting it does not know" do
+      value_reading(unearned_step)
+      contested_step
+
+      expect(review.queue.first.kind).to eq "contested step"
+    end
+
+    it "shows both rulings, with who said what" do
+      contested_step
+
+      item = review.queue.find { it.kind == "contested step" }
+
+      expect(item.detail).to include "Governance Sentinel: unearned"
+      expect(item.detail).to include "Second Sentinel: earned"
+      expect(item.caveat).to match(/Disposing of one does not delete the other/)
+    end
+
+    it "lets a reviewer dispose of either position, not only the later one" do
+      step = contested_step
+      earlier = step.positions.values.first
+
+      expect { review.dispose!(earlier, verdict: "accept") }.not_to raise_error
+      expect(earlier.reload.disposition).to eq "accepted"
+    end
+
+    it "drops out of the queue once every position has been answered" do
+      step = contested_step
+      step.positions.values.each { review.dispose!(it, verdict: "accept") }
+
+      expect(described_class.new(document, reviewer: person).queue.map(&:kind))
+        .not_to include "contested step"
+    end
+  end
+
   describe "the order of the queue" do
     # Weakest first: three controls say the value layer cannot tell a real step
     # from an unrelated pair, so a person's attention is worth most there.

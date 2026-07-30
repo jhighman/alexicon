@@ -91,6 +91,37 @@ namespace :alexicon do
          "#{lexicon.collisions.size} word(s) carried by more than one."
   end
 
+  desc "Judge a document's steps under another framework: rake 'alexicon:premise[30,lewisian-1.0]'"
+  task :premise, [ :document_id, :framework ] => :environment do |_t, args|
+    document = Document.find(args[:document_id])
+    rival = Framework.find_by!(key: args.fetch(:framework))
+    current = Framework.current!
+
+    puts "Judging document #{document.id} under #{rival.name} (#{rival.key})."
+    puts "Nothing recorded under #{current.name} is touched: both sets of rulings stand.\n\n"
+
+    # Only what this framework has not already ruled on. Re-reviewing would
+    # record a second identical ruling, and a second ruling that happened to
+    # differ — because the claims were re-read in between — would show up as the
+    # sentinel drifting. Manufacturing drift by re-running is exactly the
+    # confusion `unstable?` exists to report.
+    document.require_executable!
+    pending = document.transitions.select { it.verdict(framework: rival) == "undetermined" }
+    puts "#{pending.size} of #{document.transitions.size} steps not yet ruled on by #{rival.key}.\n\n"
+    pending.each { GovernanceSentinel.review!(it, framework: rival) }
+
+    steps = document.transitions.to_a
+    differ = steps.select { it.verdict(framework: rival) != it.verdict(framework: current) }
+
+    puts "#{steps.size} steps · #{steps.size - differ.size} agree · #{differ.size} differ\n\n"
+    differ.each do |t|
+      puts format("  %-30s %s=%-11s %s=%s",
+                  "#{t.from_claim.category&.key} → #{t.to_claim.category&.key}",
+                  current.key, t.verdict(framework: current), rival.key, t.verdict(framework: rival))
+    end
+    puts "\nA difference is a fact about the premises, not about the text."
+  end
+
   desc "Re-render docs/BASELINE.md from the recorded measurements: rake 'alexicon:baseline[v1]'"
   task :baseline, [ :version ] => :environment do |_t, args|
     version = args[:version].presence || "v1"

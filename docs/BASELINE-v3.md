@@ -9,11 +9,11 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 7 code revisions** — `9831dc6`, `91dee52`, `376b990`,
-> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`, `a28a1c2-dirty`. Figures within
-> this baseline were not all measured against the same instrument, so a
-> difference between two of them may be a difference in the code. Each section
-> states its own revision.
+> **Taken across 8 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`, `a28a1c2-dirty`, `3a177ba-dirty`.
+> Figures within this baseline were not all measured against the same
+> instrument, so a difference between two of them may be a difference in the
+> code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -624,6 +624,60 @@ no, categories 5, measured at stage 1, which is the gate
   rate moves about ten points between runs on identical input, which is most of
   the gap being reported.
 
+## 10. Premise preservation (two moral premises held at once) — 3.2%
+
+| | |
+|---|---|
+| rate | 3.2% |
+| steps | 104 |
+| agreeing | 90 |
+| differing | 3 |
+| drifting steps | 0 |
+| contested steps | 0 |
+| differing moves — normative -> ontological | 1 |
+| differing moves — ontological -> normative | 2 |
+| ruled under both | 93 |
+| outside the changed pairs | 0 |
+
+The measurement that could not previously be taken. Verdicts were derived
+newest-wins across every ruling regardless of origin, so a second framework's
+rulings were indistinguishable from the first framework's sentinel changing its
+mind. The earlier Lewisian run is recorded in this same baseline as `persisted:
+false` for exactly that reason.
+
+**Sample:** document 30, frameworks alexicon-2.0, lewisian-1.0, differing
+weights {"normative -> ontological" => "hume 2, lewis 0", "ontological ->
+normative" => "hume 2, lewis 0"}  
+**Conditions:** judge GovernanceSentinel, which is DETERMINISTIC — it reads
+CategoryPromotion weights and calls no model. The classifications it rules on
+came from gemini-2.5-pro, which is why a model is named here at all, design each
+ruling carries the framework it was made under; verdicts are read per framework
+rather than newest-wins, persisted yes, categories 5  
+**Code:** `3a177ba-dirty`
+
+**What this cannot tell you.**
+- THE ARCHITECTURE NOW HOLDS TWO INCOMPATIBLE PREMISES WITHOUT COLLAPSING
+  EITHER. Hume and Lewis both rule on all 93 steps; both sets stand; neither
+  supersedes the other. They differ on 3, all of them `ontological <->
+  normative` — the two pairs whose weights differ and no others.
+- That localisation is the result, and it is a weaker claim than it looks. It
+  shows a premise change propagates only where the premise changed, which is a
+  property of a deterministic weight lookup rather than evidence that the
+  framework 'survives' a foreign moral premise in any deeper sense.
+- THE DIFFERENCE IS NOT AN EVALUATION. Nothing here says Hume or Lewis reads the
+  document better. Which premise is right is not a question this system can put,
+  and the reports refuse to rank them.
+- SIX STEPS IN THE WIDER RECORD CARRY TWO CONTRADICTORY RULINGS from the same
+  sentinel under the same framework. They are now reported as drift rather than
+  silently resolved to the later one. The Sentinel is deterministic, so its
+  inputs moved — the claims were re-classified between runs — which makes these
+  a fact about classification stability, not about the Sentinel.
+- ZERO CONTESTED STEPS EXIST. Nothing has yet been ruled on by two different
+  judges under the same premises, so the contested path is exercised only by
+  specs. The capability is built and unmeasured.
+- One document, one pair of frameworks, one run, and both frameworks were
+  written by the same people who wrote the system.
+
 ---
 
 ## Comparing a later reading
@@ -639,7 +693,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 9 figures. 8 of them are the system agreeing or disagreeing
+- **Correctness.** 10 figures. 9 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be
