@@ -60,6 +60,7 @@ class Assertion < ApplicationRecord
   validate  :flag_severity_recognised
   validate  :confidence_in_range
   validate  :execution_must_not_be_locked, on: :create
+  validate  :asserter_must_author, on: :create
 
   before_validation :stamp_asserted_at, on: :create
 
@@ -191,6 +192,19 @@ class Assertion < ApplicationRecord
     return if value.to_f.between?(0, 1)
 
     errors.add(:claim, "confidence must be between 0 and 1")
+  end
+
+  # Places, concepts and family units do not judge (ADR 22). An assertion
+  # authored by one would be neither a decision (`human?`) nor an inference
+  # (`inferred?`) — an undefined state every report would misread — so the
+  # path closes while it has zero occupants. An organisation attests through
+  # an accountable officer or a recognized agent, which is who the record
+  # should name anyway.
+  def asserter_must_author
+    return if asserter.nil? || asserter.primitive != "entity"
+
+    errors.add(:asserter, "is an entity, and an entity does not author assertions — " \
+                          "attribute this to the person or system that actually acted")
   end
 
   # Identity verification precedes reasoning about an entity. Nothing may be

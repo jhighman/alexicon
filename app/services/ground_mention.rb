@@ -16,12 +16,20 @@ class GroundMention
   # `same_as` grounds this name as another spelling of an existing referent.
   # Otherwise a passport is required, and both levels of it: a partial passport
   # is not a weaker anchor, it is no anchor.
-  def initialize(mention, by:, subject: nil, role: nil, same_as: nil)
+  #
+  # `person:` is its own question, defaulting to no (ADR 22). Personhood
+  # allocates authority — whose reading settles a claim, who may grant a
+  # delegation — so it is never inferred from what somebody typed into the
+  # subject field. Grounding a person is a deliberate act the grounder
+  # knowingly performs, and the grounding's attribution records who performed
+  # it.
+  def initialize(mention, by:, subject: nil, role: nil, same_as: nil, person: false)
     @mention = mention
     @by = by
     @subject = subject.presence
     @role = role.presence
     @same_as = same_as
+    @person = person
   end
 
   def call
@@ -40,7 +48,7 @@ class GroundMention
 
   private
 
-  attr_reader :mention, :by, :subject, :role, :same_as
+  attr_reader :mention, :by, :subject, :role, :same_as, :person
 
   # Two spellings, one philosopher. Grounding "Polayani" separately would create
   # a second person who wrote the same book. The alias is recorded rather than
@@ -64,14 +72,9 @@ class GroundMention
     # the resolution: the record says who decided, not which service ran.
     Referent.transaction do
       Referent.create!(name: mention.text, subject: subject,
-                       primitive: primitive_for(subject),
+                       primitive: person ? "person" : "entity",
                        notes: "Grounded during review by #{by.name}.")
               .tap { it.assert_role!(role, by: by) }
     end
   end
-
-  # `primitive` decides whether a judgement by this referent reads as a person's
-  # decision or a system's inference. Only a Person is a person: a place or a
-  # concept authors nothing.
-  def primitive_for(kind) = kind.to_s.strip.casecmp?("person") ? "person" : "entity"
 end

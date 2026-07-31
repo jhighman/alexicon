@@ -1,9 +1,14 @@
 # 22. Authority is recognized, not inferred
 
 **Date:** 2026-07-31
-**Status:** Proposed — a prescriptive for a build not yet made. The build must
-not begin until this status reads Accepted, because what follows reallocates
-who may settle claims, and that decision is Jeff's, not an implementer's.
+**Status:** Accepted by Jeff, 2026-07-31, and built to the criteria as written.
+One consequence surfaced by the build and worth knowing: the founding
+employment example — *Acme attests that Sarah works there* — had the entity as
+the asserter, and under §3 an organisation now attests through an accountable
+officer, which is who the record should have named all along. The specs were
+updated accordingly; if organisational authorship is ever wanted as a first
+class thing, that is a new primitive and a new ADR, not a relaxation of this
+one.
 **Source:** The audit ADR 21 deliberately deferred. `primitive` — person,
 system, or entity — is assigned from a typed string at grounding time and
 permanently allocates epistemic authority. That is *inference becomes

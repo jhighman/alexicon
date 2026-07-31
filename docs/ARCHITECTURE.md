@@ -212,6 +212,24 @@ before roles named their asserter, which is a different fact from "nobody said
 it" — and no runtime path writes it. Nothing behavioral reads the singular
 `role`; a spec holds every service to `roles` or to neither.
 
+**Authority is recognized, not inferred**
+([ADR 22](decisions/0022-authority-is-recognized-not-inferred.md)). `primitive`
+— person, system, or entity — decides whose reading settles a claim and who may
+grant a delegation, so it is authority configuration under the registry's
+discipline, certification's shape applied to referents. It is never inferred
+from the subject string: grounding asks *a person?* as its own question,
+defaulting to no. It never changes by plain update — direct writes raise, the
+same guard `system_id` has — and the one path is
+`recognize_as!(kind, by:, rationale:)`, person-only, recording who changed
+what, from what, and why in the transaction that writes the column. Demotion
+travels the identical path and leaves the identical record.
+
+**Entities do not author.** A place, a concept or a family unit does not judge,
+and an assertion attributed to one would be neither a decision nor an
+inference — an undefined state every report would misread. The path is closed
+by validation; an organisation attests through an accountable officer or a
+recognized agent, which is who the record should name anyway.
+
 ```mermaid
 flowchart LR
     N["Name in text"] --> RR{"ReferentResolver"}

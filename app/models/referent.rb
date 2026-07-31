@@ -62,10 +62,19 @@ class Referent < ApplicationRecord
   # ungrounded claim the architecture refuses elsewhere.
   belongs_to :domain, optional: true
 
+  # What a referent may be, and what each kind carries (ADR 22): a person's
+  # judgements settle claims and may grant delegations; a system's are
+  # inferences; an entity's do not exist — places, concepts and family units do
+  # not author, and a validation on Assertion closes that path.
+  PRIMITIVES = %w[person system entity].freeze
+
+  class RecognitionRefused < StandardError; end
+
   validates :name, presence: true
   validates :key, uniqueness: true, allow_nil: true
   validates :system_id, presence: true, uniqueness: true
   validate  :system_id_is_immutable, on: :update
+  validate  :primitive_changes_only_by_recognition, on: :update
 
   before_validation :assign_system_id, on: :create
 
@@ -107,6 +116,34 @@ class Referent < ApplicationRecord
 
   def unattributed_role? = self[:role].present?
 
+  # --- Recognition -----------------------------------------------------------
+  #
+  # `primitive` is authority configuration: it decides whose reading settles a
+  # claim and who may grant a delegation. So it is never inferred from a typed
+  # string, never flipped by a plain update, and changes only through this —
+  # which records who changed it, from what, to what, and why, in the same
+  # transaction that writes the column. Certification's shape, applied to
+  # referents: authority is granted accountably by a named person, and revoked
+  # down the identical path.
+  def recognize_as!(kind, by:, rationale:)
+    raise ArgumentError, "unknown kind #{kind.inspect}" unless PRIMITIVES.include?(kind.to_s)
+    raise RecognitionRefused, "recognition flows only from a person — #{by&.name || 'nobody'} " \
+                              "is #{by&.primitive || 'nothing'}, and an agent cannot mint a person" unless
+      by&.primitive == "person"
+
+    transaction do
+      assertions.create!(asserter: by, act: "assert",
+                         claim: { "primitive" => kind.to_s, "was" => primitive,
+                                  "rationale" => rationale })
+      @recognizing = true
+      begin
+        update!(primitive: kind.to_s)
+      ensure
+        @recognizing = false
+      end
+    end
+  end
+
   # Presentation only — the legacy value, else the earliest asserted role. A
   # spec holds every behavioral path to #roles instead: one label was never a
   # fact to branch on, and now it is not even the record's shape.
@@ -132,5 +169,17 @@ class Referent < ApplicationRecord
     return unless system_id_changed?
 
     errors.add(:system_id, "is immutable: object constancy requires a stable identity")
+  end
+
+  # The silent flip this closes was demonstrated before it was closed: an
+  # entity became a person by plain update! and the record showed nothing —
+  # neither the flip nor the reversion. A kind that drifts silently is an
+  # authority that drifts silently.
+  def primitive_changes_only_by_recognition
+    return unless primitive_changed?
+    return if @recognizing
+
+    errors.add(:primitive, "changes only through recognition — " \
+                           "recognize_as!(kind, by:, rationale:)")
   end
 end

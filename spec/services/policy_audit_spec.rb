@@ -64,10 +64,15 @@ end
 RSpec.describe Timeline do
   let(:sarah) { Referent.create!(name: "Sarah", subject: "Person", role: "Employee", primitive: "person") }
   let(:acme)  { Referent.create!(name: "Acme", subject: "Corporation", role: "Employer", primitive: "entity") }
+  # ADR 22: the entity is the employer; the officer is the author.
+  let(:registrar) do
+    Referent.create!(name: "Dana Reyes", subject: "Person", role: "Registrar at Acme",
+                     primitive: "person")
+  end
 
   def employment(from:, to:)
     relationship = Relationship.create!(source: sarah, target: acme, kind: "employment")
-    Assertion.create!(asserter: acme, subject: relationship, act: "assert",
+    Assertion.create!(asserter: registrar, subject: relationship, act: "assert",
                       claim: { "title" => "Engineer" }, valid_from: from, valid_until: to)
     relationship
   end
@@ -94,7 +99,7 @@ RSpec.describe Timeline do
   # not from a document's apparent continuity.
   it "ignores an assertion with no start date" do
     relationship = Relationship.create!(source: sarah, target: acme, kind: "employment")
-    Assertion.create!(asserter: acme, subject: relationship, act: "assert", claim: {})
+    Assertion.create!(asserter: registrar, subject: relationship, act: "assert", claim: {})
 
     expect(Timeline.new(sarah).spans).to be_empty
   end

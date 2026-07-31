@@ -62,10 +62,21 @@ RSpec.describe GroundMention do
         .to raise_error(described_class::IncompletePassport)
     end
 
-    it "makes a Person a person, so their judgements read as decisions" do
+    # ADR 22 criteria 5 and 6: personhood is its own question, defaulting to
+    # no, and the subject string carries no authority consequence — including
+    # the string "Person".
+    it "creates an entity when person is not stated, whatever the subject says" do
       result = described_class.call(mention("Ana"), by: reviewer, subject: "Person", role: "Author")
 
+      expect(result.referent.primitive).to eq "entity"
+    end
+
+    it "makes a person only when the grounder deliberately says so" do
+      result = described_class.call(mention("Ana"), by: reviewer, subject: "Person",
+                                    role: "Author", person: true)
+
       expect(result.referent.primitive).to eq "person"
+      expect(result.referent.role_assertions.sole.asserter).to eq reviewer
     end
   end
 

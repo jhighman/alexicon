@@ -1,6 +1,6 @@
 # Lexicon
 
-**The vocabulary of the Alexicon, from the record · 123 terms · July 31, 2026**
+**The vocabulary of the Alexicon, from the record · 124 terms · July 31, 2026**
 
 *Generated. Re-render with `rake alexicon:lexicon`.*
 
@@ -17,7 +17,7 @@ which is the same distinction the framework draws everywhere else.
 | Cluster | Terms | |
 |---|---|---|
 | [The record](#the-record) | 18 | One record type, and what can be said with it. |
-| [Identity](#identity) | 14 | Who or what a name refers to, and what may be said of it. |
+| [Identity](#identity) | 15 | Who or what a name refers to, and what may be said of it. |
 | [Kinds of claim](#kinds-of-claim) | 11 | What a statement DOES, never how true it is. |
 | [Steps between claims](#steps-between-claims) | 15 | The unit of governance is the move, not the claim. |
 | [What a step protects](#what-a-step-protects) | 21 | Beneath judgement: the commitments a move puts first. |
@@ -223,6 +223,23 @@ See also: Cognitive Passport, Identity STOP.
 *mention status*
 
 No match in memory.
+
+### Recognition
+
+*concept*
+
+The one path by which a referent's kind — person, system, entity — may change.
+Person-only, and it records who changed what, from what, and why, in the
+transaction that writes it. Kind is authority configuration: it decides whose
+reading settles a claim and who may grant a delegation, so it is never inferred
+from the subject string and never flipped silently. Certification's shape,
+applied to referents. ADR 22.
+
+**Distinct from **Resolution**, which says what a name refers to. Recognition
+says what kind of thing the referent is, and therefore what its judgements are
+worth.**
+
+See also: Cognitive Passport, Referent, Delegation.
 
 ### Referent
 
@@ -1118,7 +1135,7 @@ below names the other and says what separates them.
 | | |
 |---|---|
 | read from the framework's data or a code constant | 69 |
-| authored, because nothing in the system holds them | 54 |
+| authored, because nothing in the system holds them | 55 |
 
 A generated term cannot drift from what the system does, because it is what the
 system does. An authored one can, so each names the file it describes and is

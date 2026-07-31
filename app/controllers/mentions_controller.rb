@@ -15,10 +15,13 @@ class MentionsController < ApplicationController
   def ground
     mention = Mention.find(params[:id])
     authorize mention
-    attrs = params.require(:referent).permit(:subject, :role, :same_as_id)
+    attrs = params.require(:referent).permit(:subject, :role, :same_as_id, :person)
 
+    # Personhood is its own question and defaults to no — never inferred from
+    # the subject text (ADR 22).
     result = GroundMention.call(mention, by: current_reviewer, subject: attrs[:subject],
-                                         role: attrs[:role], same_as: attrs[:same_as_id].presence)
+                                         role: attrs[:role], same_as: attrs[:same_as_id].presence,
+                                         person: attrs[:person] == "1")
 
     redirect_back fallback_location: root_path,
                   notice: "#{result.referent.passport} — #{result.mention.status} " \

@@ -7,8 +7,16 @@ RSpec.describe Assertion do
     Relationship.create!(source: sarah, target: acme, kind: "employment")
   end
 
+  # ADR 22: an entity does not author. Acme stays the relationship's endpoint;
+  # the ATTESTATION is made by an accountable officer, which is who the record
+  # should have named all along.
+  let(:registrar) do
+    Referent.create!(name: "Dana Reyes", subject: "Person", role: "Registrar at Acme",
+                     primitive: "person")
+  end
+
   def assert!(act: "assert", **attrs)
-    described_class.create!(asserter: acme, subject: employment, act: act, **attrs)
+    described_class.create!(asserter: registrar, subject: employment, act: act, **attrs)
   end
 
   describe "immutability" do
@@ -78,7 +86,7 @@ RSpec.describe Assertion do
     end
 
     it "rejects a window that ends before it begins" do
-      assertion = described_class.new(asserter: acme, subject: employment, act: "assert",
+      assertion = described_class.new(asserter: registrar, subject: employment, act: "assert",
                                        valid_from: 1.day.ago, valid_until: 2.days.ago)
 
       expect(assertion).not_to be_valid

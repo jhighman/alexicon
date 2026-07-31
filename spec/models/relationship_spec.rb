@@ -9,7 +9,13 @@ RSpec.describe Relationship do
   let(:hr)    { Referent.create!(name: "Acme HR", subject: "System", role: "Issuer", primitive: "system") }
   let(:employment) { described_class.create!(source: sarah, target: acme, kind: "employment") }
 
-  def assert!(act: "assert", asserter: acme, subject: employment, **attrs)
+  # ADR 22: an entity does not author, so the attestations come from an officer.
+  let(:registrar) do
+    Referent.create!(name: "Dana Reyes", subject: "Person", role: "Registrar at Acme",
+                     primitive: "person")
+  end
+
+  def assert!(act: "assert", asserter: registrar, subject: employment, **attrs)
     Assertion.create!(asserter: asserter, subject: subject, act: act, **attrs)
   end
 

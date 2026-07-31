@@ -61,6 +61,17 @@ class Lexicon
            "anything may be predicated of a name. A partial passport is not a " \
            "resolution, and zero standing roles is a partial passport.",
            see_also: [ "Entity Noise", "Mention", "Role" ]),
+      term("recognition", "Recognition", "identity", "concept",
+           "The one path by which a referent's kind — person, system, entity — may " \
+           "change. Person-only, and it records who changed what, from what, and why, " \
+           "in the transaction that writes it. Kind is authority configuration: it " \
+           "decides whose reading settles a claim and who may grant a delegation, so " \
+           "it is never inferred from the subject string and never flipped silently. " \
+           "Certification's shape, applied to referents. ADR 22.",
+           distinct_from: "**Resolution**, which says what a name refers to. " \
+                          "Recognition says what kind of thing the referent is, and " \
+                          "therefore what its judgements are worth.",
+           see_also: [ "Cognitive Passport", "Referent", "Delegation" ]),
       term("role", "Role", "identity", "concept",
            "A standing assertion about a referent — attributable, contestable, " \
            "plural by construction, retired by supersession and never deleted. Roles " \

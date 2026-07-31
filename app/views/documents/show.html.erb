@@ -107,6 +107,11 @@
                          name="referent[role]" placeholder="e.g. Philosopher"
                          value="<%= proposal&.claim&.dig('role') %>">
                 </div>
+                <div class="form-check pb-1" title="A person's judgements settle claims and may grant delegations. Never inferred from the subject text — say it or it is not so.">
+                  <input class="form-check-input" type="checkbox" value="1"
+                         id="person-<%= mention.id %>" name="referent[person]">
+                  <label class="form-check-label small" for="person-<%= mention.id %>">a person</label>
+                </div>
                 <div>
                   <label class="form-label small mb-1" for="same-as-<%= mention.id %>">or the same as</label>
                   <select class="form-select form-select-sm" id="same-as-<%= mention.id %>"

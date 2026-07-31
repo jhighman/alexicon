@@ -15,9 +15,12 @@ class Api::V1::MentionsController < Api::V1::BaseController
     authorize mention, :ground?
     require_delegation!("ground_mention")
 
+    # `person` is explicit and defaults to false: personhood allocates
+    # authority and is never inferred from the subject string (ADR 22).
     result = GroundMention.call(mention, by: current_reviewer,
                                          subject: params[:subject], role: params[:role],
-                                         same_as: params[:same_as_id].presence)
+                                         same_as: params[:same_as_id].presence,
+                                         person: ActiveModel::Type::Boolean.new.cast(params[:person]) || false)
 
     render json: { grounded: result.referent.name, passport: result.referent.passport,
                    status: result.mention.status, occurrences: result.occurrences,
