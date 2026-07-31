@@ -94,6 +94,21 @@ RSpec.describe FrameworkPremises do
       expect(comparison.to_s).to include("stricter")
     end
 
+    # Found by comparing against a framework that carries a value vocabulary and
+    # no promotion weights: it reported "charge identically" over zero shared
+    # crossings, which is agreement asserted where nothing was compared.
+    it "refuses to call two frameworks equivalent when they share no crossing" do
+      stranger = Framework.create!(key: "stranger-1.0", name: "Stranger", version: "1.0",
+                                   current: false)
+
+      comparison = described_class.compare(framework, stranger)
+
+      expect(comparison.shared).to be_empty
+      expect(comparison.relation).to eq(:disjoint)
+      expect(comparison).not_to be_comparable
+      expect(comparison.to_s).to include("nothing to compare")
+    end
+
     it "reads them as equivalent when nothing differs" do
       comparison = described_class.compare(framework, framework)
 

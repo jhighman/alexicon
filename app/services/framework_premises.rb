@@ -39,10 +39,12 @@ class FrameworkPremises
   # the same reason.
   Comparison = Data.define(:left, :right, :divergences, :relation, :shared, :unshared) do
     def differ? = divergences.any?
-    def comparable? = relation != :incomparable
+    def comparable? = %i[equivalent left_stricter right_stricter].include?(relation)
 
     def to_s
       case relation
+      when :disjoint
+        "#{left.key} and #{right.key} share no crossing — there is nothing to compare"
       when :equivalent then "#{left.key} and #{right.key} charge identically"
       when :left_stricter then "#{left.key} is stricter than #{right.key}"
       when :right_stricter then "#{right.key} is stricter than #{left.key}"
@@ -71,13 +73,18 @@ class FrameworkPremises
     end
 
     Comparison.new(left: left, right: right, divergences: divergences,
-                   relation: relation_for(divergences), shared: shared, unshared: unshared)
+                   relation: relation_for(divergences, shared), shared: shared, unshared: unshared)
   end
 
-  # Nil-safe on purpose: a framework that has not spoken about a crossing has
-  # not said it costs nothing, and `nil` weights never reach here because
-  # `crossings` is the intersection.
-  def self.relation_for(divergences)
+  # DISJOINT is not EQUIVALENT, and the distinction is the same one
+  # `CategoryPromotion.weight_for` draws between "no rule for this pair" and
+  # "this pair costs nothing". Two frameworks with no crossing in common have
+  # not been found to agree; nothing about them has been compared at all, and
+  # reporting that as agreement is the error this class exists to avoid — found
+  # by running it against a framework that carries a value vocabulary and no
+  # promotion weights.
+  def self.relation_for(divergences, shared)
+    return :disjoint if shared.empty?
     return :equivalent if divergences.empty?
 
     left_higher = divergences.any? { it.difference.positive? }
