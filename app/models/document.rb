@@ -1,5 +1,17 @@
-# A text submitted for analysis. The original body is never mutated -- claims
-# reference it by offset, so the source stays auditable.
+# A text submitted for analysis.
+#
+# `body` is what claims are offset against, and it is never mutated after
+# creation -- the source stays auditable because every claim points at a span
+# of it.
+#
+# At creation, and only then, the submitted text is NORMALISED: hard-wrapped
+# prose is unwrapped so a paragraph arrives as a paragraph rather than as the
+# line-length pieces an editor happened to break it into. The text as submitted
+# is kept in `source_body`, so the transformation is recorded rather than
+# performed and forgotten. See ADR 23.
+#
+# This is a binding. It decides what counts as a claim before anything reads
+# one, so it is deliberately rule-based, deterministic, and done once.
 class Document < ApplicationRecord
   has_many :claims, -> { order(:position) }, dependent: :destroy
 
@@ -9,6 +21,16 @@ class Document < ApplicationRecord
   has_many :assertions, as: :subject, dependent: :restrict_with_error
 
   validates :body, presence: true
+
+  before_validation :normalise_body, on: :create
+
+  # The text as submitted. NULL for documents ingested before normalisation
+  # existed, whose `body` is their source.
+  def source = source_body || body
+
+  # Whether normalisation changed anything. False for a document already written
+  # in whole paragraphs, and for every document that predates ADR 23.
+  def normalised? = source_body.present? && source_body != body
 
   def mentions = Mention.where(claim_id: claims.select(:id))
 
@@ -81,4 +103,17 @@ class Document < ApplicationRecord
   end
 
   class ExecutionLocked < StandardError; end
+
+  private
+
+  # Once, at creation. A document whose claims already exist must never be
+  # renormalised: the offsets they hold point into the body as it stands, and
+  # moving the text under a recorded reading changes what was measured without
+  # changing the record that says what was measured.
+  def normalise_body
+    return if body.blank?
+
+    self.source_body ||= body
+    self.body = MarkdownReflow.unwrap(source_body)
+  end
 end

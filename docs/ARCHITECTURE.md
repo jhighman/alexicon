@@ -1067,6 +1067,28 @@ grounding ([ADR 13](decisions/0013-the-reading-view-writes-no-prose.md)).
 The obligation is pinned by spec: the segments reassemble into *exactly* the
 body, and cover it once.
 
+### The body is normalised once, before any of this
+
+`MarkdownStructure#boundaries` returns every line's start and end, not only the
+structural ones, and the segmenter adds them to its cut list whenever a document
+contains any markdown block at all. So in a markdown document every line break
+is a cut, and hard-wrapped prose was arriving as line-length fragments —
+`Security`, `They are failures of` — each then typed, stepped over and judged. On
+the dissertation that inflated the claim count 1.71× and made 55% of substantive
+claims sentence fragments.
+
+So a document is unwrapped **once, at creation**, before claims exist:
+`Document#normalise_body` runs `MarkdownReflow.unwrap` and keeps the submitted
+text in `source_body`. Ingest still segments the body by offset without
+modifying it — that sentence stays true, because by the time a `Document` exists
+its body is what the claims will point into.
+
+What must not be joined is defined once, in `MarkdownReflow`: tables, headings,
+rules, fences and their contents, blockquote structure, list items, and markdown
+hard breaks. Existing documents are deliberately not backfilled and not
+re-segmented, because their claims are recorded measurements
+([ADR 23](decisions/0023-ingest-unwraps-before-it-segments.md)).
+
 ## Layout
 
 ```

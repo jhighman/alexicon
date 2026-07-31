@@ -29,7 +29,27 @@ module MarkdownReflow
   # facts about a measurement, and reflow ran them into a sentence.
   HARD_BREAK = /\s{2,}\z/
 
+  # Wide enough that `fill` never wraps, so a block becomes one line. Reflowing
+  # to a finite width would leave the prose hard-wrapped at that width, which is
+  # the condition the unwrap exists to remove.
+  UNWRAPPED = 1 << 30
+
   module_function
+
+  # Join every hard-wrapped prose line in a block onto one line, leaving
+  # everything reflow already refuses to touch — tables, headings, rules,
+  # fences, hard breaks — exactly as it found them.
+  #
+  # Ingest calls this so the segmenter is not handed a paragraph pre-cut into
+  # line-length pieces. See ADR 23.
+  # The trailing newline is put back, because `call` joins blocks and drops it.
+  # Without that, unwrapping a document already written in whole paragraphs
+  # still changed it by one character, and `Document#normalised?` answered true
+  # for every document ever ingested — a flag that is always set says nothing.
+  def unwrap(markdown)
+    out = call(markdown, width: UNWRAPPED)
+    markdown.to_s.end_with?("\n") && !out.end_with?("\n") ? "#{out}\n" : out
+  end
 
   def call(markdown, width: WIDTH)
     blocks(markdown).map { reflow_block(it, width) }.join("\n\n")
