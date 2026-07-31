@@ -1,6 +1,6 @@
 # Lexicon
 
-**The vocabulary of the Alexicon, from the record · 124 terms · July 31, 2026**
+**The vocabulary of the Alexicon, from the record · 128 terms · July 31, 2026**
 
 *Generated. Re-render with `rake alexicon:lexicon`.*
 
@@ -20,7 +20,7 @@ which is the same distinction the framework draws everywhere else.
 | [Identity](#identity) | 15 | Who or what a name refers to, and what may be said of it. |
 | [Kinds of claim](#kinds-of-claim) | 11 | What a statement DOES, never how true it is. |
 | [Steps between claims](#steps-between-claims) | 15 | The unit of governance is the move, not the claim. |
-| [What a step protects](#what-a-step-protects) | 21 | Beneath judgement: the commitments a move puts first. |
+| [What a step protects](#what-a-step-protects) | 25 | Beneath judgement: the commitments a move puts first. |
 | [Who decides](#who-decides) | 20 | Attribution, capability, and delegated judgement. |
 | [Measurement](#measurement) | 6 | What the system has established about itself. |
 | [The framework](#the-framework) | 18 | The seeded structure everything above is read against. |
@@ -673,6 +673,22 @@ commitments in conflict and observe. Behaviour is evidence; priority is a claim
 
 See also: Step value reading, Value probe.
 
+### Order stability
+
+*method*
+
+Whether a subject has an ordering AT ALL: does the same probe yield the same
+priority across runs? Asked BEFORE any ordering is reported, never after — a
+hierarchy that moves between runs is not a hierarchy, and a ranking from one run
+of an unstable subject is an artefact of that run. Threshold 0.8, minimum three
+runs, distribution reported when unstable. `app/services/order_stability.rb`
+
+**Distinct from **Drift**, which is one judge answering the same question
+differently about a found text. Order stability is the same property measured on
+purpose, under constructed conflict, before anything is built on it.**
+
+See also: Value ranking, Value probe.
+
 ### Privacy
 
 *value*
@@ -704,6 +720,18 @@ Purpose is one of the commitments a step can put first.**
 
 Protection from harm, to oneself or to others.
 
+### Shuffled pair
+
+*method*
+
+The decoy condition every discrimination figure is measured against: two claims
+from the same document, same category pair, at least twenty positions apart, no
+argumentative relation. A judge that finds a commitment in these as often as in
+real steps is inventing dilemmas, and four designs at two scopes did — 3.08 with
+three-in-five invention, then 0.29, 0.54, and 0.00 standard errors. BASELINE-v3.
+
+See also: Value worksheet, Step value reading, Case.
+
 ### Step value reading
 
 *concept*
@@ -726,9 +754,45 @@ Saying what is the case.
 *record type*
 
 A scenario putting two commitments in conflict, put to a model, with the
-response recorded verbatim. Infers nothing. `app/models/value_probe.rb`
+response recorded verbatim. Infers nothing. The conflict is CONSTRUCTED, which
+is what grounds the question: the dilemma exists before anything rules on it,
+where a found step may contain none. `app/models/value_probe.rb`
 
-See also: Observed Value Priority.
+See also: Observed Value Priority, Order stability, Shuffled pair.
+
+### Value ranking
+
+*method*
+
+An ordering over a value set, assembled only from probe edges that held still,
+and refusing three ways: an unstable edge is excluded with its reason named, a
+disconnected graph is reported as separate orderings rather than one sequence,
+and a cycle is reported as a cycle — priority that is context-dependent is a
+finding, not an error to smooth into a total order. Never asserted: a hierarchy
+is a claim about what a subject IS, recorded open for a person to accept.
+`app/services/value_ranking.rb`
+
+**Distinct from **Observed Value Priority**, which reads one conflict. A ranking
+is what many read conflicts may amount to, and only once each has held still.**
+
+See also: Order stability, Contested.
+
+### Value worksheet
+
+*method*
+
+The discrimination control with a person in the machine's place: real unearned
+steps interleaved with shuffled pairs, unmarked, with the answer key recorded as
+an assertion BEFORE anybody answers. It shows no machine reading of any pair —
+that would measure agreement with the judge — and a blank is dropped rather than
+read as no. What it decides: a person who discriminates makes the value layer a
+model problem; one who cannot confirms the question has no ground truth in a
+found text. `app/services/value_worksheet.rb`
+
+**Distinct from **Blind reading**, which types claims. The worksheet asks the
+value question, and its blindness is to which pairs were ever an argument.**
+
+See also: Shuffled pair, Blind reading, Step value reading.
 
 ### Vocabulary
 
@@ -1135,7 +1199,7 @@ below names the other and says what separates them.
 | | |
 |---|---|
 | read from the framework's data or a code constant | 69 |
-| authored, because nothing in the system holds them | 55 |
+| authored, because nothing in the system holds them | 59 |
 
 A generated term cannot drift from what the system does, because it is what the
 system does. An authored one can, so each names the file it describes and is

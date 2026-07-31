@@ -258,8 +258,56 @@ class Lexicon
            see_also: [ "Step value reading", "Value probe" ]),
       term("value-probe", "Value probe", "value", "record type",
            "A scenario putting two commitments in conflict, put to a model, with the " \
-           "response recorded verbatim. Infers nothing. `app/models/value_probe.rb`",
-           see_also: [ "Observed Value Priority" ]),
+           "response recorded verbatim. Infers nothing. The conflict is CONSTRUCTED, " \
+           "which is what grounds the question: the dilemma exists before anything " \
+           "rules on it, where a found step may contain none. " \
+           "`app/models/value_probe.rb`",
+           see_also: [ "Observed Value Priority", "Order stability", "Shuffled pair" ]),
+      term("order-stability", "Order stability", "value", "method",
+           "Whether a subject has an ordering AT ALL: does the same probe yield the " \
+           "same priority across runs? Asked BEFORE any ordering is reported, never " \
+           "after — a hierarchy that moves between runs is not a hierarchy, and a " \
+           "ranking from one run of an unstable subject is an artefact of that run. " \
+           "Threshold 0.8, minimum three runs, distribution reported when unstable. " \
+           "`app/services/order_stability.rb`",
+           distinct_from: "**Drift**, which is one judge answering the same question " \
+                          "differently about a found text. Order stability is the same " \
+                          "property measured on purpose, under constructed conflict, " \
+                          "before anything is built on it.",
+           see_also: [ "Value ranking", "Value probe" ]),
+      term("value-ranking", "Value ranking", "value", "method",
+           "An ordering over a value set, assembled only from probe edges that held " \
+           "still, and refusing three ways: an unstable edge is excluded with its " \
+           "reason named, a disconnected graph is reported as separate orderings " \
+           "rather than one sequence, and a cycle is reported as a cycle — priority " \
+           "that is context-dependent is a finding, not an error to smooth into a " \
+           "total order. Never asserted: a hierarchy is a claim about what a subject " \
+           "IS, recorded open for a person to accept. `app/services/value_ranking.rb`",
+           distinct_from: "**Observed Value Priority**, which reads one conflict. A " \
+                          "ranking is what many read conflicts may amount to, and " \
+                          "only once each has held still.",
+           see_also: [ "Order stability", "Contested" ]),
+      term("value-worksheet", "Value worksheet", "value", "method",
+           "The discrimination control with a person in the machine's place: real " \
+           "unearned steps interleaved with shuffled pairs, unmarked, with the " \
+           "answer key recorded as an assertion BEFORE anybody answers. It shows no " \
+           "machine reading of any pair — that would measure agreement with the " \
+           "judge — and a blank is dropped rather than read as no. What it decides: " \
+           "a person who discriminates makes the value layer a model problem; one " \
+           "who cannot confirms the question has no ground truth in a found text. " \
+           "`app/services/value_worksheet.rb`",
+           distinct_from: "**Blind reading**, which types claims. The worksheet asks " \
+                          "the value question, and its blindness is to which pairs " \
+                          "were ever an argument.",
+           see_also: [ "Shuffled pair", "Blind reading", "Step value reading" ]),
+      term("shuffled-pair", "Shuffled pair", "value", "method",
+           "The decoy condition every discrimination figure is measured against: two " \
+           "claims from the same document, same category pair, at least twenty " \
+           "positions apart, no argumentative relation. A judge that finds a " \
+           "commitment in these as often as in real steps is inventing dilemmas, " \
+           "and four designs at two scopes did — 3.08 with three-in-five invention, " \
+           "then 0.29, 0.54, and 0.00 standard errors. BASELINE-v3.",
+           see_also: [ "Value worksheet", "Step value reading", "Case" ]),
 
       # --- actors -------------------------------------------------------------
       term("sentinel-principle", "Sentinel Principle", "actor", "principle",
