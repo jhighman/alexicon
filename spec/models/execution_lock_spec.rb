@@ -12,8 +12,8 @@ require "rails_helper"
 # act, and that one does reason about what the names refer to.
 RSpec.describe "execution lock" do
   let(:framework) { Framework.create!(key: "test-fw", name: "Test", version: "0", current: false) }
-  let(:document)  { Document.create!(body: "Pugsley left. So he is gone.") }
-  let(:claim)     { document.claims.create!(position: 1, text: "Pugsley left.") }
+  let(:document)  { Document.create!(body: "I saw Pugsley leave. So he is gone.") }
+  let(:claim)     { document.claims.create!(position: 1, text: "I saw Pugsley leave.") }
   let(:conclusion) { document.claims.create!(position: 2, text: "So he is gone.") }
   let(:category) do
     ClaimCategory.create!(framework: framework, key: "observation", name: "Observation",

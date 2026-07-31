@@ -7,7 +7,10 @@ RSpec.describe IdentityProposer do
   before { seed_quietly }
 
   let(:person) { Referent.create!(name: "Ana", subject: "Person", role: "Reviewer", primitive: "person") }
-  let(:document) { Document.create!(body: "Polanyi wrote it. Fortunately I read it.") }
+  # "Polanyi" appears mid-sentence, so nothing about its capital is explained by
+  # position and it raises a STOP. "Fortunately" appears only at a sentence
+  # start, so it does not — see `casing_position_spec`.
+  let(:document) { Document.create!(body: "Polanyi wrote it. Fortunately I read Polanyi again.") }
 
   let!(:model) do
     provider = LlmProvider.find_by!(key: "anthropic")
@@ -37,13 +40,26 @@ RSpec.describe IdentityProposer do
     ] }
   end
 
-  it "records a proposal for each unresolved name" do
+  it "records a proposal for each name that blocks" do
     ingest!
 
     recorded = described_class.new(document, client: stub_client(answer)).call
 
-    expect(recorded.map { it.claim["name"] }).to contain_exactly("Polanyi", "Fortunately")
+    expect(recorded.map { it.claim["name"] }).to contain_exactly("Polanyi")
     expect(recorded.map(&:asserter).map(&:key).uniq).to eq [ "identity-proposer" ]
+  end
+
+  # The proposer reads `open_stops`, so a capital position already explains is
+  # never asked about. This spec used to pay a model to answer "sentence-initial
+  # adverb" for "Fortunately" — a question the document itself settles, for
+  # nothing, before the call is made.
+  it "does not spend a call on a capital that position explains" do
+    ingest!
+
+    asked = described_class.new(document, client: stub_client(answer)).send(:unresolved_names)
+
+    expect(asked).to eq [ "Polanyi" ]
+    expect(document.mentions.find { it.text == "Fortunately" }.flags.last.severity).to eq "notice"
   end
 
   # The whole point. A proposal is inference awaiting a person.
@@ -122,7 +138,7 @@ RSpec.describe IdentityProposer do
   end
 
   it "asks about each name once, however often it appears" do
-    document.update!(body: "Polanyi wrote it. Polanyi meant it. Polanyi was right.")
+    document.update!(body: "Polanyi wrote it. It was Polanyi. Polanyi was right.")
     ingest!
 
     asked = described_class.new(document, client: stub_client(answer)).send(:unresolved_names)

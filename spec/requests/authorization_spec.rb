@@ -124,7 +124,7 @@ RSpec.describe "authorisation", type: :request do
   describe "the identity split" do
     it "attributes a judgement to the Referent, not the User" do
       user = sign_in(role: "reviewer", name: "Rae")
-      post documents_path, params: { document: { body: "Pugsley left." } }
+      post documents_path, params: { document: { body: "I saw Pugsley leave." } }
       flagged = Document.order(:created_at).last
 
       patch flag_path(flagged.flags.first), params: { disposition: "accepted" }

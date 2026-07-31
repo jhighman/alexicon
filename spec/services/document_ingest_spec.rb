@@ -33,7 +33,7 @@ RSpec.describe DocumentIngest do
 
   describe "identity verification" do
     it "flags an unknown subject and locks the document" do
-      result = ingest("Pugsley left the house.")
+      result = ingest("I saw Pugsley leave the house.")
 
       mention = result.mentions.sole
       expect(mention.text).to eq "Pugsley"
@@ -45,14 +45,14 @@ RSpec.describe DocumentIngest do
     it "resolves a known subject and leaves the document runnable" do
       Referent.create!(name: "Morticia", subject: "Family", role: "Mother")
 
-      result = ingest("Morticia left the house.")
+      result = ingest("I saw Morticia leave the house.")
 
       expect(result.mentions.sole.status).to eq "resolved"
       expect(result.document.executable?).to be true
     end
 
     it "attributes every judgement to the Identity Sentinel" do
-      result = ingest("Pugsley left.")
+      result = ingest("I saw Pugsley leave.")
 
       expect(result.mentions.sole.flags.sole.asserter).to eq identity_sentinel
     end
@@ -90,7 +90,7 @@ RSpec.describe DocumentIngest do
 
   describe "end to end" do
     it "produces a locked graph a person can then unlock" do
-      result = ingest("Pugsley experienced peace. Therefore God exists.")
+      result = ingest("I watched Pugsley experience peace. Therefore God exists.")
       document = result.document
 
       expect(document.claims.count).to eq 2

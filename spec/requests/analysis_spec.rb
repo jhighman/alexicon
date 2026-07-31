@@ -33,7 +33,7 @@ RSpec.describe "running an analysis", type: :request do
   # the document is executable without anyone answering a flag.
   def clean_document
     Referent.create!(name: "Morticia", subject: "Family", role: "Mother", primitive: "person")
-    ingest("Morticia saw a wall collapse. It represented fear.")
+    ingest("I watched Morticia see a wall collapse. It represented fear.")
   end
 
   describe "classifying" do
@@ -42,7 +42,7 @@ RSpec.describe "running an analysis", type: :request do
     # impossible to classify at all.
     it "proceeds while identity is unresolved" do
       arm_classifier
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
 
       expect(document.open_stops).to be_present
       expect { post classify_document_path(document) }
@@ -50,7 +50,7 @@ RSpec.describe "running an analysis", type: :request do
     end
 
     it "refuses when no model is certified, rather than failing in the background" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       unlock(document)
 
       post classify_document_path(document)
@@ -64,7 +64,7 @@ RSpec.describe "running an analysis", type: :request do
     it "names the provider that would actually answer when its key is missing" do
       arm_classifier
       LlmProvider.find_by!(key: "anthropic").clear_api_key!
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       unlock(document)
 
       with_env(ANTHROPIC_API_KEY: nil) { post classify_document_path(document) }
@@ -75,7 +75,7 @@ RSpec.describe "running an analysis", type: :request do
 
     it "enqueues the job once a governed model is armed and the document is executable" do
       arm_classifier
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       unlock(document)
 
       expect { post classify_document_path(document) }
@@ -86,7 +86,7 @@ RSpec.describe "running an analysis", type: :request do
 
   describe "judging" do
     it "refuses while identity is unresolved" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
 
       post govern_document_path(document)
 

@@ -230,7 +230,7 @@ RSpec.describe "the domain sentinels" do
 
   it "refuses to run any of them while identity is unresolved" do
     sentinel_for("agency", "What choices remain?", 2)
-    c = claim("Pugsley left.")
+    c = claim("I saw Pugsley leave.")
     IdentitySentinel.verify!(c.mentions.create!(text: "Pugsley"))
 
     expect { DomainSentinel.review_all!(document) }.to raise_error(Document::ExecutionLocked)

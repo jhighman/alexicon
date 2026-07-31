@@ -25,7 +25,7 @@ RSpec.describe "the acts API", type: :request do
 
   # A document with one unresolved name in it.
   let(:document) do
-    DocumentIngest.ingest!(body: "Polanyi wrote it. Polanyi meant it.").document
+    DocumentIngest.ingest!(body: "It was Polanyi who wrote it. Polanyi meant it.").document
   end
 
   describe "authentication" do

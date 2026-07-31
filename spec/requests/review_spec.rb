@@ -21,7 +21,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "lists ingested documents with their state" do
-      ingest("Pugsley left.", title: "A note")
+      ingest("I saw Pugsley leave.", title: "A note")
 
       get documents_path
 
@@ -53,7 +53,7 @@ RSpec.describe "the review surface", type: :request do
     # One question per name, not per occurrence. The same essay previously
     # raised 204 separate STOPs for 144 distinct names.
     it "asks about each unresolved name once, however often it appears" do
-      document = ingest("Pugsley left the house. Pugsley returned. Pugsley left again.")
+      document = ingest("Pugsley left the house. I saw Pugsley return. Pugsley left again.")
 
       get document_path(document)
 
@@ -65,7 +65,7 @@ RSpec.describe "the review surface", type: :request do
 
     # The language of the interface has to carry the same discipline as the model.
     it "states that a flag is not a claim of falsehood" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
 
       get document_path(document)
 
@@ -73,7 +73,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "shows the audit trail with its authors" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
 
       get document_path(document)
 
@@ -85,7 +85,7 @@ RSpec.describe "the review surface", type: :request do
   describe "answering a flag" do
     # Every judgement needs an accountable author, and now also an entitled one.
     it "will not accept a disposition from a role that may not review" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       flag = document.flags.first
       delete session_path
       sign_in(role: "viewer", name: "Viv")
@@ -97,7 +97,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "records the disposition against the named reviewer" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       flag = document.flags.first
 
       patch flag_path(flag), params: { disposition: "accepted" }
@@ -107,7 +107,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "lifts the execution lock once the STOP is answered" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       expect(document.executable?).to be false
 
       document.flags.select(&:stop?).each do |flag|
@@ -118,7 +118,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "leaves the flag itself untouched" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       flag = document.flags.first
 
       patch flag_path(flag), params: { disposition: "rejected" }
@@ -128,7 +128,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "rejects a disposition it does not recognise" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       flag = document.flags.first
 
       patch flag_path(flag), params: { disposition: "ignored" }
@@ -148,7 +148,7 @@ RSpec.describe "the review surface", type: :request do
     end
 
     it "returns the reviewer to the page they were on" do
-      document = ingest("Pugsley left.")
+      document = ingest("I saw Pugsley leave.")
       delete session_path
 
       get document_path(document)

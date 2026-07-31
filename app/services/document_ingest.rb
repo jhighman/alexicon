@@ -43,7 +43,7 @@ class DocumentIngest
 
     # Verification runs after the graph exists, so a Sentinel judgement always
     # has a complete subject to attach to.
-    mentions.each { IdentitySentinel.verify!(it) }
+    mentions.each { IdentitySentinel.verify!(it, casing: casing) }
 
     Result.new(document: document, claims: claims, mentions: mentions, transitions: transitions)
   end

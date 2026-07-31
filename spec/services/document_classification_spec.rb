@@ -85,7 +85,7 @@ RSpec.describe DocumentClassification do
   it "runs while identity is unresolved" do
     Referent.create!(key: "identity-sentinel", name: "Identity Sentinel", subject: "System",
                      role: "Sentinel", primitive: "system")
-    c = claim("Pugsley left.")
+    c = claim("I saw Pugsley leave.")
     IdentitySentinel.verify!(c.mentions.create!(text: "Pugsley"))
 
     result = described_class.call(document, classifier: classifier_returning(true))

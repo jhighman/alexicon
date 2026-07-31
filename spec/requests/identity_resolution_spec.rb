@@ -20,7 +20,7 @@ RSpec.describe "answering an identity STOP", type: :request do
   # real essay it meant 204 questions for 144 distinct names.
   describe "answering once, for every occurrence" do
     it "resolves every mention of a name that is grounded" do
-      document = ingest("Polanyi wrote it. Polanyi meant it. Polanyi was right.")
+      document = ingest("Polanyi wrote it. I read Polanyi. Polanyi was right.")
       expect(document.open_stops.count).to eq 3
 
       post ground_mention_path(document.mentions.first),
@@ -33,20 +33,20 @@ RSpec.describe "answering an identity STOP", type: :request do
     end
 
     it "clears every mention of a form marked not a subject" do
-      document = ingest("Every day is like this. Every night too. Every time.")
+      document = ingest("The day was like Monday. I remember Monday. Monday again.")
       expect(document.open_stops.count).to be >= 2
 
       post ignore_mention_path(document.mentions.first)
 
       expect(document.reload.open_stops).to be_empty
-      expect(IgnoredForm.ignores?("Every")).to be true
+      expect(IgnoredForm.ignores?("Monday")).to be true
     end
 
     # The graph, not just the document on screen: the referent it creates is
     # global, so leaving other documents flagged would contradict it.
     it "reaches occurrences in other documents too" do
-      first = ingest("Polanyi wrote it.")
-      second = ingest("Polanyi was right.")
+      first = ingest("It was Polanyi who wrote it.")
+      second = ingest("It was Polanyi who was right.")
 
       post ground_mention_path(first.mentions.sole),
            params: { referent: { subject: "Person", role: "Philosopher" } }
@@ -57,7 +57,7 @@ RSpec.describe "answering an identity STOP", type: :request do
 
   describe "grounding a name" do
     it "creates the referent, resolves the mention and lifts the lock" do
-      document = ingest("Alec wrote about it.")
+      document = ingest("I read Alec on the subject.")
       mention = document.mentions.sole
       expect(document.executable?).to be false
 
@@ -69,7 +69,7 @@ RSpec.describe "answering an identity STOP", type: :request do
     end
 
     it "supersedes the STOP rather than leaving two judgements standing" do
-      document = ingest("Alec wrote about it.")
+      document = ingest("I read Alec on the subject.")
       mention = document.mentions.sole
 
       post ground_mention_path(mention), params: { referent: { subject: "Family", role: "Friend" } }
@@ -83,7 +83,7 @@ RSpec.describe "answering an identity STOP", type: :request do
     # create the half-referent and let the resolver call it "unanchored", which
     # left a subject in the graph that anchored nothing. Now nothing is created.
     it "refuses an incomplete passport without leaving a half-subject behind" do
-      document = ingest("Alec wrote about it.")
+      document = ingest("I read Alec on the subject.")
       mention = document.mentions.sole
 
       expect {
@@ -98,7 +98,7 @@ RSpec.describe "answering an identity STOP", type: :request do
     # Grounding writes a durable decision into the graph, so it needs the
     # capability, not merely a session.
     it "refuses a role that may not review" do
-      document = ingest("Alec wrote about it.")
+      document = ingest("I read Alec on the subject.")
       mention = document.mentions.sole
       delete session_path
       sign_in(role: "viewer", name: "Viv")
@@ -172,12 +172,12 @@ RSpec.describe "answering an identity STOP", type: :request do
   # transposed letter.
   describe "declaring a name to be another spelling" do
     it "resolves the variant to the existing referent rather than making a second one" do
-      first = ingest("Polanyi wrote it.")
+      first = ingest("It was Polanyi who wrote it.")
       post ground_mention_path(first.mentions.sole),
            params: { referent: { subject: "Person", role: "Philosopher" } }
       polanyi = Referent.find_by!(name: "Polanyi")
 
-      second = ingest("Polayani was right about that.")
+      second = ingest("It was Polayani who was right about that.")
       variant = second.mentions.find { it.text == "Polayani" }
 
       expect {
@@ -189,12 +189,12 @@ RSpec.describe "answering an identity STOP", type: :request do
     end
 
     it "records the alias rather than correcting the document" do
-      first = ingest("Polanyi wrote it.")
+      first = ingest("It was Polanyi who wrote it.")
       post ground_mention_path(first.mentions.sole),
            params: { referent: { subject: "Person", role: "Philosopher" } }
       polanyi = Referent.find_by!(name: "Polanyi")
 
-      second = ingest("Polayani was right about that.")
+      second = ingest("It was Polayani who was right about that.")
       variant = second.mentions.find { it.text == "Polayani" }
       post ground_mention_path(variant), params: { referent: { same_as_id: polanyi.id } }
 
@@ -205,15 +205,15 @@ RSpec.describe "answering an identity STOP", type: :request do
     end
 
     it "resolves later occurrences of the variant on sight" do
-      first = ingest("Polanyi wrote it.")
+      first = ingest("It was Polanyi who wrote it.")
       post ground_mention_path(first.mentions.sole),
            params: { referent: { subject: "Person", role: "Philosopher" } }
       polanyi = Referent.find_by!(name: "Polanyi")
-      second = ingest("Polayani was right about that.")
+      second = ingest("It was Polayani who was right about that.")
       post ground_mention_path(second.mentions.find { it.text == "Polayani" }),
            params: { referent: { same_as_id: polanyi.id } }
 
-      third = ingest("Polayani said so again.")
+      third = ingest("It was Polayani who said so again.")
 
       expect(third.open_stops).to be_empty
       expect(third.mentions.sole.referent).to eq polanyi

@@ -16,11 +16,12 @@ class IdentitySentinel
   # `by` is whoever DECIDED, when somebody did. Verification at ingest is the
   # Sentinel's own inference and passes nothing; answering a STOP by grounding a
   # name is a decision, and it belongs to the person or agent who made it.
-  def self.verify!(mention, by: nil) = new(mention, by: by).verify!
+  def self.verify!(mention, by: nil, casing: nil) = new(mention, by: by, casing: casing).verify!
 
-  def initialize(mention, by: nil)
+  def initialize(mention, by: nil, casing: nil)
     @mention = mention
     @by = by
+    @casing = casing
   end
 
   def verify!
@@ -93,11 +94,43 @@ class IdentitySentinel
       asserter: sentinel_referent,
       subject: mention,
       act: "flag",
-      claim: { "severity" => "stop",
+      claim: { "severity" => severity,
                "noise" => result.status.to_s,
                "message" => message_for(result) },
       supersedes: mention.standing_judgement
     )
+  end
+
+  # A STOP says the conditions for proceeding were not met. That is the right
+  # answer for a name nothing explains — and the wrong one for a capital that
+  # position already accounts for.
+  #
+  # "Distinct" opens 29 bolded notes in one appendix and appears capitalised
+  # mid-sentence not once. Every occurrence of the capital is explained by where
+  # it sits, so the evidence that an unknown SUBJECT exists is absent, and 29
+  # STOPs raised on it locked governance over a whole document for a word that
+  # is not a name.
+  #
+  # The candidate is still proposed, still flagged, still visible and still
+  # groundable by a person. The extractor deliberately over-proposes so the
+  # system never silently reasons past a subject it has never met, and dropping
+  # these in extraction would have traded that guarantee away — it also dropped
+  # `Lacan` and `Tononi`, which appear only at the starts of sentences in this
+  # corpus and are plainly names. What changes is only whether the flag BLOCKS.
+  #
+  # So the evidence moves severity rather than existence: `notice` where
+  # position explains the capital, `stop` where nothing does.
+  def severity = positionally_explained? ? "notice" : "stop"
+
+  def positionally_explained?
+    text = mention.text.to_s
+    return false if text.include?(" ")
+
+    casing.only_ever_sentence_initial?(text)
+  end
+
+  def casing
+    @casing ||= CasingEvidence.for(mention.claim&.document)
   end
 
   # The message states what was not established. It never asserts who the
