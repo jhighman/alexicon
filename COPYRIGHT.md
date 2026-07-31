@@ -29,14 +29,48 @@ For permission, contact the copyright holder.
 
 **© 2026 Jeff Highman & Alexandra Krížová.**
 
-Applies to the co-authored framework documentation: `docs/THESIS.md`,
-`docs/THEORY.md`, `docs/CONOPS.md`, `docs/mindmap.html`, and the framework
-decisions `docs/decisions/0001`–`0009`.
+Applies to the co-authored documentation: `docs/THESIS.md`, `docs/THEORY.md`,
+`docs/CONOPS.md`, `docs/mindmap.html`, `docs/ARCHITECTURE.md`, and the decision
+records in `docs/decisions/`.
 
-It does **not** apply to `docs/ARCHITECTURE.md` or `docs/decisions/0010`
-onward. Those describe the implementation rather than the framework, are
-authored by Jeff Highman alone, and are covered by the source-code terms above.
-Attributing them to both authors would credit work one of them did not do.
+### The architecture is now co-authored
+
+**Revised 31 July 2026.** This section previously excluded
+`docs/ARCHITECTURE.md` and `docs/decisions/0010` onward on the grounds that they
+describe the implementation rather than the framework and were authored by Jeff
+Highman alone. That was accurate when it was written. It is no longer accurate,
+and the record in this repository is what shows it:
+
+- `docs/decisions/0014` — *observed value priority* — records its source as
+  Alexandra Krížová: the method and the domain argument.
+- `docs/decisions/0015` — *the peer group is supplied* — records its source as
+  Matrix 2.0 Q5, jointly authored.
+- `docs/decisions/0020` — *judgment waits for closure* — records its source as
+  Alexandra Krížová's answer to the third call, with Jeff's reframe of it. The
+  `Case` unit and closure-as-constructor exist because of that exchange.
+- `docs/decisions/0021` — *a role is an assertion* — records its source as
+  Alexandra Krížová's addendum, and `0022` is the audit that `0021` deferred.
+- `docs/ARCHITECTURE.md` itself already attributes two built mechanisms to her
+  by name — the TEI inversion, and the sentinel that holds `executable?` false
+  until a person answers.
+
+Excluding the architecture from joint authorship while the architecture credits
+her inside it was a contradiction, and it under-credited rather than
+over-credited. The earlier wording said that attributing this material to both
+authors would credit work one of them did not do. On the present record the
+reverse is true.
+
+**Not every decision here has a dual origin, and none is being reassigned.**
+Decisions `0016`–`0019` and `0022` record Jeff's decisions and audits;
+`0010`–`0013` are implementation calls. Each decision states its own source, and
+those statements are the authority on provenance. What is being said here is
+narrower and is about the body of work rather than its parts: **the architecture
+as a whole is now jointly authored**, and it is licensed accordingly.
+
+The same reasoning applies going forward. Where a decision originates with one
+author, its record says so. Joint authorship of the document does not flatten
+the record of who proposed what, and the record is not evidence of an equal
+split in any particular decision.
 
 Licensed under the Creative Commons
 **Attribution-NonCommercial-NoDerivatives 4.0 International** licence.

@@ -1,10 +1,27 @@
 # Architecture
 
+**© 2026 Jeff Highman & Alexandra Krížová.** Licensed CC BY-NC-ND 4.0 with the
+rest of `docs/` — see [`COPYRIGHT.md`](../COPYRIGHT.md).
+
 How the system is put together, and why the seams fall where they do.
 
 [`THESIS.md`](THESIS.md) argues the position; [`CONOPS.md`](CONOPS.md) says what
 the system is for; [`LEXICON.md`](LEXICON.md) defines the vocabulary; this
 document says how it is built.
+
+> **On the authorship of this document.** It was written by Jeff Highman and
+> carried a sole attribution until 31 July 2026. That was accurate for the first
+> part of the build and stopped being accurate somewhere in the second, without
+> a moment anyone could point to. The architecture described below now contains
+> mechanisms that originate with Alexandra Krížová — the TEI inversion, the
+> sentinel that will not call work executable until a person has answered, the
+> `Case` unit and closure-as-constructor — and it contains them because of
+> exchanges neither author would have arrived at alone.
+>
+> Joint authorship of the document does not flatten the record underneath it.
+> Every decision in [`decisions/`](decisions/) states its own source, and those
+> statements remain the authority on who proposed what. What changed is the
+> attribution of the body of work, not of any individual claim inside it.
 
 This is a description of the design, not of how it came to be. Where a decision
 had live alternatives, the alternatives and the reasoning are in
