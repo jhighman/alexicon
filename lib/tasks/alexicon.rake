@@ -172,6 +172,30 @@ namespace :alexicon do
     puts "These are declared commitments, not readings of anyone's motives."
   end
 
+  # The selector is a title fragment, or `kind:<source_kind>` for a whole
+  # ingest. A corpus is usually several documents — the dissertation is
+  # seventeen — and a report over one chapter of it would quietly describe
+  # itself as the corpus.
+  desc "Write what a corpus was judged under: rake 'alexicon:premises_report[kind:file,docs/private/premises.md]'"
+  task :premises_report, %i[selector path] => :environment do |_t, args|
+    selector = args.fetch(:selector)
+    documents =
+      if selector.start_with?("kind:")
+        Document.where(source_kind: selector.delete_prefix("kind:")).order(:id).to_a
+      else
+        Document.where("title LIKE ?", "%#{selector}%").order(:id).to_a
+      end
+    abort "no documents matching #{selector.inspect}" if documents.empty?
+
+    report = PremiseReport.render(documents)
+    path = Rails.root.join(args[:path].presence || "docs/private/premises-#{selector.parameterize}.md")
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, report.end_with?("\n") ? report : "#{report}\n")
+
+    puts "#{documents.size} document(s) -> #{path}"
+    puts "  #{File.size(path)} bytes"
+  end
+
   desc "The premise a step was judged under: rake 'alexicon:step_premises[123]'"
   task :step_premises, [ :transition_id ] => :environment do |_t, args|
     step = Transition.find(args.fetch(:transition_id))
