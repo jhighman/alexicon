@@ -19,6 +19,7 @@ The recursive question the system exists to answer:
 | [`docs/ATAM-interpretive-ontological.md`](docs/ATAM-interpretive-ontological.md) | Architecture tradeoff analysis of the framework's central boundary |
 | [`docs/BASELINE.md`](docs/BASELINE.md) | What the system has measured about the model it runs on, and what those figures cannot tell you — **generated** from the recorded measurements, never hand-written |
 | [`docs/BASELINE-v2.md`](docs/BASELINE-v2.md) | The same, re-measured after the segmentation changed. Not a revision of v1: the sample differs by construction |
+| [`docs/BASELINE-v3.md`](docs/BASELINE-v3.md) | The current baseline — the first taken against five categories, and where the value layer's measured failure is recorded |
 | [`docs/FOR-ALEXANDRA.md`](docs/FOR-ALEXANDRA.md) | A note to the co-author about how this came to be published |
 | [`docs/LEXICON.md`](docs/LEXICON.md) | Every term the system uses, generated from its own data — with the words that carry more than one meaning named rather than tidied away |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How it is built — pipeline, record model, where the locks bite, diagrams |
@@ -89,10 +90,12 @@ linked to the judgements it produced.
 
 **Where the model is asked, and what it is asked for.** The extractor is a
 regex, so it cannot tell "Michael Polanyi" from "Fortunately" — that difference
-is world knowledge. That gap used to be filled by a person, one form at a time,
-while the model was busy sorting single sentences into four buckets and
-returning 1.0 confidence on all of them. The hard work was going to the human
-and the easy work to the model.
+is world knowledge, and world knowledge is the one thing a model is better at
+than a rule. So the model is asked where judgement is genuinely required and the
+rules keep the decisions that everything downstream inherits. Sorting single
+sentences into buckets is the easy half; naming what an unfamiliar capitalised
+string refers to is the hard one, and sending the hard half to a person while
+the model does the easy one is the wrong way round.
 
 So the Identity Proposer reads a whole document and proposes what each
 unfamiliar name refers to — or that it is not a name at all, or that it cannot
@@ -157,6 +160,36 @@ as an assertion, pass **or** fail. `AverageCeilingMetric` is the measure the
 policy applies, averaged over a record's own active windows and never over a
 population, with the peer group supplied rather than derived
 ([ADR 15](docs/decisions/0015-the-peer-group-is-supplied.md)).
+
+**Three levels of inquiry.** Classification asks whether a claim can be leaned
+on. The Governance Sentinel asks whether a step survived contact with
+consequence. Beneath both, `StepValueJudge` asks what an *unearned* step put
+first — running only where a verdict was reached and only where it was unearned,
+and asserting about the **transition** rather than the author, so *"this person
+values X"* is not a sentence the class can express.
+
+That third level does not work, and the figure is measured rather than
+suspected: given claim pairs from unrelated parts of a document it reads them
+almost exactly as it reads real steps. Three designs, three ways of failing, all
+in [v3](docs/BASELINE-v3.md). Its output is presented as prompts for a person,
+never as findings.
+
+**Values observed under conflict** — the same question asked where it can be
+grounded. A `ValueProbe` *constructs* a dilemma, so the conflict's existence is
+not in doubt; a runner records the response verbatim, a separate judge says what
+it revealed, and `OrderStability` asks whether the same probe yields the same
+priority across runs *before* any ordering is reported. `ValueRanking` assembles
+an order from edges that held still and refuses three ways — excluding an
+unstable edge with its reason named, reporting a disconnected graph as separate
+orderings rather than one sequence, and reporting a cycle instead of resolving
+it.
+
+**Measurement, in the record.** A figure about the system is an assertion about
+the model, carrying its sample, conditions, code revision and caveats, and
+`Baseline.compare` refuses to call two readings comparable when their conditions
+differ. `BlindReading` is the one surface producing a figure that is not the
+system checking itself: the answer is withheld, and asking what the machine
+concluded before answering **raises**.
 
 **Review surface** — paste a text, see its claims and their categories, and answer
 the flags waiting on a person. Flags are never presented as claims of falsehood:
@@ -272,12 +305,11 @@ and nothing else:
 A difference here is a fact about the premises, not about the text, and nothing
 in the system ranks them.
 
-This also separates two things that used to look identical. **Contested** is two
-judges disagreeing under the same premises — reported instead of a verdict, and
-queued first for review, because it is the system saying it does not know.
-**Drift** is one judge changing its own answer, which says something about the
-instrument rather than the step. Six steps in this record turned out to be drift
-and had been quietly resolving to whichever ruling came second.
+Two things that look alike are kept apart throughout. **Contested** is two judges
+disagreeing under the same premises — reported instead of a verdict, and queued
+first for review, because it is the system saying it does not know. **Drift** is
+one judge changing its own answer, which is a fact about the instrument rather
+than about the step. Collapsing them would hide whichever one you cared about.
 
 ### Profiles
 

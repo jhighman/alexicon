@@ -433,22 +433,22 @@ priority that is context-dependent rather than hierarchical, and reporting it is
 the same discipline as `Transition::CONTESTED` — the state of there being no
 ground for choosing is reported instead of a verdict, never as one.
 
-The disconnection case needed a guard rather than a note. A topological sort of a
-disconnected graph still returns a sequence, and the first draft of the reporting
-task printed eight values as one numbered ordering when the graph was four
-disjoint pairs — an arbitrary concatenation presented as a hierarchy, produced by
-the very service written to prevent it. The ordering is therefore exposed only
-per component, so the flat sequence cannot be rendered as a ranking.
+Disconnection needs a **guard**, not a caveat. A topological sort of a
+disconnected graph still returns a sequence, and that sequence rendered as a
+numbered list is an arbitrary concatenation presented as a hierarchy — the
+failure is not that the reader might misread it but that the shape invites it. So
+the ordering is exposed only per component, and the flat sequence is not
+reachable by anything that renders.
 
 A ranking is never asserted. A hierarchy is a claim about what a model **is**,
 which `ValuePriorityJudge` already refuses to write; `ValueRanking.propose!`
 records it open, carrying its own verdict, so a refusal travels with the ordering
 rather than being lost on the way to a reader.
 
-Against the record as it stands, the answer is still no — four usable edges,
-fourteen probes never run, four components. What changed is that the obstacle is
-now **unrun probes** rather than a vocabulary that could never connect, and the
-distance to an answer is countable.
+Against the record as it stands the answer is still no — four usable edges,
+fourteen probes unrun, four components. But the obstacle is **unrun probes**
+rather than a vocabulary that could never connect, and that is a countable
+distance rather than a structural one.
 
 ---
 
@@ -826,33 +826,33 @@ One gap the test exposed: `Policy` is the only framework object *not* scoped to
 a framework, so traditions differing on a cross-cutting constraint cannot
 currently be expressed at all.
 
-### The order of the questions, and what it exposed
+### The order of the questions
 
-The comparison above was run and then **thrown away** — `persisted: false` in
-[v3](BASELINE-v3.md). That was not caution. It was forced, and the reason turned
-out to be the more important finding.
+The questions have an order, and it is not the order in which they are
+interesting:
 
-Asked in order — *what are the components; what do they do; how do they fail;
-can two incompatible moral premises be held at once; and only then, is one of
-them better* — the fourth question failed. Not because the framework was too
-narrow, but because **a ruling did not name the premises it was made under**.
-`Transition#verdict` returned the last ruling of any origin. So a Lewisian
-verdict written beside a Humean one would have been read as the Humean sentinel
-changing its mind, and the system would have reported a single answer with the
-disagreement destroyed at the point of reading while sitting intact in storage.
+> *What are the components? What do they do? How do they fail under
+> contradiction? Can two incompatible moral premises be held at once? And only
+> then — does one of them produce more truthful outcomes?*
 
-The record already showed the same failure without any second tradition: 201
-transitions carried more than one ruling and 6 carried two contradictory ones,
-each reported as whichever came second, with no surface anywhere saying a
+The fourth is a **precondition** for the fifth, not a warm-up to it. A system
+that cannot hold two premises simultaneously cannot be asked to compare them; it
+can only be asked which one it is currently running, which is a different
+question wearing the same words.
+
+Holding both is what [ADR 18](decisions/0018-a-ruling-names-its-premises.md)
+provides. A ruling names the premises it was made under, verdicts are read per
+framework, and two states that look alike are kept apart — **contested** when two
+judges disagree under the same premises, **drift** when one judge changed its own
+answer. Without the framework on the ruling, a Lewisian verdict recorded beside a
+Humean one is indistinguishable from the Humean sentinel changing its mind, and
+the comparison cannot be stored at all: the earlier Lewisian run is recorded in
+[v3](BASELINE-v3.md) as `persisted: false` for exactly that reason.
+
+The requirement is not exotic, and a record with only one tradition in it still
+needs it. Where a judge is re-run, contradictory rulings accumulate; read by
+recency they resolve to whichever came second, with no surface anywhere saying a
 contradiction existed.
-
-So the architecture could *compute* under two premises and could not *hold*
-them. The fix is [ADR 18](decisions/0018-a-ruling-names-its-premises.md): a
-ruling carries its framework, verdicts are read per framework, and the states
-are distinguished — **contested** when two judges disagree under the same
-premises, **unstable** when one judge changed its own answer. Both frameworks
-now stand on the same steps, and the Lewisian verdicts are persisted rather than
-discarded.
 
 The general form, which is a claim about theories and not only about this one:
 

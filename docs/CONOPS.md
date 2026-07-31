@@ -124,8 +124,29 @@ Where entity ambiguity, broken causality, or out-of-distribution input crosses a
 | F9 | Where a step is judged unearned, propose what that **step** put first and what it set aside — a claim about the move, never about its author, and recorded as interpretive with a confidence |
 | F10 | Render a document's epistemic structure as a report whose every section cites the assertions it rests on, and which refuses to render a section that has no source |
 | F11 | Expose every act a person can perform through REST and a command line, and the record itself through a read-only query layer, with one authorisation path shared by all of them |
+| F12 | Report disagreement rather than resolving it by recency: distinguish two judges disagreeing from one judge changing its own answer, and report the first as a state with no verdict |
+| F13 | Attribute every judgement to whoever actually made it, including identity resolutions answered by a person and rulings made under a named set of premises |
+| F14 | Hold two incompatible sets of premises over the same text simultaneously, with both sets of verdicts standing and neither superseding the other |
+| F15 | Obtain a reading from a judge that cannot see the system's own conclusion, and refuse to disclose that conclusion until the reading is recorded |
+| F16 | Observe a subject's value priority under a **constructed** conflict, and report no ordering until the same probe has been shown to yield the same priority across runs |
 
-**On F9.** It does not currently work well enough to be read as a finding. Presented with claim pairs from unrelated parts of the same document, the judge reads them almost as often as real steps — a gap of 0.29 standard errors. Its output is shown as prompts for a person to look at the step themselves. See [`BASELINE-v3.md`](BASELINE-v3.md).
+**On F9.** It does not work well enough to be read as a finding, and the figure
+is measured rather than suspected: presented with claim pairs from unrelated
+parts of the same document, the judge reads them almost as often as real steps.
+Three designs give gaps of 3.08, 0.29 and 0.54 standard errors, and the only one
+that discriminates is the one that invents most. Its output is shown as prompts
+for a person to look at the step themselves. See
+[`BASELINE-v3.md`](BASELINE-v3.md).
+
+**On F12 and F14.** These are ordered: a system that resolves competing
+judgements by recency cannot be asked to compare two premises, because it cannot
+hold both long enough for a comparison to exist. Preservation is a precondition
+for adjudication rather than a refinement of it.
+
+**On F16.** The constructed conflict is what separates this from F9. A probe
+builds the dilemma, so its existence is not in doubt before anything rules on it;
+a step found in a text either contains one or does not, and there is no
+independent way to tell.
 
 ## 8. Non-Goals
 
@@ -168,6 +189,8 @@ The G3/G7 material is retained as **design vocabulary and documentation**, not a
 3. A human can overturn any classification, and the record shows both judgments afterward.
 4. Ambiguous input produces a STOP, not a confident guess. Measured as a rate, and expected to be non-zero.
 5. The system flags unearned promotions in its **own** generated output.
+6. Where two judges disagree, the system reports that it does not know rather than reporting the later answer.
+7. **The outstanding one: a person's reading of the same text.** Every figure the system holds is currently the system agreeing or disagreeing with itself, and a model can be perfectly consistent and consistently wrong. Until a reader who did not produce the answer has typed the same claims blind, none of the other figures can be read as more than consistency.
 
 ## 12. Open Questions
 
@@ -178,11 +201,13 @@ The G3/G7 material is retained as **design vocabulary and documentation**, not a
 > even though adjacency is the default.
 
 1. **Claim segmentation granularity** — sentence, clause, or argumentative move? Determines everything downstream.
-2. **Is "earned" binary or scalar?** A scalar is more honest and harder to act on.
+2. **Is "earned" binary or scalar?** A scalar is more honest and harder to act on. Narrowed rather than answered: a verdict has no weight to attenuate, since a claim cannot be 30% asserted. What a record carries instead is *standing*, so the graded version would be a **provisional** verdict rather than a weighted one — and `undetermined` is already that state.
 3. **Which model backs classification**, and how is its own uncertainty surfaced rather than absorbed?
 4. **Does the transition ledger form a graph or a linear chain?** §6.1 assumes adjacency; real arguments branch.
 5. **Multi-user or single-user?** Determines whether §10's consent constraint is on the critical path.
 6. **What is the durable artifact** — the annotated document, the ledger, or both?
+7. **Should `Policy` be framework-scoped?** Every other framework object is. Two traditions differing on a cross-cutting constraint cannot currently be expressed, and it is not settled whether that is a gap or the correct separation of procedure from substance.
+8. **Does the value layer survive?** Three designs have failed to distinguish a real step from an unrelated pair. The remaining test puts a person in the machine's place on the same decoy condition: a reader who discriminates says the question has ground truth and the model failed; a reader who cannot says the question is ungrounded in a found text and the layer should be retired.
 
 ## 13. References
 
