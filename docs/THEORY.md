@@ -575,6 +575,53 @@ make quietly.
 this rule needs, not a result. They are the sort of thing that should settle
 over iteration.*
 
+### Case-scoped closure — the architecture of contextual judgment
+
+The last of the three calls resolved the encoder question, and resolved it at a
+level above the one it was asked at. The answer is Encoder — not because a mask
+was missing, but because **judgment is not a token-level property**. Her worked
+example is *Life is Beautiful*: every rule the father invents is a lie, a judge
+scoped to the sentence sees the lie and fires, and only a judge scoped to the
+closed episode can see Kindness put before Truth — which is what the episode
+establishes. Her mechanism is an asymmetric space-time geometry: forward
+attention attenuated much faster than backward context, capping the symmetric
+window's leak while keeping the global field connected.
+
+The reframe that makes this buildable outside a transformer: the primitive is
+not bidirectional attention, it is **deferred evaluation**. A jury does not
+hear sentence one, verdict, sentence two, verdict. It hears the whole case,
+deliberates, and only then judges — because the ending is allowed to
+reinterpret the beginning. The same holism Polanyi ascribes to tacit knowing: a
+symphony is not understood note by note, and the reinterpretation of the
+beginning by the ending is not information leakage but the structure of
+meaning.
+
+The requirement does not name the layer, and the two implementations are not
+rivals. A transformer cannot defer evaluation over a representation that never
+captured the horizon, so it must meet the requirement in the attention
+geometry — hers. An evaluation system can meet it in the evaluation order —
+ours. A `Case` is an edge from an episode's first claim to its last, bounded by
+structure the ingest already marks; **closure is the constructor, not a gate**,
+so a case that has not closed does not exist and nothing can be asked about it.
+The blind bureaucrat is refused structurally: no unit exists that accepts a
+sentence-scoped moral question.
+
+What this sharpened, the control then settled. The value layer's recorded
+diagnosis — *no ground truth in a found text* — became the testable claim *no
+ground truth at pair scope*, and the same discrimination control, run with the
+observer shown the closed episode instead of two sentences, returned **0.00
+standard errors**: a conflict found at 85.7% of real steps and 85.7% of pairs
+that were never an argument, the flattest of the four designs
+([ADR 20](decisions/0020-judgment-waits-for-closure.md),
+[v3 §10](BASELINE-v3.md)). The caution cut against the beautiful example
+exactly as feared: an episode is more material to build a dilemma from, and the
+closed case produced the highest invention rate of any scope. The diagnosis
+survives its strongest challenge — the ground truth of a value question lives
+in the **constructed** conflict, where her method has put it from the start,
+and not in a found text at any scope a machine has been given. Deferred
+evaluation stands as architecture; the value question asked at case scope does
+not.
+
 ---
 
 ## 6. The 2.0 Reframing

@@ -1,6 +1,6 @@
 # Lexicon
 
-**The vocabulary of the Alexicon, from the record · 118 terms · July 31, 2026**
+**The vocabulary of the Alexicon, from the record · 122 terms · July 31, 2026**
 
 *Generated. Re-render with `rake alexicon:lexicon`.*
 
@@ -19,7 +19,7 @@ which is the same distinction the framework draws everywhere else.
 | [The record](#the-record) | 18 | One record type, and what can be said with it. |
 | [Identity](#identity) | 13 | Who or what a name refers to, and what may be said of it. |
 | [Kinds of claim](#kinds-of-claim) | 11 | What a statement DOES, never how true it is. |
-| [Steps between claims](#steps-between-claims) | 11 | The unit of governance is the move, not the claim. |
+| [Steps between claims](#steps-between-claims) | 15 | The unit of governance is the move, not the claim. |
 | [What a step protects](#what-a-step-protects) | 21 | Beneath judgement: the commitments a move puts first. |
 | [Who decides](#who-decides) | 20 | Attribution, capability, and delegated judgement. |
 | [Measurement](#measurement) | 6 | What the system has established about itself. |
@@ -375,6 +375,32 @@ See also: Lead-in, Claim.
 
 *The unit of governance is the move, not the claim.*
 
+### Case
+
+*record type*
+
+A bounded episode of a document: the unit judgment waits for. An edge from the
+first claim of an episode to its last, bounded by structure — a heading restarts
+an argument, a signature ends a letter. The scope at which an ending is allowed
+to reinterpret a step. `app/models/case.rb`
+
+**Distinct from **Transition**, which is one step; a case is the closed episode
+the step happened inside.**
+
+See also: Closure, Transition, Observer.
+
+### Closure
+
+*concept*
+
+The establishment of an episode's right boundary — a structural claim, or the
+end of a completed document. Deliberately a constructor rather than a gate: a
+case that has not closed does not exist, so judgment structurally cannot outrun
+it. In text still being written, the final run of claims is not a case yet. ADR
+20.
+
+See also: Case, Deferred evaluation.
+
 ### Contested
 
 *concept*
@@ -391,6 +417,21 @@ from a **premise difference**, which is two frameworks priced differently and is
 not disagreement at all.**
 
 See also: Position, Drift, Premise, Agreement.
+
+### Deferred evaluation
+
+*concept*
+
+Judgment over completed causal structures rather than tokens: the jury hears the
+whole case before it deliberates, because the ending is allowed to reinterpret
+the beginning. The evaluation layer's form of the requirement a transformer
+meets with attention geometry.
+
+**Distinct from **Future visibility**, which widens what a judge sees while
+representations form. Deferral changes when the question may be asked, not what
+is visible.**
+
+See also: Case, Closure.
 
 ### Drift
 
@@ -421,6 +462,17 @@ weighted **symmetrically**: everywhere else the ascent costs and the descent is
 free, and nothing about an ought is firmer ground for an is. ADR 17.
 
 See also: Promotion.
+
+### Observer
+
+*concept*
+
+The judge whose subject is a closed case. Asks the pair-scoped tension question
+— a conflict at this step, or none — with the whole episode visible, so the two
+scopes are measurably comparable. Proposes, never rules.
+`app/services/case_observer.rb`
+
+See also: Case, Step value reading.
 
 ### Position
 
@@ -1049,7 +1101,7 @@ below names the other and says what separates them.
 | | |
 |---|---|
 | read from the framework's data or a code constant | 69 |
-| authored, because nothing in the system holds them | 49 |
+| authored, because nothing in the system holds them | 53 |
 
 A generated term cannot drift from what the system does, because it is what the
 system does. An authored one can, so each names the file it describes and is

@@ -387,6 +387,19 @@ Referent.find_or_initialize_by(key: "step-value-judge").update!(
          "abstains readily, always carries a confidence."
 )
 
+# Judgment at the scope of a closed episode. A jury hears the whole case before
+# it deliberates, because the ending is allowed to reinterpret the beginning —
+# so the Observer's subject is a Case, and a case that has not closed does not
+# exist. A separate actor from the pair-scoped proposer: same question, wider
+# scope, and which of them is right is a measured comparison rather than a
+# design preference.
+Referent.find_or_initialize_by(key: "case-observer").update!(
+  name: "Case Observer", subject: "System", role: "Observer", primitive: "system",
+  notes: "Reads a complete, closed episode and proposes whether a marked step " \
+         "inside it trades one commitment against another, in the light of " \
+         "everything around it. Proposes only; nothing here rules."
+)
+
 # --- What a step, or a response, can put first --------------------------------
 #
 # The Motivation domain carries a component named Values and always has. The

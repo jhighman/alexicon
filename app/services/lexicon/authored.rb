@@ -172,6 +172,36 @@ class Lexicon
                           "categories, stages, values. A premise is what its weights " \
                           "commit it to.",
            see_also: [ "Framework", "Promotion", "Is/ought crossing", "Contested" ]),
+      term("case", "Case", "step", "record type",
+           "A bounded episode of a document: the unit judgment waits for. An edge " \
+           "from the first claim of an episode to its last, bounded by structure — " \
+           "a heading restarts an argument, a signature ends a letter. The scope at " \
+           "which an ending is allowed to reinterpret a step. `app/models/case.rb`",
+           distinct_from: "**Transition**, which is one step; a case is the closed " \
+                          "episode the step happened inside.",
+           see_also: %w[Closure Transition Observer]),
+      term("closure", "Closure", "step", "concept",
+           "The establishment of an episode's right boundary — a structural claim, " \
+           "or the end of a completed document. Deliberately a constructor rather " \
+           "than a gate: a case that has not closed does not exist, so judgment " \
+           "structurally cannot outrun it. In text still being written, the final " \
+           "run of claims is not a case yet. ADR 20.",
+           see_also: [ "Case", "Deferred evaluation" ]),
+      term("deferred-evaluation", "Deferred evaluation", "step", "concept",
+           "Judgment over completed causal structures rather than tokens: the jury " \
+           "hears the whole case before it deliberates, because the ending is " \
+           "allowed to reinterpret the beginning. The evaluation layer's form of " \
+           "the requirement a transformer meets with attention geometry.",
+           distinct_from: "**Future visibility**, which widens what a judge sees " \
+                          "while representations form. Deferral changes when the " \
+                          "question may be asked, not what is visible.",
+           see_also: %w[Case Closure]),
+      term("case-observer", "Observer", "step", "concept",
+           "The judge whose subject is a closed case. Asks the pair-scoped tension " \
+           "question — a conflict at this step, or none — with the whole episode " \
+           "visible, so the two scopes are measurably comparable. Proposes, never " \
+           "rules. `app/services/case_observer.rb`",
+           see_also: [ "Case", "Step value reading" ]),
       term("retroactive-audit", "Retroactive audit", "step", "concept",
            "When a step is judged unearned, looking back at what it stood on. Four " \
            "unearned steps in a row are one failure with three consequences, and the " \

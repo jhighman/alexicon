@@ -129,6 +129,7 @@ Where entity ambiguity, broken causality, or out-of-distribution input crosses a
 | F14 | Hold two incompatible sets of premises over the same text simultaneously, with both sets of verdicts standing and neither superseding the other |
 | F15 | Obtain a reading from a judge that cannot see the system's own conclusion, and refuse to disclose that conclusion until the reading is recorded |
 | F16 | Observe a subject's value priority under a **constructed** conflict, and report no ordering until the same probe has been shown to yield the same priority across runs |
+| F17 | Defer contextual judgment to the closure of its case: evaluate a step at the scope of the completed episode containing it, and make an unclosed episode structurally unaskable rather than flagged |
 
 **On F9.** It does not work well enough to be read as a finding, and the figure
 is measured rather than suspected: presented with claim pairs from unrelated

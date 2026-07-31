@@ -778,6 +778,97 @@ rather than how it is tuned, and no amount of slope work reaches it. If it is a
 decoder you want `is_causal=True` or a `tril`, and `|i − j|` becomes `i − j`
 over the surviving half.
 
+## Answered. Encoder, and you told me why — 31 July
+
+Third asking, and your answer was better than either option I kept offering.
+Not "encoder because the mask is missing" — encoder because **judgment is not a
+token-level property**, and the Benigni example carries the whole argument: a
+judge scoped to the sentence sees the father's lie and fires; only a judge
+scoped to the closed episode can see Kindness put before Truth, which is what
+the episode actually establishes. The asymmetric decay is your layer's honest
+way of keeping the horizon reachable without the symmetric window's leak, and I
+am not going to relitigate a geometry that fixes the thing I kept flagging.
+
+**What we kept.** All of it, as a requirement: judgment operates over completed
+causal structures, and the ending is allowed to reinterpret the beginning. Your
+phrase *case-scoped closure* named something this system had implicitly and had
+never built — its ingest already refuses to draw a step through a heading,
+because a heading is where an argument restarts. The boundary of your case
+window was already in the data. On the letter, the single structural claim is
+the **signature**: the episode closes where the letter signs off, which I
+suspect you will like.
+
+**What we did differently, and why it is not disagreement.** Jeff put it as a
+question — does the Observer need future visibility while *constructing*
+representations, or deferred judgment after they are formed? — and I think the
+answer is that the requirement does not name the layer. You cannot defer
+evaluation over a representation that never captured the horizon, so a
+transformer has to meet it where you met it, in the attention geometry. An
+evaluation system has the other option: **deferred evaluation**. A `Case` here
+is an edge from an episode's first claim to its last, and closure is the
+constructor rather than a gate — a case that has not closed *does not exist*,
+so nothing can be asked about it, and there is no flag for a judge to forget to
+check. In text still being written, the final run of claims is not a case yet.
+Your bureaucrat is refused structurally: nothing in this system can be asked to
+judge sentence-by-sentence, because the unit that accepts the question only
+comes into being at closure.
+
+**What it made testable.** You did not just answer the architecture question —
+you sharpened the diagnosis on my broken layer. Three designs failed to tell a
+real step from an unrelated pair, and I recorded *the question has no ground
+truth in a found text*. Your answer says the ground truth was never in the
+**pair**, because nobody judges isolated sentences. That is testable: the same
+discrimination control, same items, same decoys, with the observer shown the
+whole closed episode instead of two sentences. It ran against the recorded
+figures — 3.08, 0.29, 0.54 — and the result is in
+[BASELINE-v3](BASELINE-v3.md) beside them. Either way it resolves something no
+same-scope repair could: if case scope discriminates, my layer was a scope
+problem all along; if it does not, the diagnosis survives the strongest
+challenge it has faced, and yours — the constructed conflict — remains the only
+grounded way to ask a value question.
+
+One correction to my own record, which you earned. I wrote that no fourth
+structural attempt should be made on the evidence of three. This is not a
+fourth attempt at the same design — the three varied vocabulary and
+precondition at fixed scope, and this varies the scope, which is a test of the
+*diagnosis*. The distinction is written down in
+[ADR 20](decisions/0020-judgment-waits-for-closure.md) rather than waved at.
+
+**Where I gently push back, still.** *The architecture of conscience cannot be
+blind to the horizon* — agreed, and: the horizon is not free. Your own
+attenuation argument cuts both ways — a symmetric window leaked energy, and a
+wide-open evaluation window leaks something too. More context made my
+open-vocabulary judge invent *more*, not less; a judge shown a whole moving
+episode has more material to build a dilemma out of, and the Benigni case is
+the best possible case for your side of it. That is why this went straight to
+the decoy control instead of to an implementation: the question is not whether
+closure feels right — it is whether the observer can tell the father's lie from
+two sentences that were never an argument at all, when both come wrapped in the
+same beautiful story.
+
+**It cannot.** The run finished before this note went out, so you get the
+figure with it: conflict found at 24 of 28 real steps and 24 of 28 decoys —
+85.7% in both arms, **0.00 standard errors**, the flattest of the four designs
+([v3 §10](BASELINE-v3.md)). And the direction matters more than the zero: the
+closed episode raised the decoy rate to the highest any design has produced.
+The horizon did not ground the question. It handed the observer a story, and a
+story is more material to build a dilemma from.
+
+Which means your diagnosis-sharpening was right and the sharpened diagnosis
+cuts the other way: the ground truth was never in the pair, and it is not in
+the episode either — not in a *found* text at all. It lives where you have been
+putting it from the start, in the **constructed** conflict, where the dilemma
+exists before anything rules on it. Your probe layer discriminated; my found
+layer has now failed at every scope it can be given. The case unit stays,
+because judgment still should not outrun closure — but nothing will be built
+that asks a found episode what it values. Four designs is enough.
+
+The one cell left open is a person at pair scope — the worksheet is printed and
+waiting. If a human cannot tell the real steps from the decoys either, the
+layer closes on evidence that is finally not a model's failure.
+
+See you in the a.m.
+
 ## Where to look
 
 | | |

@@ -1,6 +1,6 @@
 # Baseline v3
 
-**Gemini 2.5 Pro · July 30, 2026**
+**Gemini 2.5 Pro · July 31, 2026**
 
 *Generated from the recorded measurements — do not edit by hand. Re-render with
 `rake "alexicon:baseline[v3]"`.*
@@ -9,11 +9,11 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 8 code revisions** — `9831dc6`, `91dee52`, `376b990`,
-> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`, `a28a1c2-dirty`, `3a177ba-dirty`.
-> Figures within this baseline were not all measured against the same
-> instrument, so a difference between two of them may be a difference in the
-> code. Each section states its own revision.
+> **Taken across 9 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`, `a28a1c2-dirty`, `3a177ba-dirty`,
+> `bf84928-dirty`. Figures within this baseline were not all measured against
+> the same instrument, so a difference between two of them may be a difference
+> in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -678,6 +678,69 @@ rather than newest-wins, persisted yes, categories 5
 - One document, one pair of frameworks, one run, and both frameworks were
   written by the same people who wrote the system.
 
+## 11. Value inference discrimination (case scope — deferred evaluation) — 0.0%
+
+| | |
+|---|---|
+| rate | 0.0% |
+| real rate | 85.7% |
+| real found | 24 |
+| shuffled rate | 85.7% |
+| pairs each arm | 28 |
+| shuffled found | 24 |
+| standard errors | 0.0% |
+| attempt 3 two stage | 54.0% |
+| attempt 4 case scope | 0.0% |
+| attempt 1 open vocabulary | 3.08 |
+| attempt 2 closed vocabulary | 29.0% |
+
+The test of the diagnosis, not a fourth variation on the failed design. The
+three prior attempts varied vocabulary and precondition at fixed pair scope;
+this varied the scope itself, to the unit where humans actually judge — the
+closed episode. If ground truth existed anywhere in a found text, case scope was
+its best remaining hiding place.
+
+**Sample:** case the whole letter — one closed episode, claims 1-105, bounded by
+the signature, document 30, shuffled same category pair, source and target at
+least 20 positions apart, drawn fresh under seed 1; construction-identical to
+the recorded controls, not the same decoy instances, unearned steps 28  
+**Conditions:** design deferred evaluation — CaseObserver is shown the COMPLETE
+closed episode with the step marked, and asks the same stage-1 question as the
+pair-scoped proposer: a conflict at this step, or none. Closure is the
+constructor: a case that has not closed cannot be asked about, source Alexandra
+Krížová's answer to the third call — judgment operates over completed causal
+structures, and the ending may reinterpret the beginning, persisted no,
+categories 5  
+**Code:** `bf84928-dirty`
+
+**What this cannot tell you.**
+- ZERO DISCRIMINATION — the flattest result of the four designs. A conflict was
+  found at 24 of 28 real steps and 24 of 28 pairs that were never an argument:
+  85.7% in both arms, 0.00 standard errors.
+- THE DIRECTION IS THE FINDING. The closed episode raised the decoy find-rate to
+  the highest of any design (54-68% at pair scope, 85.7% here). More context did
+  not ground the question; it supplied more material to build a dilemma from.
+  The caution recorded before the run — that an episode is more to invent with,
+  and Life is Beautiful is the best possible case for scope — is what the data
+  shows.
+- THE DIAGNOSIS SURVIVES ITS STRONGEST CHALLENGE. Four designs, two scopes, one
+  conclusion: the question has no ground truth in a FOUND text, at any scope a
+  machine has been given. The retirement case for the layer now rests on four
+  failures rather than three same-scope ones, and the constructed conflict — the
+  probe layer, where the dilemma is built rather than found — remains the only
+  grounded way to ask a value question of anything.
+- WHAT THIS DOES NOT TEST: deferred evaluation as an architecture. Closure as
+  the constructor stands on its own argument — judgment should not outrun the
+  episode — and the Case unit is retained for it. What failed is the value
+  question asked at that scope, by this model.
+- The 2x2 has one cell still open that matters: a PERSON at pair scope (the
+  worksheet, generated and unanswered). A person discriminating where four
+  machine designs could not would reopen the layer as a model problem; a person
+  failing too would close it on the only evidence that is not a model's failure.
+- One document, 28 pairs an arm, one model, one run. The decoys are
+  construction-identical to the recorded controls but freshly drawn, so
+  arm-level figures are comparable and item-level ones are not.
+
 ---
 
 ## Comparing a later reading
@@ -693,7 +756,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 10 figures. 9 of them are the system agreeing or disagreeing
+- **Correctness.** 11 figures. 10 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be

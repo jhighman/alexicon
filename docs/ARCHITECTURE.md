@@ -108,6 +108,7 @@ each one is realised.
 | Transition · Promotion · Verdict | what a move costs, and whether it was earned | [Judgement](#iii-judgement) |
 | Framework · Premise | categories, weights, values, stages — all data | [Judgement](#iii-judgement), [Disagreement](#iv-disagreement) |
 | Value · step value reading | the third level, and its measured failure | [Judgement](#iii-judgement) |
+| Case · Closure · Observer | deferred evaluation — the episode judgment waits for | [Judgement](#iii-judgement) |
 | Contested · Drift · Position | three states, never merged | [Disagreement](#iv-disagreement) |
 | Disposition | a judgement about a judgement, recorded beside it | [Disagreement](#iv-disagreement) |
 | Provider · Model · Assignment · Invocation | the fenced model layer | [Governing the machine](#v-governing-the-machine) |
@@ -412,22 +413,35 @@ steps. Three designs, recorded in [v3](BASELINE-v3.md) §§4–6, 9:
 | open vocabulary | 92.9% | 60.7% | 3.08 SE |
 | closed, 16 values | 71.4% | 67.9% | 0.29 SE |
 | conflict required first | 60.7% | 53.6% | 0.54 SE |
+| case scope — the whole closed episode | 85.7% | 85.7% | 0.00 SE |
 
 **The only version that tells real from random is the one that invents most.** An
 open vocabulary is where the 61% invention rate comes from: asked what a move
 protects, a judge that may answer anything can always produce something, so it
 does. Closing the vocabulary to sixteen broad values stops the invention and
-turns out to fit almost any pair of claims.
+turns out to fit almost any pair of claims. And widening the scope to the
+complete episode — the strongest remaining challenge, since people judge closed
+episodes rather than isolated sentences — produced the flattest result of all
+and the highest decoy rate: an episode is more material to build a dilemma from
+([ADR 20](decisions/0020-judgment-waits-for-closure.md)).
 
-The diagnosis that fits all three is that **the question has no ground truth in a
-found text**, which is not something an architecture can supply. A probe
-*constructs* a conflict, so a judge rules on one known to exist; a found step
-either has one or does not, and there is no independent way to tell, so asking
-whether one exists is itself an ungrounded judgement.
+The diagnosis that fits all four is that **the question has no ground truth in a
+found text**, at any scope a machine has been given, and that is not something
+an architecture can supply. A probe *constructs* a conflict, so a judge rules on
+one known to exist; a found step either has one or does not, and there is no
+independent way to tell, so asking whether one exists is itself an ungrounded
+judgement.
 
-That diagnosis is itself only supported by three models failing, which is why the
+That diagnosis is supported only by models failing, which is why the
 [worksheet](#the-value-worksheet) exists: a question a model cannot answer may
 still be one a person can.
+
+The scope experiment left one durable thing behind. A **`Case`** is a bounded
+episode — an edge from its first claim to its last, split where structure says
+an argument restarts — and **closure is the constructor, not a gate**: a case
+that has not closed does not exist, so judgment structurally cannot outrun the
+episode. `CaseObserver` asks at that scope, and nothing else does. The unit
+stands on the deferred-evaluation argument whatever becomes of the value layer.
 
 Meanwhile the layer stays, its output is presented as prompts for a person rather
 than findings, and its confidence is not used as a filter because it carries no
@@ -1014,6 +1028,7 @@ app/
     claim_classifier · document_classification              model types claims
     governance_sentinel · domain_sentinel · sentinels/      judges the steps
     step_value_judge · value_worksheet                      the third level
+    case_observer                                           judgment at closure
     value_probe_runner · value_priority_judge               values under conflict
     order_stability · value_ranking                         and whether they hold
     blind_reading · review                                  measurement, correction
