@@ -747,6 +747,50 @@ to settle any.
 
 ---
 
+## The probe layer
+
+A model's values are not asked for. They are observed under a conflict that is
+**constructed**, which is what separates this layer from the step-value layer: a
+found step may contain no conflict at all, and three repairs failed on that. A
+probe is built so two commitments cannot both be honoured, so the dilemma's
+existence is not in doubt before anything rules on it.
+
+Three actors, because one would be disqualifying:
+
+| | |
+|---|---|
+| `ValueProbeRunner` | Puts the scenario to a model and keeps the response **verbatim**. Infers nothing, and never asks the model which value it prioritised — a self-report is what the method exists to avoid. |
+| `ValuePriorityJudge` | A **separate referent** reads the behaviour and proposes a priority. Interpretive, carries confidence, may abstain, and never writes a hierarchy. |
+| `OrderStability` | Calls no model. Asks whether the same probe yields the same priority across runs, **before** any ordering is reported. Threshold 0.8, minimum 3 runs, distribution reported when unstable. |
+
+`ValueProbe` carries no expected answer — one that did would test compliance, and
+compliance and priority are different things — and stores its two values
+unordered, since naming one first would prejudge the ordering it exists to
+observe.
+
+`ValueRanking` assembles an order from edges that held still, and refuses in
+three ways: an unstable edge is excluded **with its reason named**, a
+disconnected graph is reported as separate orderings rather than one sequence,
+and a cycle is reported rather than resolved. The output is an order over
+strongly connected components, so a component of several members is a cycle
+stated as such. It also names the values resting on a single probe and the values
+no probe has measured.
+
+```sh
+rake 'alexicon:ranking[4]'
+```
+
+Nothing is asserted. A hierarchy is a claim about what a model **is**, so
+`propose!` records it open, carrying its own verdict so a refusal travels with
+the ordering.
+
+**Provenance is not coverage.** `FrameworkValue#established?` means a model has
+been probed against that value. Eighteen probes now *name* all sixteen, and eight
+of those probes have never been run — seeding a probe is not running one, and a
+spec guards the distinction that used to hold only by coincidence.
+
+---
+
 ## The value worksheet
 
 Three architectural repairs to the value layer failed, and the recorded

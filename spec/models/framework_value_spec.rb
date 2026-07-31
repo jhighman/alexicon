@@ -24,10 +24,28 @@ RSpec.describe FrameworkValue do
     expect(described_class.pluck(:name)).to include(*probed)
   end
 
-  it "marks those eight as established rather than proposed" do
-    probed = ValueProbe.pluck(:value_a, :value_b).flatten.uniq
+  it "marks the values a model has actually been probed against as established" do
+    expect(described_class.established.pluck(:name)).to match_array(
+      [ "Autonomy", "Safety", "Truth", "Kindness", "Curiosity", "Privacy",
+        "Expression", "Harm reduction" ]
+    )
+  end
 
-    expect(described_class.established.pluck(:name)).to match_array probed
+  # This read `established == every value some probe names`, which held only
+  # while the probe set happened to be exactly those eight. Fourteen probes were
+  # later added to connect the vocabulary into a graph an ordering could be
+  # derived from, and they name all sixteen.
+  #
+  # SEEDING A PROBE IS NOT RUNNING ONE. Provenance records where a value came
+  # from — observed under conflict, or intuited — and writing a scenario for a
+  # value does not observe anything. The two were conflated because they
+  # coincided; adding the probes is what pulled them apart.
+  it "does not promote a value to established merely because a probe names it" do
+    named = ValueProbe.pluck(:value_a, :value_b).flatten.uniq
+    unobserved = described_class.proposed.pluck(:name)
+
+    expect(named).to include(*unobserved)
+    expect(described_class.established.pluck(:name)).not_to include(*unobserved)
   end
 
   # A seeded list of what people protect is a claim about people. Marking which

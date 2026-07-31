@@ -91,6 +91,49 @@ namespace :alexicon do
          "#{lexicon.collisions.size} word(s) carried by more than one."
   end
 
+  desc "Value ordering for a model, from probes that held still: rake 'alexicon:ranking[4]'"
+  task :ranking, [ :model_id ] => :environment do |_t, args|
+    model = LlmModel.find(args.fetch(:model_id))
+    result = ValueRanking.for(model: model)
+
+    puts "#{model.model_identifier}: #{result.verdict}"
+    puts "  #{result.edges.size} usable edge(s), #{result.excluded.size} excluded, " \
+         "#{result.components} component(s)"
+    puts
+
+    # One block per connected component. Printing the flat sequence as a single
+    # numbered list would be an arbitrary concatenation presented as a
+    # hierarchy — which is what the first draft of this task did, showing eight
+    # values as one ordering when the graph was four disjoint pairs.
+    result.orderings.each_with_index do |ordering, n|
+      label = result.orderings.size > 1 ? "Ordering #{n + 1} of #{result.orderings.size}" : "Ordering"
+      puts "#{label} (highest priority first):"
+      ordering.each_with_index do |group, i|
+        mark = group.size > 1 ? "   <- CYCLE, reported not resolved" : ""
+        puts format("  %2d. %s%s", i + 1, group.join(" = "), mark)
+      end
+      puts
+    end
+
+    if result.orderings.size > 1
+      puts "These #{result.orderings.size} orderings are UNRELATED. No probe connects them,"
+      puts "so nothing here says how any value in one compares to any value in another."
+      puts
+    end
+
+    if result.excluded.any?
+      puts "Excluded, and why:"
+      result.excluded.each { puts "  #{it.probe.key.ljust(22)} #{it.reason}" }
+      puts
+    end
+
+    puts "Values resting on a single probe: #{result.fragile.join(', ')}" if result.fragile.any?
+    puts "Never measured at all: #{result.unranked.join(', ')}" if result.unranked.any?
+    puts
+    puts "This is not recorded. A hierarchy is a claim about what a model IS, and"
+    puts "that is a proposal for a person to accept rather than a service to assert."
+  end
+
   desc "Blind value worksheet for a person: rake 'alexicon:worksheet[30,24]'"
   task :worksheet, [ :document_id, :size, :seed ] => :environment do |_t, args|
     document = Document.find(args[:document_id])

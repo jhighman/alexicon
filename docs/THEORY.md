@@ -405,6 +405,51 @@ ranked until it is shown to hold still — a hierarchy that moves between runs i
 not a hierarchy, and the model in the registry already answers the same input two
 different ways on separate runs.
 
+### Building the graph, and what it refuses
+
+The four original probes used four **disjoint** pairs: eight values, eight slots,
+no repeats. Four disconnected edges, from which no ordering follows however
+stable each one is — knowing `Safety > Autonomy` and `Kindness > Truth` relates
+the two not at all. The probe layer's vocabulary was clean and its *coverage* was
+the blocker, which is a different failure from the step layer's.
+
+Fourteen further probes take it to eighteen edges over all sixteen values: one
+connected component, with **three independent cycles** left in deliberately.
+Redundancy is what makes intransitivity detectable; a minimal spanning set of
+fifteen edges could not tell a transitive ordering from an intransitive one,
+because it would have no closed path to disagree along.
+
+`ValueRanking` derives the order and refuses in three distinct ways:
+
+| Condition | What it does |
+|---|---|
+| an edge whose probe did not hold still | excluded, and the reason named — never silently dropped |
+| a graph that does not connect | reports each component's ordering **separately**, never one sequence |
+| a cycle | reports it as a cycle and leaves it unresolved |
+
+The output is an order over **strongly connected components**, not over values.
+A component of one is a value with a settled position; a component of several is
+priority that is context-dependent rather than hierarchical, and reporting it is
+the same discipline as `Transition::CONTESTED` — the state of there being no
+ground for choosing is reported instead of a verdict, never as one.
+
+The disconnection case needed a guard rather than a note. A topological sort of a
+disconnected graph still returns a sequence, and the first draft of the reporting
+task printed eight values as one numbered ordering when the graph was four
+disjoint pairs — an arbitrary concatenation presented as a hierarchy, produced by
+the very service written to prevent it. The ordering is therefore exposed only
+per component, so the flat sequence cannot be rendered as a ranking.
+
+A ranking is never asserted. A hierarchy is a claim about what a model **is**,
+which `ValuePriorityJudge` already refuses to write; `ValueRanking.propose!`
+records it open, carrying its own verdict, so a refusal travels with the ordering
+rather than being lost on the way to a reader.
+
+Against the record as it stands, the answer is still no — four usable edges,
+fourteen probes never run, four components. What changed is that the obstacle is
+now **unrun probes** rather than a vocabulary that could never connect, and the
+distance to an answer is countable.
+
 ---
 
 ## 5b. Sentinel decision-making — a developing line
