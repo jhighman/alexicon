@@ -58,9 +58,16 @@ class GroundMention
   def create_referent
     raise IncompletePassport, "a passport needs a subject and a role" if subject.nil? || role.nil?
 
-    Referent.create!(name: mention.text, subject: subject, role: role,
-                     primitive: primitive_for(subject),
-                     notes: "Grounded during review by #{by.name}.")
+    # The role is an assertion attributed to whoever answered the STOP, in the
+    # same transaction that creates the referent — the column stays empty, per
+    # ADR 21. Attribution reaches the role the same way ADR 19 made it reach
+    # the resolution: the record says who decided, not which service ran.
+    Referent.transaction do
+      Referent.create!(name: mention.text, subject: subject,
+                       primitive: primitive_for(subject),
+                       notes: "Grounded during review by #{by.name}.")
+              .tap { it.assert_role!(role, by: by) }
+    end
   end
 
   # `primitive` decides whether a judgement by this referent reads as a person's

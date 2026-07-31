@@ -30,7 +30,7 @@ flowchart TD
     X --> M["Mentions"]
     M --> IS{"IdentitySentinel"}
 
-    IS -->|"resolves"| R["Referent<br/>Name → Subject → Role"]
+    IS -->|"resolves"| R["Referent<br/>Name → Subject → Roles"]
     IS -->|"cannot"| STOP["STOP<br/><i>waits for a person</i>"]
 
     STOP -.->|"model may propose"| IP["IdentityProposer"]
@@ -100,7 +100,7 @@ each one is realised.
 |---|---|---|
 | Assertion | the single record type; immutable, attributed | [Foundations](#i-foundations) |
 | Derivation | no `status`, `verdict` or `category` column exists | [Foundations](#i-foundations) |
-| Referent · Cognitive Passport | `Name → Subject → Role` | [Order of operations](#ii-order-of-operations) |
+| Referent · Cognitive Passport | `Name → Subject → Roles(standing, ≥ 1)` | [Order of operations](#ii-order-of-operations) |
 | Mention · Entity Noise · STOP | the input boundary | [Order of operations](#ii-order-of-operations) |
 | Alias | one entity, several spellings | [Order of operations](#ii-order-of-operations) |
 | Polarity · polarity invariance | surface reading, and where it cannot be trusted | [Order of operations](#ii-order-of-operations) |
@@ -193,8 +193,24 @@ enforced, not documented.
 ## Identity precedes reasoning about an entity
 
 A name arriving without established reference is *Entity Noise*. The Cognitive
-Passport is `Name → Subject → Role`, and a partial passport is not a weaker
-anchor — it is no anchor.
+Passport is `Name → Subject → Roles(standing, ≥ 1)`, and a partial passport is
+not a weaker anchor — it is no anchor.
+
+**A role is an assertion**, not a column
+([ADR 21](decisions/0021-a-role-is-an-assertion.md)). A person is caregiver
+*and* engineer *and* exhausted *and* highly capable, and those do not compete —
+so each role is a standing claim about the referent: attributable, contestable,
+plural by construction, retired by supersession and never deleted. Roles are
+deliberately **not** the contested machinery: two roles do not contradict, so
+there is no majority to take; what can be disputed is one role assertion, which
+a standing challenge marks disputed without unseating anything else. Collapsing
+somebody into a single label would mean superseding standing assertions with
+named authors — and the record of doing so would itself be the finding.
+
+The legacy single-role column is read as one **unattributed** role — recorded
+before roles named their asserter, which is a different fact from "nobody said
+it" — and no runtime path writes it. Nothing behavioral reads the singular
+`role`; a spec holds every service to `roles` or to neither.
 
 ```mermaid
 flowchart LR

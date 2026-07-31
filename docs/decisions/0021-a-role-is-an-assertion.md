@@ -1,8 +1,12 @@
 # 21. A role is an assertion
 
 **Date:** 2026-07-31
-**Status:** Proposed — a prescriptive for a build not yet made. Nothing below
-exists in code, and the build must not begin until this status reads Accepted.
+**Status:** Accepted by Jeff, 2026-07-31, and built to the criteria as written.
+One stated deviation: seeds still write the legacy column for **system**
+referents (sentinels, judges) — framework fixtures whose roles are structural,
+not epistemic claims about a person; asserting them on every idempotent re-seed
+would mint duplicate assertions. The runtime paths named in §3 write only
+assertions.
 **Source:** Alexandra Krížová's addendum — current systems collapse her into
 "caregiver" — and Jeff's separation of it into identity persistence, context
 weighting, and protective alignment, under one invariant: *do not allow

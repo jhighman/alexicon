@@ -25,9 +25,17 @@ class User < ApplicationRecord
 
   # Creates the person in the graph alongside the account, so a user always
   # has somewhere to attribute their judgements.
+  #
+  # The role is self-asserted — "Jeff says Jeff is Admin" — which is
+  # attributable and honest: at registration there is nobody else in the room
+  # to say it. The referent must exist before it can assert anything, so the
+  # two steps share a transaction.
   def self.register!(username:, password:, role: "viewer", name: nil)
-    referent = Referent.create!(name: name.presence || username,
-                               subject: "Person", role: role.titleize, primitive: "person")
+    referent = Referent.transaction do
+      Referent.create!(name: name.presence || username,
+                       subject: "Person", primitive: "person")
+              .tap { it.assert_role!(role.titleize, by: it, rationale: "self-asserted at registration") }
+    end
     create!(username: username, password: password, role: role, referent: referent)
   end
 

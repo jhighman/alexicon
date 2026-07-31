@@ -44,7 +44,7 @@ detection criteria:
 |---|---|
 | `ambiguous` | Attention-map dispersion — several candidates, or a surface form with non-entity senses |
 | `out_of_distribution` | No match in memory |
-| `unanchored` | Cognitive Passport (`Name → Subject → Role`) could not be assigned |
+| `unanchored` | Cognitive Passport (`Name → Subject → Roles`) could not be assigned |
 
 On any of these the Sentinel escalates to a person, and the lock is enforced
 rather than advisory. What it locks is **predication** — judging that a step

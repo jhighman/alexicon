@@ -139,6 +139,12 @@ class Assertion < ApplicationRecord
   # Two reviewers, two answers, no ground here for choosing between them.
   def contested? = disposition == CONTESTED
 
+  # A standing challenge disputes this assertion without unseating it — the
+  # claim still stands, and so does the objection. Distinct from disposition,
+  # which is somebody answering a question the assertion asked; a challenge
+  # questions the assertion itself.
+  def challenged? = assertions.standing.acting("challenge").any?
+
   # Who currently says what: one standing position per reviewer.
   def disposals
     assertions.standing.chronological.select { it.act.in?(DISPOSING) }

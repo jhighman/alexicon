@@ -85,7 +85,7 @@ class ReferentResolver
   end
 
   def unanchored(referent)
-    missing = [ ("subject" if referent.subject.blank?), ("role" if referent.role.blank?) ].compact
+    missing = [ ("subject" if referent.subject.blank?), ("role" if referent.roles.empty?) ].compact
     Result.new(status: :unanchored, referent: referent, candidates: [ referent ],
                reason: "Cognitive Passport incomplete for #{referent.name.inspect}: " \
                        "missing #{missing.join(' and ')}")

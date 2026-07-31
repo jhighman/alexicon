@@ -31,6 +31,30 @@ RSpec.describe GroundMention do
       expect(result.referent.name).to eq "Wednesday"
       expect(result.referent.subject).to eq "Family"
       expect(result.referent.primitive).to eq "entity"
+      expect(result.referent.roles).to eq [ "Sister" ]
+    end
+
+    # ADR 21 criterion 5, the ADR 19 rule reaching the role: the record says
+    # who decided, not which service ran.
+    it "records the role as an assertion attributed to the person who answered" do
+      result = described_class.call(mention("Wednesday"), by: reviewer,
+                                    subject: "Family", role: "Sister")
+
+      expect(result.referent.role_attributions).to eq("Sister" => [ "Jeff" ])
+      expect(result.referent[:role]).to be_nil
+      expect(result.referent).not_to be_unattributed_role
+    end
+
+    it "attributes an agent's grounding of a role to the agent" do
+      agent = Referent.create!(key: "grounder", name: "Grounder", subject: "System",
+                               role: "Reviewer", primitive: "system")
+
+      result = described_class.call(mention("Wednesday"), by: agent,
+                                    subject: "Family", role: "Sister")
+
+      role_assertion = result.referent.role_assertions.sole
+      expect(role_assertion.asserter).to eq agent
+      expect(role_assertion).to be_inferred
     end
 
     it "refuses a partial passport — half an anchor is no anchor" do

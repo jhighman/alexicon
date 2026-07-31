@@ -1,6 +1,6 @@
 # Lexicon
 
-**The vocabulary of the Alexicon, from the record · 122 terms · July 31, 2026**
+**The vocabulary of the Alexicon, from the record · 123 terms · July 31, 2026**
 
 *Generated. Re-render with `rake alexicon:lexicon`.*
 
@@ -17,7 +17,7 @@ which is the same distinction the framework draws everywhere else.
 | Cluster | Terms | |
 |---|---|---|
 | [The record](#the-record) | 18 | One record type, and what can be said with it. |
-| [Identity](#identity) | 13 | Who or what a name refers to, and what may be said of it. |
+| [Identity](#identity) | 14 | Who or what a name refers to, and what may be said of it. |
 | [Kinds of claim](#kinds-of-claim) | 11 | What a statement DOES, never how true it is. |
 | [Steps between claims](#steps-between-claims) | 15 | The unit of governance is the move, not the claim. |
 | [What a step protects](#what-a-step-protects) | 21 | Beneath judgement: the commitments a move puts first. |
@@ -174,10 +174,11 @@ Several candidates, or a surface form with non-entity senses.
 
 *concept*
 
-`Name → Subject → Role`. What must be established before anything may be
-predicated of a name. A partial passport is not a resolution.
+`Name → Subject → Roles(standing, ≥ 1)`. What must be established before
+anything may be predicated of a name. A partial passport is not a resolution,
+and zero standing roles is a partial passport.
 
-See also: Entity Noise, Mention.
+See also: Entity Noise, Mention, Role.
 
 ### Entity Noise
 
@@ -248,6 +249,22 @@ See also: Referent.
 *mention status*
 
 A passport has been assigned.
+
+### Role
+
+*concept*
+
+A standing assertion about a referent — attributable, contestable, plural by
+construction, retired by supersession and never deleted. Roles coexist rather
+than compete: caregiver and engineer and exhausted are not rival answers to one
+question, so there is no majority to take and no contested state; what can be
+disputed is one role assertion. ADR 21.
+
+**Distinct from **Subject**, the ontological kind (Person, Family, Concept),
+which stays a stored field — and from a User's authorisation role, which is a
+credential, not a claim.**
+
+See also: Cognitive Passport, Referent.
 
 ### Unanchored
 
@@ -1101,7 +1118,7 @@ below names the other and says what separates them.
 | | |
 |---|---|
 | read from the framework's data or a code constant | 69 |
-| authored, because nothing in the system holds them | 53 |
+| authored, because nothing in the system holds them | 54 |
 
 A generated term cannot drift from what the system does, because it is what the
 system does. An authored one can, so each names the file it describes and is

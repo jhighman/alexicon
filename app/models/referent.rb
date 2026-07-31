@@ -1,9 +1,20 @@
 # A grounded subject.
 #
-# The Cognitive Passport is Name -> Subject -> Role, e.g.
+# The Cognitive Passport is Name -> Subject -> Roles(standing, >= 1), e.g.
 # "Wednesday -> Family -> Sister". A name alone is not an entity; it is a
 # label. The passport is what turns a dead node into something an inference
 # may attach to.
+#
+# ROLES ARE ASSERTIONS, not a column (ADR 21). A person is caregiver AND
+# engineer AND exhausted AND highly capable, and those do not compete — so a
+# role is a standing claim about the referent: attributable, contestable,
+# plural by construction, retired by supersession and never deleted. Collapsing
+# somebody into one label would mean superseding standing assertions with named
+# authors, and the record of doing so would itself be the finding.
+#
+# The `role` COLUMN is legacy: one unattributed value, recorded before roles
+# named their asserter. It is read as such and never written by any runtime
+# path — inventing asserters to modernise old rows is what ADR 19 refused.
 #
 # Lacan supplies the mechanism: the anchoring point (point de capiton) that
 # binds an otherwise sliding signifier to a structural position. Without it
@@ -58,11 +69,55 @@ class Referent < ApplicationRecord
 
   before_validation :assign_system_id, on: :create
 
-  # A passport is complete only with all three levels. A partial passport is
-  # not a weaker anchor -- it is no anchor, and the Sentinel treats it as such.
-  def anchored? = subject.present? && role.present?
+  # --- Roles -----------------------------------------------------------------
 
-  def passport = [ name, subject, role ].compact.join(" → ")
+  # The standing role assertions, oldest first. The claim key is the filter:
+  # other things are asserted about referents (drift audits, notes) and none of
+  # them carries "role".
+  def role_assertions
+    assertions.standing.chronological.select { it.claim.key?("role") }
+  end
+
+  # Every role currently standing — the legacy column's unattributed value
+  # first (it predates every assertion), then the asserted ones in the order
+  # they were made. One entry per distinct role: two people asserting the same
+  # role is agreement, not two roles.
+  def roles
+    [ self[:role].presence, *role_assertions.map { it.claim["role"] } ].compact.uniq
+  end
+
+  # The only write path. Recorded beside what stands, never over it.
+  def assert_role!(role, by:, rationale: nil)
+    payload = { "role" => role }
+    payload["rationale"] = rationale if rationale.present?
+
+    assertions.create!(asserter: by, act: "assert", claim: payload)
+  end
+
+  # Who says each role, for any surface that shows one. nil means the role is
+  # the legacy column's: recorded before roles named their asserter, which is a
+  # different fact from "nobody said it" and must not be shown as either
+  # asserted or absent.
+  def role_attributions
+    attributed = role_assertions.group_by { it.claim["role"] }
+                                .transform_values { |list| list.map { it.asserter.name } }
+    legacy = self[:role].presence
+    legacy && !attributed.key?(legacy) ? { legacy => nil }.merge(attributed) : attributed
+  end
+
+  def unattributed_role? = self[:role].present?
+
+  # Presentation only — the legacy value, else the earliest asserted role. A
+  # spec holds every behavioral path to #roles instead: one label was never a
+  # fact to branch on, and now it is not even the record's shape.
+  def role = self[:role].presence || role_assertions.first&.claim&.fetch("role", nil)
+
+  # A passport is complete only with all three levels, and the third is now
+  # "at least one standing role". A partial passport is not a weaker anchor --
+  # it is no anchor, and the Sentinel treats it as such.
+  def anchored? = subject.present? && roles.any?
+
+  def passport = [ name, subject, roles.join(" · ").presence ].compact.join(" → ")
 
   # Every surface form that refers to this entity.
   def surface_forms = [ name, *referent_aliases.pluck(:name) ].uniq

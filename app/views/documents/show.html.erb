@@ -203,6 +203,9 @@
                     <%= mention_status_badge(mention) %>
                     <% if mention.referent %>
                       <span class="text-body-secondary"><%= mention.referent.passport %></span>
+                      <% if mention.referent.unattributed_role? %>
+                        <span class="text-body-tertiary small fst-italic">role recorded before roles named their asserter</span>
+                      <% end %>
                     <% end %>
                   </span>
                 <% end %>

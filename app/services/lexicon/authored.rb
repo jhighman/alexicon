@@ -57,9 +57,20 @@ class Lexicon
                           "them would put credentials in the audit trail.",
            see_also: [ "Referent" ]),
       term("cognitive-passport", "Cognitive Passport", "identity", "concept",
-           "`Name → Subject → Role`. What must be established before anything may be " \
-           "predicated of a name. A partial passport is not a resolution.",
-           see_also: [ "Entity Noise", "Mention" ]),
+           "`Name → Subject → Roles(standing, ≥ 1)`. What must be established before " \
+           "anything may be predicated of a name. A partial passport is not a " \
+           "resolution, and zero standing roles is a partial passport.",
+           see_also: [ "Entity Noise", "Mention", "Role" ]),
+      term("role", "Role", "identity", "concept",
+           "A standing assertion about a referent — attributable, contestable, " \
+           "plural by construction, retired by supersession and never deleted. Roles " \
+           "coexist rather than compete: caregiver and engineer and exhausted are " \
+           "not rival answers to one question, so there is no majority to take and " \
+           "no contested state; what can be disputed is one role assertion. ADR 21.",
+           distinct_from: "**Subject**, the ontological kind (Person, Family, " \
+                          "Concept), which stays a stored field — and from a User's " \
+                          "authorisation role, which is a credential, not a claim.",
+           see_also: [ "Cognitive Passport", "Referent" ]),
       term("mention", "Mention", "identity", "record type",
            "One occurrence of a name in a document, before anyone has said what it " \
            "refers to. Extraction proposes; a person disposes. " \
