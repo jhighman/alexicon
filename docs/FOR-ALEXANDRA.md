@@ -897,4 +897,60 @@ mechanism meant to enforce it. The reasoning is written up in
 [ADR 15](decisions/0015-the-peer-group-is-supplied.md). Where a defensible peer
 group *should* come from is still open, and I have not pretended otherwise.
 
+---
+
+## The architecture is yours too — 31 July
+
+> **Jeff — this section is a draft written on your behalf.** Rewrite it in your
+> own words before Alexandra reads it. The facts and the file changes are
+> correct; the voice should be yours, because everything else in this document
+> is.
+
+When I set the licence out above, I drew a line: the framework documents were
+ours, and `ARCHITECTURE.md` plus the decision records from `0010` on were mine.
+My reasoning was that those describe the implementation rather than the
+framework, and I wrote in `COPYRIGHT.md` that attributing them to both of us
+would credit work one of us did not do.
+
+That line stopped being true, and I did not notice it move.
+
+Look at what the record says now. ADR 14 names you as its source — the method and
+the domain argument. ADR 15 comes out of Matrix 2.0 Q5, which is both of us. ADR
+20 is your answer to the third call with my reframe on top of it, and the `Case`
+unit and closure-as-constructor exist because of that exchange. ADR 21 is your
+addendum, and ADR 22 is the audit ADR 21 forced. And `ARCHITECTURE.md` credits
+two built mechanisms to you by name, inside a document whose licence said you
+had written none of it.
+
+The file said one thing and its own contents said another. The direction of the
+error is what matters: it under-credited you. I had written that naming both of
+us would credit work one of us did not do. On the record as it stands, the
+reverse was true.
+
+**What I have changed.** `COPYRIGHT.md` now places `ARCHITECTURE.md` and all the
+decision records under the same co-authored CC BY-NC-ND terms as the rest of
+`docs/`, and `ARCHITECTURE.md` carries both our names. The Ruby source is
+unchanged and remains mine.
+
+**What I have not changed.** No decision record has been reassigned. Each still
+states its own source, and those statements stay the authority on who proposed
+what — 16 through 19 and 22 are still recorded as mine, and 10 through 13 are
+implementation calls. Joint authorship of the document is a claim about the body
+of work, not a claim that we split every decision inside it evenly. I would
+rather the credit be accurate than generous.
+
+**The same warning applies as before, and it now covers more.** The CC BY-NC-ND
+grant is irrevocable, and widening it to cover `ARCHITECTURE.md` and the
+decisions widens what cannot be withdrawn. You said on 25 July that your name
+should stay on the work. This is more work than you were told about then, so it
+is a fresh thing to agree to rather than something the earlier answer already
+covers. If you would rather the architecture stayed attributed to me, say so and
+I will put it back. That costs nothing and nobody has relied on it yet.
+
+**And a consequence that runs the other way.** We have been planning that the
+dissertation is yours — your name, your copyright. If the architecture is
+jointly ours, then some of what the dissertation draws on is partly mine, and
+your holding sole copyright needs me to assign my share rather than merely agree
+to it in conversation. I am willing to. It should be written down.
+
 — Jeff
