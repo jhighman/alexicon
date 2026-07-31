@@ -9,11 +9,11 @@ What this system has measured about the model it runs on, written down so a
 later reading has something to be compared against, and so the comparison is
 honest rather than reassuring.
 
-> **Taken across 9 code revisions** — `9831dc6`, `91dee52`, `376b990`,
+> **Taken across 10 code revisions** — `9831dc6`, `91dee52`, `376b990`,
 > `38722b1-dirty`, `71f1a4e`, `d256d57-dirty`, `a28a1c2-dirty`, `3a177ba-dirty`,
-> `bf84928-dirty`. Figures within this baseline were not all measured against
-> the same instrument, so a difference between two of them may be a difference
-> in the code. Each section states its own revision.
+> `bf84928-dirty`, `a0d42ec-dirty`. Figures within this baseline were not all
+> measured against the same instrument, so a difference between two of them may
+> be a difference in the code. Each section states its own revision.
 
 Also recorded: `v1` ([BASELINE.md](BASELINE.md)) and `v2`
 ([BASELINE-v2.md](BASELINE-v2.md)). These are **not revisions of each other** —
@@ -741,6 +741,67 @@ categories 5
   construction-identical to the recorded controls but freshly drawn, so
   arm-level figures are comparable and item-level ones are not.
 
+## 12. Inter-judge agreement (third reader, narrative opening, five categories) — 50.0%
+
+| | |
+|---|---|
+| rate | 50.0% |
+| moves — objective->observation | 9 |
+| moves — interpretive->observation | 8 |
+| moves — observation->interpretive | 1 |
+| agreed | 18 |
+| disagreed | 18 |
+| both typed | 36 |
+| abstentions | 2 |
+| reader only | 2 |
+| machine only | 1 |
+| both abstained | 1 |
+| unsure readings | 17 |
+| confident disagreements | 10 |
+
+The type surface's first forty-claim pass. NOT the human baseline: the reader is
+a model, and the measurement is inter-judge agreement, not correctness. What it
+adds is a third judge from a third model family, on the narrative register,
+under five categories.
+
+**Sample:** claims 40, document 27, selection the first forty substantive claims
+in document order — the narrative opening, chosen by position and not by the
+reader  
+**Conditions:** reader fable-blind-reader — claude-fable-5, the session agent,
+reading through BlindReading with blindness enforced per claim by the surface,
+persisted yes, categories 5, governance type_claim delegation granted by Jeff
+Highman, rationale on the record, instruction Jeff: 'type the forty claims', 31
+July 2026  
+**Code:** `a0d42ec-dirty`
+
+**What this cannot tell you.**
+- THE FORTY CLAIMS A PERSON TYPES REMAIN UNTYPED. This reader is a machine, and
+  nothing here converts consistency into correctness — it converts two-judge
+  agreement into three-judge agreement.
+- THE READER IS COMPROMISED IN A DIRECTION IT MUST DECLARE: it wrote much of the
+  prompt the classifier runs on (biases toward agreement, making 50% more
+  striking), AND it knew the prior second-reader result including the direction
+  of disagreement — toward observation — before reading. It then moved claims
+  toward observation 17 times out of 18. The direction-knowledge could have
+  anchored exactly that movement, and no procedure in this run can exclude it.
+- One claim ('That's when Alec replied') appears verbatim in the published
+  correspondence as a named fault-line example; the reader had read that
+  correspondence. It typed it observation, unsure.
+- REPLICATION, WITH THE ABOVE DISCOUNTS: 48.6% (Opus reader, four categories,
+  narrative) against 50.0% (Fable reader, five categories, narrative opening) —
+  different model family, different category count, same genre, same direction,
+  same shape: narrated events the classifier calls objective and light
+  characterisations it calls interpretive both collapse toward observation for a
+  second reader. The classifier reproduces itself at 87.9%; two independent
+  readers now agree with it at ~50% on narrative. Consistency and agreement
+  remain different properties.
+- Ten of the eighteen disagreements were made SURE — the subset that bears on
+  the classifier rather than on the category boundary. Eight of ten sure
+  disagreements are the classifier reading first-person narrative as publicly
+  checkable fact.
+- One document, one register, one pass, n=36 both-typed. The narrative opening
+  is not the essay's argumentative body, where the prior reader agreed at 75.8%.
+
 ---
 
 ## Comparing a later reading
@@ -756,7 +817,7 @@ cannot be told apart from a changed instrument.
 
 ## What is not measured
 
-- **Correctness.** 11 figures. 10 of them are the system agreeing or disagreeing
+- **Correctness.** 12 figures. 11 of them are the system agreeing or disagreeing
   with itself; 1 compares it against a second judge, which is agreement between
   two readers and not evidence that either is right. Nothing here compares the
   system's output to a *person's* judgement of the same text — which would be
