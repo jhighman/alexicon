@@ -137,10 +137,29 @@ not the build's job.
 8. Zero historical rows rewritten, zero assertions destroyed — verified by
    digest, before and after.
 
-## What this deliberately does not decide
+## The decisions, as made
 
-- **Whether the three anomalies are reclassified**, and to what. Jeff's, per
-  §5, after the build.
+Jeff made the three calls on 31 July 2026, the day of acceptance, each through
+the mechanism and each carrying his name and rationale in the record:
+
+- **Alexicon → entity.** A concept does not judge, and the framework's own
+  referent must not hold claim-settling or delegation-granting authority. The
+  delegation gate now refuses it.
+- **God → entity.** Whether God is a person is a contested ontological
+  question, and the system refuses to resolve those elsewhere — a primitive
+  that allocates authority must not resolve it silently. Recorded as a
+  position, revisable by the same path that recorded it.
+- **Alec stays a person; the subject was the error.** The grounding had typed
+  the relationship into the subject field. Corrected `Family → Person` with an
+  accountable `amend` assertion recorded beside the change, because subject has
+  no recognition gate and accountability should not depend on one.
+
+None of the three had ever authored an assertion or granted a delegation, so
+the demotions changed potential authority only; the 143 mention-resolutions
+pointing *at* them are untouched, since being referred to was never the same
+thing as judging.
+
+## What this deliberately does not decide
 - **Recognition chains.** `by:` must be a person; whether personhood should
   require *n* recognizers, expiry, or TEI-style scrutiny scaling with what the
   recognized party may then do — real questions, out of scope until a second
