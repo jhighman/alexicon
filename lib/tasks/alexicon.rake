@@ -134,6 +134,67 @@ namespace :alexicon do
     puts "that is a proposal for a person to accept rather than a service to assert."
   end
 
+  desc "What a framework charges, and how two compare: rake 'alexicon:premises[alexicon-2.0,lewisian-1.0]'"
+  task :premises, %i[left right] => :environment do |_t, args|
+    left = Framework.find_by!(key: args.fetch(:left))
+    premises = FrameworkPremises.for(left)
+
+    puts "#{left.key} — what it will not let pass for free"
+    puts
+    premises.costly.each do |charge|
+      puts format("  %-28s %d", charge.crossing, charge.weight)
+      puts "    #{charge.rationale}" if charge.rationale.present?
+    end
+    puts
+    free = premises.charges.select(&:free?)
+    puts "Free: #{free.map(&:crossing).join(', ')}" if free.any?
+    puts "Never declared: #{premises.silent.map { it.join(' → ') }.join(', ')}" if premises.silent.any?
+    puts
+
+    next if args[:right].blank?
+
+    right = Framework.find_by!(key: args.fetch(:right))
+    comparison = FrameworkPremises.compare(left, right)
+    puts comparison.to_s
+    puts "  #{comparison.shared.size} crossing(s) compared, #{comparison.divergences.size} differing"
+    puts
+
+    comparison.divergences.each do |d|
+      puts format("  %-28s %s %d  vs  %s %d", d.crossing,
+                  left.key, d.left.weight, right.key, d.right.weight)
+    end
+    puts
+    unless comparison.comparable?
+      puts "Incomparable: each charges more than the other somewhere. There is no"
+      puts "ordering between these two, and a strictness score would invent one."
+      puts
+    end
+    puts "These are declared commitments, not readings of anyone's motives."
+  end
+
+  desc "The premise a step was judged under: rake 'alexicon:step_premises[123]'"
+  task :step_premises, [ :transition_id ] => :environment do |_t, args|
+    step = Transition.find(args.fetch(:transition_id))
+    spread = StepPremises.spread(step)
+
+    puts "step #{step.id}: claim #{step.from_claim.position} → #{step.to_claim.position}"
+    if spread.crossing.nil?
+      puts "  Either claim is unclassified, so no crossing exists and no premise applies."
+      next
+    end
+
+    puts "  crossing: #{spread.crossing}"
+    puts
+    spread.positions.each_value do |position|
+      cost = position.silent? ? "not declared" : "charges #{position.weight}"
+      ruled = position.ruled ? position.verdict : "has not ruled"
+      puts format("  %-18s %-14s %s", position.framework.key, cost, ruled)
+      puts "    #{position.rationale}" if position.rationale.present?
+    end
+    puts
+    puts "This is #{StepPremises::CAVEAT}."
+  end
+
   desc "Blind value worksheet for a person: rake 'alexicon:worksheet[30,24]'"
   task :worksheet, [ :document_id, :size, :seed ] => :environment do |_t, args|
     document = Document.find(args[:document_id])
