@@ -4,7 +4,7 @@
 Governance of Epistemic Transitions*, A. Krížová, first edition 2026.
 
 The manuscript currently carries no figures. This is a proposed programme of
-twenty-seven — covering the thirteen chapters and the four appendices —
+twenty-eight — covering the thirteen chapters and the four appendices —
 enumerated to the sections they serve, each with a Mermaid source
 and an academic caption. Numbering follows the convention *chapter.ordinal*.
 Diagrams are self-contained: every figure states what it shows and what it does
@@ -24,9 +24,10 @@ because a chart outlives the paragraph that qualified it.
 | 2.1 | §2.1–2.2 | SVOMPT as external scaffolding |
 | 2.2 | §2.3 | One structural deficiency, two responses |
 | 3.1 | §3.2 | The category error, as a family |
-| 4.1 | §4.1 | The three columns of the G3/G7 Matrix |
-| 4.2 | §4.2 | The seven stations |
-| 4.3 | §4.6 | TEI inversion: authority tightens what is required of it |
+| 4.1 | §4 | The G3/G7 Matrix: three columns crossed with seven stations |
+| 4.2 | §4.1 | The three columns of the G3/G7 Matrix |
+| 4.3 | §4.3 | The 2.0 reframing: stations restated as domains |
+| 4.4 | §4.6 | TEI inversion: authority tightens what is required of it |
 | 5.1 | §5.1–5.9 | Theoretical foundations, mapped to mechanisms |
 | 6.1 | §6.2–6.3 | The Sentinel at the binding boundary |
 | 7.1 | §7.1 | Three levels of inquiry |
@@ -176,7 +177,50 @@ argument is structural, not a complaint about any one technology.
 
 ---
 
-## Figure 4.1 — The three columns of the G3/G7 Matrix
+## Figure 4.1 — The G3/G7 Matrix: three columns crossed with seven stations
+
+*Introduces §4 (The Framework: From SVOMPT to the G3/G7 Matrix).*
+
+```mermaid
+flowchart LR
+    IN["Raw text"] --> ST
+    subgraph COLS["The three columns — WHAT is governed"]
+        direction TB
+        C["C · Subject Anchor<br/><i>who or what</i>"]
+        D["D · Action Polarity<br/><i>what is happening</i>"]
+        E["E · Context Reconstruction<br/><i>under what conditions</i>"]
+    end
+    subgraph ST["The seven stations — WHERE it is governed"]
+        direction TB
+        S1["1 · Base Cognitive Anchor<br/><i>text nodes become foundational objects</i>"]
+        S1 --> S2["2 · Context Filter<br/><i>syntactic noise out, polarity locked</i>"]
+        S2 --> S3["3 · Dynamic Vector<br/><i>relationship states, agency checks</i>"]
+        S3 --> S4["4 · Translational Layer<br/><i>chronology from fixed anchors</i>"]
+        S4 --> S5["5 · Synthesis<br/><i>linear constraints dismantled,<br/>relational graph built</i>"]
+        S5 --> S6["6 · Validation Sentinel<br/><i>causality cross-checked,<br/>verified intent locked</i>"]
+        S6 --> S7["7 · Emergent Output"]
+    end
+    C -.->|"crosses<br/>every station"| ST
+    D -.->|"crosses<br/>every station"| ST
+    E -.->|"crosses<br/>every station"| ST
+    ST --> OUT["Attributable intent state:<br/>actor · action · target ·<br/>context boundaries —<br/>no raw token leakage"]
+
+    style OUT fill:#d1e7dd,stroke:#198754
+```
+
+**Caption.** The Matrix that Chapter 4 builds from the SVOMPT sequence, and
+the reason a matrix is needed at all: a sequence says what order to read in,
+but not what must be true before a claim may proceed. Three functional columns
+state *what* is governed — identity, force, and conditions — and seven
+processing stations state *where* in the pipeline that governance happens;
+each column crosses every station, which is what makes this an architecture
+rather than a checklist. The emission at station seven is the design's
+contract: a contextualised, attributable intent state, with no raw token
+leakage downstream.
+
+---
+
+## Figure 4.2 — The three columns of the G3/G7 Matrix
 
 *Anchors §4.1 (The three columns).*
 
@@ -204,28 +248,56 @@ a direction of anything.
 
 ---
 
-## Figure 4.2 — The seven stations
+## Figure 4.3 — The 2.0 reframing: stations restated as domains
 
-*Anchors §4.2 (The seven stations).*
+*Anchors §4.3 (The 2.0 reframing).*
 
 ```mermaid
 flowchart LR
-    S1["Observation"] --> S2["Experience"] --> S3["Interpretation"] --> S4["Meaning"] --> S5["Belief"] --> S6["Assertion"] --> S7["Action"]
+    subgraph G37["G3/G7 stations —<br/>transformer-internal location"]
+        s1["1 · Base Cognitive Anchor"]
+        s2["2 · Context Filter"]
+        s3["3 · Dynamic Vector,<br/>agency checks"]
+        s4["4 · Translational Layer"]
+        s5["5 · Synthesis"]
+        s6["6 · Validation Sentinel"]
+        s7["7 · Emergent Output"]
+    end
+    subgraph D20["Alexicon 2.0 domains —<br/>the epistemic level"]
+        dId["Identity"]
+        dAg["Agency"]
+        dMo["Motivation"]
+        dRe["Reflection"]
+        dIn["Integration"]
+        dGo["Governance"]
+        dOr["Orientation"]
+    end
+    s1 -->|"strong"| dId
+    s3 -->|"strong"| dAg
+    s4 -->|"strong"| dRe
+    s5 -->|"strong"| dIn
+    s6 -->|"strong"| dGo
+    s7 -.->|"moderate"| dOr
+    NEW(["no clean predecessor —<br/>new in 2.0"]) -.-> dMo
 
-    style S7 fill:#f8d7da,stroke:#dc3545
+    style dGo fill:#cfe2ff,stroke:#0d6efd
 ```
 
-**Caption.** The epistemic ladder along which a claim ascends toward action.
-The framework's governance concern is not any station but the *transitions
-between* them: each step to the right claims more than the last, and the
-question the architecture asks at each is whether that promotion was earned.
-The ladder ends in action, which is why the final station is marked — an
-unearned claim that reaches it stops being an epistemic problem and becomes a
-practical one.
+**Caption.** The relocation §4.3 records: interventions first stated inside
+the transformer — clamps on activations, guards at named attention layers —
+did not survive contact with implementation, and the framework was moved
+rather than defended. The correspondence is deliberately imperfect, and the
+imperfection is the evidence that this is a correction rather than a
+relabelling: Motivation enters with no predecessor, the Context Filter is the
+station the mapping table leaves unmapped, and Orientation carries only a
+moderate mapping. The shaded domain states the section's sharper consequence:
+transition-governance — the thing the framework is usually described as being
+— is *one domain of seven*, and descriptions built around it are describing
+the Governance domain and calling it the framework.
 
 ---
 
-## Figure 4.3 — TEI inversion: authority tightens what is required of it
+## Figure 4.4 — TEI inversion: authority tightens what is required of it
 
 *Anchors §4.6 (Authority tightens what is required of it).*
 
